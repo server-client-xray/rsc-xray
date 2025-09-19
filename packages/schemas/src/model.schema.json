@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://server-client-xray.dev/schemas/model.schema.json",
+  "title": "Server Client XRay Model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "routes", "nodes", "build"],
+  "properties": {
+    "version": { "const": "0.1" },
+    "routes": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/RouteEntry" }
+    },
+    "nodes": {
+      "type": "object",
+      "patternProperties": {
+        "^.+$": { "$ref": "#/definitions/XNode" }
+      },
+      "additionalProperties": false
+    },
+    "build": { "$ref": "#/definitions/BuildInfo" },
+    "flight": { "$ref": "#/definitions/FlightData" }
+  },
+  "definitions": {
+    "NodeKind": { "enum": ["server", "client", "suspense", "route"] },
+    "Diagnostic": {
+      "type": "object",
+      "required": ["rule", "level", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "rule": { "type": "string", "minLength": 1 },
+        "level": { "enum": ["warn", "error"] },
+        "message": { "type": "string", "minLength": 1 },
+        "loc": {
+          "type": "object",
+          "required": ["file", "line", "col"],
+          "additionalProperties": false,
+          "properties": {
+            "file": { "type": "string", "minLength": 1 },
+            "line": { "type": "integer", "minimum": 0 },
+            "col": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "XNode": {
+      "type": "object",
+      "required": ["id", "kind"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "file": { "type": "string" },
+        "name": { "type": "string" },
+        "kind": { "$ref": "#/definitions/NodeKind" },
+        "bytes": { "type": "number", "minimum": 0 },
+        "hydrationMs": { "type": "number", "minimum": 0 },
+        "diagnostics": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Diagnostic" }
+        },
+        "children": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "RouteEntry": {
+      "type": "object",
+      "required": ["route", "rootNodeId"],
+      "additionalProperties": false,
+      "properties": {
+        "route": { "type": "string", "minLength": 1 },
+        "rootNodeId": { "type": "string", "minLength": 1 },
+        "changedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "BuildInfo": {
+      "type": "object",
+      "required": ["nextVersion", "timestamp"],
+      "additionalProperties": false,
+      "properties": {
+        "nextVersion": { "type": "string", "minLength": 1 },
+        "timestamp": { "type": "string", "format": "date-time" }
+      }
+    },
+    "FlightSample": {
+      "type": "object",
+      "required": ["route", "ts", "chunkIndex"],
+      "additionalProperties": false,
+      "properties": {
+        "route": { "type": "string", "minLength": 1 },
+        "ts": { "type": "number" },
+        "chunkIndex": { "type": "integer", "minimum": 0 },
+        "label": { "type": "string" }
+      }
+    },
+    "FlightData": {
+      "type": "object",
+      "required": ["samples"],
+      "additionalProperties": false,
+      "properties": {
+        "samples": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/FlightSample" }
+        }
+      }
+    }
+  }
+}

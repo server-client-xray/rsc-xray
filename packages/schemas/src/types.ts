@@ -1,4 +1,18 @@
-export type NodeKind = "server" | "client" | "suspense" | "route";
+export type NodeKind = 'server' | 'client' | 'suspense' | 'route';
+
+export interface DiagnosticLocation {
+  file: string;
+  line: number;
+  col: number;
+}
+
+export interface Diagnostic {
+  rule: string;
+  level: 'warn' | 'error';
+  message: string;
+  loc?: DiagnosticLocation;
+}
+
 export interface XNode {
   id: string;
   file?: string;
@@ -6,15 +20,37 @@ export interface XNode {
   kind: NodeKind;
   bytes?: number;
   hydrationMs?: number;
-  diagnostics?: Array<{ rule: string; level: "warn"|"error"; message: string; loc?: {file:string; line:number; col:number} }>;
+  diagnostics?: Diagnostic[];
   children?: string[];
   tags?: string[];
 }
-export interface RouteEntry { route: string; rootNodeId: string; changedAt?: string; }
+
+export interface RouteEntry {
+  route: string;
+  rootNodeId: string;
+  changedAt?: string;
+}
+
+export interface BuildInfo {
+  nextVersion: string;
+  timestamp: string;
+}
+
+export interface FlightSample {
+  route: string;
+  ts: number;
+  chunkIndex: number;
+  label?: string;
+}
+
+export interface FlightData {
+  samples: FlightSample[];
+}
+
 export interface Model {
-  version: "0.1";
+  version: '0.1';
   routes: RouteEntry[];
   nodes: Record<string, XNode>;
-  build: { nextVersion: string; timestamp: string; };
-  flight?: { samples: Array<{ route: string; ts: number; chunkIndex: number; label?: string }>; };
+  build: BuildInfo;
+  flight?: FlightData;
 }
