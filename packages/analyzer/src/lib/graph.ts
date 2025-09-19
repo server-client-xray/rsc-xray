@@ -3,7 +3,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 
 import * as ts from 'typescript';
 
-import type { RouteEntry, XNode } from '@server-client-xray/schemas';
+import type { Diagnostic, RouteEntry, XNode } from '@server-client-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
 
@@ -11,6 +11,7 @@ export interface BuildGraphOptions {
   projectRoot: string;
   classifiedFiles: ClassifiedFile[];
   appDir?: string;
+  diagnosticsByFile?: Record<string, Diagnostic[]>;
 }
 
 export interface BuildGraphResult {
@@ -139,8 +140,23 @@ export async function buildGraph({
   projectRoot,
   classifiedFiles,
   appDir = 'app',
+  diagnosticsByFile,
 }: BuildGraphOptions): Promise<BuildGraphResult> {
   const availableFiles = new Set(classifiedFiles.map((file) => toPosixPath(file.filePath)));
+
+  const diagnosticsLookup = new Map<string, Diagnostic[]>();
+  if (diagnosticsByFile) {
+    for (const [filePath, diagnosticList] of Object.entries(diagnosticsByFile)) {
+      if (!diagnosticList?.length) {
+        continue;
+      }
+      const normalized = toPosixPath(filePath);
+      diagnosticsLookup.set(
+        normalized,
+        diagnosticList.map((diagnostic) => ({ ...diagnostic }))
+      );
+    }
+  }
 
   const moduleMetas = new Map<string, ModuleMeta>();
 
@@ -173,12 +189,15 @@ export async function buildGraph({
   const nodes: Record<string, XNode> = {};
 
   for (const meta of moduleMetas.values()) {
+    const diagnostics = diagnosticsLookup.get(meta.filePath);
+
     nodes[meta.id] = {
       id: meta.id,
       kind: meta.kind,
       file: meta.filePath,
       name: meta.filePath.split('/').pop(),
       children: meta.imports,
+      ...(diagnostics ? { diagnostics } : {}),
     };
   }
 
