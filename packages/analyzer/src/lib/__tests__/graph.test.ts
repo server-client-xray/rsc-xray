@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildGraph } from '../graph';
+import type { Diagnostic } from '@server-client-xray/schemas';
 import { classifyFiles } from '../classifyFiles';
 
 async function collectTsFiles(root: string): Promise<string[]> {
@@ -32,7 +33,22 @@ describe('buildGraph', () => {
     const filePaths = await collectTsFiles(projectRoot);
     const classified = await classifyFiles({ projectRoot, filePaths });
 
-    const graph = await buildGraph({ projectRoot, classifiedFiles: classified });
+    const diagnosticsByFile: Record<string, Diagnostic[]> = {
+      'app/components/Button.tsx': [
+        {
+          rule: 'client-forbidden-import',
+          level: 'error',
+          message: 'Client modules must not use fs',
+          loc: { file: 'app/components/Button.tsx', line: 1, col: 1 },
+        },
+      ],
+    };
+
+    const graph = await buildGraph({
+      projectRoot,
+      classifiedFiles: classified,
+      diagnosticsByFile,
+    });
 
     expect(graph.routes).toEqual([
       { route: '/', rootNodeId: 'route:/' },
@@ -57,10 +73,13 @@ describe('buildGraph', () => {
     expect(graph.nodes['module:app/components/Button.tsx']).toMatchObject({
       kind: 'client',
       children: [],
+      diagnostics: diagnosticsByFile['app/components/Button.tsx'],
     });
 
     expect(graph.nodes['route:/products']).toMatchObject({
       children: ['module:app/(shop)/products/page.tsx'],
     });
+
+    expect(graph.nodes['module:app/components/ServerMessage.tsx'].diagnostics).toBeUndefined();
   });
 });
