@@ -1,5 +1,4 @@
 import { PassThrough } from 'node:stream';
-import { ReadableStream } from 'node:stream/web';
 
 import { describe, expect, it, vi } from 'vitest';
 
@@ -13,11 +12,18 @@ describe('flightTap', () => {
       content += chunk.toString();
     });
 
-    const fakeFetch = vi.fn(async () => ({
-      body: streamFromStrings(['chunk-1', 'chunk-2'], 1),
-    } as unknown as Response));
+    const fakeFetch = vi.fn(
+      async () =>
+        ({
+          body: streamFromStrings(['chunk-1', 'chunk-2'], 1),
+        }) as unknown as Response
+    );
 
-    const result = await flightTap({ url: 'http://localhost:3000/products', output, fetchImpl: fakeFetch });
+    const result = await flightTap({
+      url: 'http://localhost:3000/products',
+      output,
+      fetchImpl: fakeFetch,
+    });
 
     expect(result.chunks).toBe(2);
     expect(result.samples).toHaveLength(2);

@@ -1,0 +1,17 @@
+{
+  "static/chunks/app/page.js": [
+    { "name": "page.js", "size": 1024 }
+  ],
+  "static/chunks/main.js": [
+    { "name": "main.js", "size": 210 }
+  ],
+  "static/chunks/app/products/[id]/page.js": [
+    { "name": "page.js", "size": 512 }
+  ],
+  "app/products/page.js": [
+    { "name": "page.js", "size": 256 }
+  ],
+  "server/app/products/[id]/page.js": [
+    { "name": "page.js", "size": 128 }
+  ]
+}

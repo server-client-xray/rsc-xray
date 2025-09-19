@@ -61,7 +61,17 @@ export async function readManifests({
     if (route === '/') {
       return route;
     }
-    return route.replace(/\/page$/, '') || '/';
+
+    const withoutPage = route.replace(/\/page$/, '');
+    const withoutGroups = withoutPage.replace(/\/\([^/]+\)/g, '');
+    const cleaned = withoutGroups.replace(/\/{2,}/g, '/');
+    const trimmed = cleaned.length > 1 ? cleaned.replace(/\/$/, '') : cleaned;
+
+    if (!trimmed) {
+      return '/';
+    }
+
+    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   };
 
   const appendRoute = (route: string, chunks: string[]) => {

@@ -1,0 +1,9 @@
+{
+  "pages": {
+    "/layout": ["app/layout.js"],
+    "/(shop)/layout": ["app/(shop)/layout.js"],
+    "/(shop)/products/page": ["app/products/page.js"],
+    "/(shop)/products/[id]/page": ["server/app/products/[id]/page.js"]
+  },
+  "rootMainFiles": ["app/main.js"]
+}

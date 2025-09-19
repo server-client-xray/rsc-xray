@@ -1,6 +1,9 @@
 node_modules
 dist
 .next
+# Include the analyzer fixture manifests that live under .next
+!packages/analyzer/src/lib/__tests__/__fixtures__/basic/.next/
+!packages/analyzer/src/lib/__tests__/__fixtures__/basic/.next/**
 coverage
 *.log
 .env*

@@ -5,8 +5,5 @@
     "outDir": "dist"
   },
   "include": ["src"],
-  "references": [
-    { "path": "../analyzer" },
-    { "path": "../schemas" }
-  ]
+  "references": [{ "path": "../analyzer" }, { "path": "../schemas" }]
 }
