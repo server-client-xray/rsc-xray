@@ -1,0 +1,13 @@
+{
+  "pages": {
+    "/": ["static/chunks/app/page.js", "static/chunks/main.js"],
+    "/_app": [],
+    "/products/[id]": ["static/chunks/app/products/[id]/page.js"]
+  },
+  "app": {
+    "/layout": ["app/layout.js"],
+    "/(shop)/layout": ["app/(shop)/layout.js"],
+    "/(shop)/products/page": ["app/products/page.js"],
+    "/(shop)/products/[id]/page": ["server/app/products/[id]/page.js"]
+  }
+}
