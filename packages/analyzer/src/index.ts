@@ -1,5 +1,6 @@
 export * from './lib/classify';
 export * from './lib/classifyFiles';
+export * from './lib/attributeBytes';
 export * from './lib/clientBundles';
 export * from './lib/graph';
 export * from './lib/readManifests';

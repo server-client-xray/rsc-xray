@@ -6,12 +6,15 @@ import * as ts from 'typescript';
 import type { Diagnostic, RouteEntry, XNode } from '@server-client-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
+import type { ClientComponentBundle } from './clientBundles';
+import { attributeBytes } from './attributeBytes';
 
 export interface BuildGraphOptions {
   projectRoot: string;
   classifiedFiles: ClassifiedFile[];
   appDir?: string;
   diagnosticsByFile?: Record<string, Diagnostic[]>;
+  clientBundles?: ClientComponentBundle[];
 }
 
 export interface BuildGraphResult {
@@ -141,6 +144,7 @@ export async function buildGraph({
   classifiedFiles,
   appDir = 'app',
   diagnosticsByFile,
+  clientBundles,
 }: BuildGraphOptions): Promise<BuildGraphResult> {
   const availableFiles = new Set(classifiedFiles.map((file) => toPosixPath(file.filePath)));
 
@@ -157,6 +161,8 @@ export async function buildGraph({
       );
     }
   }
+
+  const bundleLookup = attributeBytes(clientBundles);
 
   const moduleMetas = new Map<string, ModuleMeta>();
 
@@ -190,6 +196,7 @@ export async function buildGraph({
 
   for (const meta of moduleMetas.values()) {
     const diagnostics = diagnosticsLookup.get(meta.filePath);
+    const bundle = bundleLookup[meta.filePath];
 
     nodes[meta.id] = {
       id: meta.id,
@@ -198,6 +205,7 @@ export async function buildGraph({
       name: meta.filePath.split('/').pop(),
       children: meta.imports,
       ...(diagnostics ? { diagnostics } : {}),
+      ...(bundle && bundle.totalBytes > 0 ? { bytes: bundle.totalBytes } : {}),
     };
   }
 
