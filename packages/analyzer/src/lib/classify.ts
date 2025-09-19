@@ -28,12 +28,21 @@ function hasUseClientDirective(sourceFile: ts.SourceFile): boolean {
   return false;
 }
 
-export function classifyComponent({ sourceText, fileName }: ClassifyComponentOptions): ClassificationResult {
-  const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+export function classifyComponent({
+  sourceText,
+  fileName,
+}: ClassifyComponentOptions): ClassificationResult {
+  const sourceFile = ts.createSourceFile(
+    fileName,
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
   const hasDirective = hasUseClientDirective(sourceFile);
   return {
     fileName,
     kind: hasDirective ? 'client' : 'server',
-    hasUseClientDirective: hasDirective
+    hasUseClientDirective: hasDirective,
   };
 }

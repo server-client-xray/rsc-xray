@@ -7,7 +7,7 @@ describe('classifyComponent', () => {
     const result = classifyComponent({
       fileName: '/tmp/component.tsx',
       sourceText: `'use client';
-export function Button() { return <button />; }`
+export function Button() { return <button />; }`,
     });
 
     expect(result).toMatchObject({ kind: 'client', hasUseClientDirective: true });
@@ -16,7 +16,7 @@ export function Button() { return <button />; }`
   it('defaults to server components when directive absent', () => {
     const result = classifyComponent({
       fileName: '/tmp/server.tsx',
-      sourceText: `export async function Page() { return <div />; }`
+      sourceText: `export async function Page() { return <div />; }`,
     });
 
     expect(result).toMatchObject({ kind: 'server', hasUseClientDirective: false });

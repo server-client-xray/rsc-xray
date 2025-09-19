@@ -3,7 +3,10 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { classifyFiles } from '../../lib/classifyFiles';
-import { analyzeClientFileForForbiddenImports, collectForbiddenImportDiagnostics } from '../clientForbiddenImports';
+import {
+  analyzeClientFileForForbiddenImports,
+  collectForbiddenImportDiagnostics,
+} from '../clientForbiddenImports';
 
 const COMPONENT_ROOT = join(__dirname, '../../lib/__tests__/__fixtures__/components');
 
@@ -17,13 +20,13 @@ describe('client forbidden imports', () => {
     const sourceText = "'use client';\nimport fs from 'fs';\nexport const Button = () => null;";
     const diagnostics = analyzeClientFileForForbiddenImports({
       fileName: 'Client.tsx',
-      sourceText
+      sourceText,
     });
 
     expect(diagnostics).toHaveLength(1);
     expect(diagnostics[0]).toMatchObject({
       rule: 'client-forbidden-import',
-      level: 'error'
+      level: 'error',
     });
   });
 
@@ -31,7 +34,7 @@ describe('client forbidden imports', () => {
     const sourceText = "import fs from 'fs';\nexport const Server = () => null;";
     const diagnostics = analyzeClientFileForForbiddenImports({
       fileName: 'Server.tsx',
-      sourceText
+      sourceText,
     });
 
     expect(diagnostics).toHaveLength(0);
@@ -39,15 +42,15 @@ describe('client forbidden imports', () => {
 
   it('collects diagnostics across files', async () => {
     const filePaths = [
-      join(COMPONENT_ROOT, 'ClientComponent.tsx'),
-      join(COMPONENT_ROOT, 'ServerComponent.tsx')
+      join(COMPONENT_ROOT, 'ClientComponent.ts'),
+      join(COMPONENT_ROOT, 'ServerComponent.ts'),
     ];
     const sources = await Promise.all(filePaths.map(loadSource));
     const classified = await classifyFiles({ projectRoot: COMPONENT_ROOT, filePaths });
     const files = classified.map((entry, index) => ({
       filePath: entry.filePath,
       kind: entry.kind,
-      sourceText: sources[index]
+      sourceText: sources[index],
     }));
 
     const diagnostics = collectForbiddenImportDiagnostics({ files });

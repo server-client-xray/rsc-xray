@@ -1,7 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-import type { NextAppBuildManifest, NextBuildManifest, ParsedManifests } from '../types/next-manifest';
+import type {
+  NextAppBuildManifest,
+  NextBuildManifest,
+  ParsedManifests,
+} from '../types/next-manifest';
 
 interface ReadManifestsOptions {
   projectRoot: string;
@@ -27,14 +31,17 @@ function sumBytes(assets: NamedAssetSize[] | undefined): number | undefined {
   return assets.reduce((acc, asset) => acc + asset.size, 0);
 }
 
-export async function readManifests({ projectRoot, distDir = DEFAULT_DIST_DIR }: ReadManifestsOptions): Promise<ParsedManifests> {
+export async function readManifests({
+  projectRoot,
+  distDir = DEFAULT_DIST_DIR,
+}: ReadManifestsOptions): Promise<ParsedManifests> {
   const manifestPath = join(projectRoot, distDir, 'build-manifest.json');
   const appManifestPath = join(projectRoot, distDir, 'server', 'app-build-manifest.json');
   const sizeManifestPath = join(projectRoot, distDir, 'build-manifest.json.__scx_sizes__');
 
   const [buildManifest, appBuildManifest] = await Promise.all([
     readJsonFile<NextBuildManifest>(manifestPath),
-    readJsonFile<NextAppBuildManifest>(appManifestPath)
+    readJsonFile<NextAppBuildManifest>(appManifestPath),
   ]);
 
   let assetSizes: Record<string, number> | undefined;
@@ -79,7 +86,7 @@ export async function readManifests({ projectRoot, distDir = DEFAULT_DIST_DIR }:
     return {
       route,
       chunks: chunkArray,
-      totalBytes: totalBytes && totalBytes > 0 ? totalBytes : undefined
+      totalBytes: totalBytes && totalBytes > 0 ? totalBytes : undefined,
     };
   });
 

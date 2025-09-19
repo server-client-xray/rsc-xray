@@ -7,8 +7,8 @@ export default function HomePage() {
         <h1>Server Client XRay Demo</h1>
         <p>This example highlights Suspense boundaries and client islands for analyzer fixtures.</p>
         <p>
-          Start with the <Link href="/products">/products</Link> route to load data-heavy sections and a client-only
-          reviews widget.
+          Start with the <Link href="/products">/products</Link> route to load data-heavy sections
+          and a client-only reviews widget.
         </p>
       </section>
     </main>

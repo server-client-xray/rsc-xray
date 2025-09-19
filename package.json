@@ -9,12 +9,20 @@
   "scripts": {
     "build": "pnpm -r build",
     "test": "pnpm -r test",
-    "lint": "pnpm -r eslint ."
+    "lint": "pnpm exec eslint ."
   },
   "devDependencies": {
+    "@eslint/js": "^9.35.0",
     "@types/node": "20.15.0",
+    "@typescript-eslint/eslint-plugin": "^8.44.0",
+    "@typescript-eslint/parser": "^8.44.0",
+    "eslint": "^9.35.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "prettier": "^3.6.2",
+    "tsx": "4.16.1",
     "typescript": "5.5.4",
-    "vitest": "1.5.2",
-    "tsx": "4.16.1"
+    "typescript-eslint": "^8.44.0",
+    "vitest": "1.5.2"
   }
 }

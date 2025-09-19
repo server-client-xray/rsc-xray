@@ -13,14 +13,17 @@ export interface ClassifyFilesOptions {
   filePaths: string[];
 }
 
-export async function classifyFiles({ projectRoot, filePaths }: ClassifyFilesOptions): Promise<ClassifiedFile[]> {
+export async function classifyFiles({
+  projectRoot,
+  filePaths,
+}: ClassifyFilesOptions): Promise<ClassifiedFile[]> {
   const results = await Promise.all(
     filePaths.map(async (absPath) => {
       const sourceText = await readFile(absPath, 'utf8');
       const classification = classifyComponent({ fileName: absPath, sourceText });
       return {
         filePath: relative(projectRoot, absPath) || absPath,
-        kind: classification.kind
+        kind: classification.kind,
       } satisfies ClassifiedFile;
     })
   );
