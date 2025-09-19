@@ -13,15 +13,18 @@ describe('readManifests', () => {
 
     expect(routes['/']).toMatchObject({
       chunks: expect.arrayContaining(['static/chunks/app/page.js', 'static/chunks/main.js']),
-      totalBytes: 1234
+      totalBytes: 1234,
     });
 
     expect(routes['/products/[id]']).toMatchObject({
-      chunks: expect.arrayContaining(['static/chunks/app/products/[id]/page.js', 'server/app/products/[id]/page.js'])
+      chunks: expect.arrayContaining([
+        'static/chunks/app/products/[id]/page.js',
+        'server/app/products/[id]/page.js',
+      ]),
     });
 
     expect(routes['/products']).toMatchObject({
-      chunks: expect.arrayContaining(['app/products/page.js'])
+      chunks: expect.arrayContaining(['app/products/page.js']),
     });
   });
 });

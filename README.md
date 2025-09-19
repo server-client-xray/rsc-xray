@@ -1,6 +1,7 @@
 # server-client-xray (OSS)
 
 Core analyzer + CLI + schemas + offline HTML report.
+
 - Detect server/client boundaries (`use client`)
 - Suspense discovery
 - Bundle bytes per island

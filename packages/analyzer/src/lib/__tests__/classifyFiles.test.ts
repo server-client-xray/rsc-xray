@@ -11,14 +11,14 @@ describe('classifyFiles', () => {
     const result = await classifyFiles({
       projectRoot: COMPONENT_ROOT,
       filePaths: [
-        join(COMPONENT_ROOT, 'ClientComponent.tsx'),
-        join(COMPONENT_ROOT, 'ServerComponent.tsx')
-      ]
+        join(COMPONENT_ROOT, 'ClientComponent.ts'),
+        join(COMPONENT_ROOT, 'ServerComponent.ts'),
+      ],
     });
 
     expect(result).toEqual([
-      { filePath: 'ClientComponent.tsx', kind: 'client' },
-      { filePath: 'ServerComponent.tsx', kind: 'server' }
+      { filePath: 'ClientComponent.ts', kind: 'client' },
+      { filePath: 'ServerComponent.ts', kind: 'server' },
     ]);
   });
 });

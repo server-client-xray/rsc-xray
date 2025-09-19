@@ -3,7 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Server Client XRay Demo',
-  description: 'Demo Next.js App Router project with Suspense islands.'
+  description: 'Demo Next.js App Router project with Suspense islands.',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

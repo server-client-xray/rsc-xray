@@ -21,7 +21,11 @@ function formatBytes(bytes: number | undefined): string {
   return `${kb.toFixed(1)} kB`;
 }
 
-export async function printManifest({ projectRoot, distDir, output = DEFAULT_OUTPUT }: PrintManifestOptions): Promise<void> {
+export async function printManifest({
+  projectRoot,
+  distDir,
+  output = DEFAULT_OUTPUT,
+}: PrintManifestOptions): Promise<void> {
   const { routes } = await readManifests({ projectRoot, distDir });
 
   const lines = routes
@@ -29,7 +33,9 @@ export async function printManifest({ projectRoot, distDir, output = DEFAULT_OUT
     .map((route) => {
       const chunkList = route.chunks.join(', ');
       const bytesLabel = formatBytes(route.totalBytes);
-      return bytesLabel ? `${route.route} -> ${chunkList} (${bytesLabel})` : `${route.route} -> ${chunkList}`;
+      return bytesLabel
+        ? `${route.route} -> ${chunkList} (${bytesLabel})`
+        : `${route.route} -> ${chunkList}`;
     });
 
   if (lines.length === 0) {

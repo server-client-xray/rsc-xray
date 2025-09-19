@@ -20,7 +20,7 @@ const DEFAULT_MODULES = new Set([
   'http',
   'https',
   'worker_threads',
-  'perf_hooks'
+  'perf_hooks',
 ]);
 
 function resolveModuleSet(forbiddenModules?: readonly string[]): Set<string> {
@@ -35,7 +35,11 @@ function isForbiddenModule(moduleName: string, modules: Set<string>): boolean {
   return modules.has(moduleName) || modules.has(normalizeModule(moduleName));
 }
 
-function createDiagnostic(sourceFile: ts.SourceFile, node: ts.Node, moduleName: string): Diagnostic {
+function createDiagnostic(
+  sourceFile: ts.SourceFile,
+  node: ts.Node,
+  moduleName: string
+): Diagnostic {
   const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
   return {
     rule: 'client-forbidden-import',
@@ -44,13 +48,23 @@ function createDiagnostic(sourceFile: ts.SourceFile, node: ts.Node, moduleName: 
     loc: {
       file: sourceFile.fileName,
       line: line + 1,
-      col: character + 1
-    }
+      col: character + 1,
+    },
   };
 }
 
-function analyzeSource({ fileName, sourceText, forbiddenModules }: AnalyzeClientSourceOptions): Diagnostic[] {
-  const sourceFile = ts.createSourceFile(fileName, sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+function analyzeSource({
+  fileName,
+  sourceText,
+  forbiddenModules,
+}: AnalyzeClientSourceOptions): Diagnostic[] {
+  const sourceFile = ts.createSourceFile(
+    fileName,
+    sourceText,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
   const diagnostics: Diagnostic[] = [];
   const modules = resolveModuleSet(forbiddenModules);
 
@@ -88,7 +102,11 @@ export interface AnalyzeClientFileOptions {
   forbiddenModules?: readonly string[];
 }
 
-export function analyzeClientFileForForbiddenImports({ fileName, sourceText, forbiddenModules }: AnalyzeClientFileOptions): Diagnostic[] {
+export function analyzeClientFileForForbiddenImports({
+  fileName,
+  sourceText,
+  forbiddenModules,
+}: AnalyzeClientFileOptions): Diagnostic[] {
   const classification = classifyComponent({ fileName, sourceText });
   if (classification.kind !== 'client') {
     return [];
@@ -101,7 +119,10 @@ export interface CollectForbiddenImportsOptions {
   forbiddenModules?: readonly string[];
 }
 
-export function collectForbiddenImportDiagnostics({ files, forbiddenModules }: CollectForbiddenImportsOptions): Diagnostic[] {
+export function collectForbiddenImportDiagnostics({
+  files,
+  forbiddenModules,
+}: CollectForbiddenImportsOptions): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
   for (const file of files) {
     if (file.kind !== 'client') continue;
@@ -109,7 +130,7 @@ export function collectForbiddenImportDiagnostics({ files, forbiddenModules }: C
       ...analyzeSource({
         fileName: file.filePath,
         sourceText: file.sourceText,
-        forbiddenModules
+        forbiddenModules,
       })
     );
   }
