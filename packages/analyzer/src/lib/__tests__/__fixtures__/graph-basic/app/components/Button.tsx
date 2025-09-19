@@ -1,9 +1,10 @@
 'use client';
 
-interface ButtonProps {
+export interface ButtonProps {
   label: string;
 }
 
 export default function Button({ label }: ButtonProps) {
-  return <button type="button">{label}</button>;
+  // Return a string literal instead of JSX to avoid pulling React types in fixtures.
+  return `button:${label}`;
 }
