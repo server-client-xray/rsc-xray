@@ -13,5 +13,8 @@
   "scripts": {
     "build": "tsc -b",
     "test": "vitest --run"
+  },
+  "dependencies": {
+    "@server-client-xray/schemas": "workspace:*"
   }
 }
