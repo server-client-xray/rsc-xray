@@ -20,6 +20,7 @@ describe('flightTap', () => {
     const result = await flightTap({ url: 'http://localhost:3000/products', output, fetchImpl: fakeFetch });
 
     expect(result.chunks).toBe(2);
+    expect(result.samples).toHaveLength(2);
     expect(content).toContain('chunk 0');
     expect(content).toContain('chunk 1');
   });

@@ -10,9 +10,16 @@ interface FlightTapOptions {
 
 interface FlightTapResult {
   chunks: number;
+  samples: FlightSample[];
 }
 
 const DEFAULT_OUTPUT: Writable = process.stdout;
+
+export interface FlightSample {
+  chunkIndex: number;
+  sizeBytes: number;
+  timestampMs: number;
+}
 
 export async function flightTap({
   url,
@@ -27,6 +34,7 @@ export async function flightTap({
   let chunkIndex = 0;
   const start = performance.now();
   const reader = response.body.getReader();
+  const samples: FlightSample[] = [];
 
   while (true) {
     const { done, value } = await reader.read();
@@ -38,11 +46,16 @@ export async function flightTap({
       output.write(
         `[scx-flight] t=${timestamp}ms chunk ${chunkIndex} (${value.byteLength} bytes)\n`,
       );
+      samples.push({
+        chunkIndex,
+        sizeBytes: value.byteLength,
+        timestampMs: timestamp,
+      });
       chunkIndex += 1;
     }
   }
 
-  return { chunks: chunkIndex };
+  return { chunks: chunkIndex, samples };
 }
 
 export function streamFromStrings(chunks: string[], delayMs = 0): ReadableStream<Uint8Array> {
