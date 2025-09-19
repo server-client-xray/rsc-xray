@@ -44,7 +44,7 @@ export async function flightTap({
     if (value) {
       const timestamp = Math.round(performance.now() - start);
       output.write(
-        `[scx-flight] t=${timestamp}ms chunk ${chunkIndex} (${value.byteLength} bytes)\n`,
+        `[scx-flight] t=${timestamp}ms chunk ${chunkIndex} (${value.byteLength} bytes)\n`
       );
       samples.push({
         chunkIndex,

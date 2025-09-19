@@ -28,7 +28,10 @@ async function loadJson<T>(filePath: string): Promise<T> {
   return JSON.parse(raw) as T;
 }
 
-async function loadAssetSizes(projectRoot: string, distDir: string): Promise<Record<string, number>> {
+async function loadAssetSizes(
+  projectRoot: string,
+  distDir: string
+): Promise<Record<string, number>> {
   const sizeManifestPath = join(projectRoot, distDir, 'build-manifest.json.__scx_sizes__');
   try {
     const parsed = await loadJson<Record<string, NamedAssetSize[]>>(sizeManifestPath);
@@ -36,7 +39,7 @@ async function loadAssetSizes(projectRoot: string, distDir: string): Promise<Rec
       Object.entries(parsed).map(([chunk, assets]) => [
         chunk,
         assets.reduce((acc, asset) => acc + asset.size, 0),
-      ]),
+      ])
     );
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {

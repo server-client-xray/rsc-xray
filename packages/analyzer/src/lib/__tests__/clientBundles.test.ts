@@ -11,7 +11,7 @@ const sizeManifest = JSON.stringify(
     'static/chunks/bar.js': [{ name: 'bar.js', size: 1024 }],
   },
   null,
-  2,
+  2
 );
 
 const clientManifestTemplate = (projectRoot: string) => {
@@ -30,7 +30,7 @@ describe('collectClientComponentBundles', () => {
       await writeFile(
         join(serverDir, 'page_client-reference-manifest.js'),
         clientManifestTemplate(cwd),
-        'utf8',
+        'utf8'
       );
 
       const bundles = await collectClientComponentBundles({ projectRoot: cwd });
