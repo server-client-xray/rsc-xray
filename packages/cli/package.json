@@ -10,6 +10,7 @@
     "print-manifest": "tsx src/bin/print-manifest.ts"
   },
   "dependencies": {
-    "@server-client-xray/analyzer": "workspace:*"
+    "@server-client-xray/analyzer": "workspace:*",
+    "@server-client-xray/schemas": "workspace:*"
   }
 }
