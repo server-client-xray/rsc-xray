@@ -48,6 +48,13 @@ describe('buildGraph', () => {
       projectRoot,
       classifiedFiles: classified,
       diagnosticsByFile,
+      clientBundles: [
+        {
+          filePath: 'app/components/Button.tsx',
+          chunks: ['static/chunks/app/button.js'],
+          totalBytes: 3072,
+        },
+      ],
     });
 
     expect(graph.routes).toEqual([
@@ -74,6 +81,7 @@ describe('buildGraph', () => {
       kind: 'client',
       children: [],
       diagnostics: diagnosticsByFile['app/components/Button.tsx'],
+      bytes: 3072,
     });
 
     expect(graph.nodes['route:/products']).toMatchObject({
