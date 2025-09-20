@@ -37,6 +37,8 @@ export interface RouteEntry {
   route: string;
   rootNodeId: string;
   changedAt?: string;
+  chunks?: string[];
+  totalBytes?: number;
 }
 
 export interface BuildInfo {

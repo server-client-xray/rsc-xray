@@ -6,12 +6,12 @@ import { describe, expect, it } from 'vitest';
 
 import type { Suggestion } from '@server-client-xray/schemas';
 
-import { __internal, collectSuggestions } from '../suggestions';
+import { collectSuggestions, collectSuggestionsForSource } from '../suggestions';
 
 describe('collectSuggestionsForSource', () => {
   it('recommends hoisting fetch in client components', () => {
     const source = `'use client';\nexport default async function Demo() {\n  const data = await fetch('/api/data');\n  return <pre>{JSON.stringify(data)}</pre>;\n}`;
-    const suggestions = __internal.collectSuggestionsForSource({
+    const suggestions = collectSuggestionsForSource({
       filePath: 'app/components/Button.tsx',
       sourceText: source,
       kind: 'client',
@@ -26,7 +26,7 @@ describe('collectSuggestionsForSource', () => {
 
   it('suggests Promise.all when multiple awaits exist', () => {
     const source = `export default async function Demo() {\n  const a = await getA();\n  const b = await getB();\n  return { a, b };\n}`;
-    const suggestions = __internal.collectSuggestionsForSource({
+    const suggestions = collectSuggestionsForSource({
       filePath: 'app/data/fetchers.ts',
       sourceText: source,
       kind: 'server',
@@ -41,7 +41,7 @@ describe('collectSuggestionsForSource', () => {
 
   it('ignores awaits already wrapped in Promise.all', () => {
     const source = `export default async function Demo() {\n  const [a, b] = await Promise.all([getA(), getB()]);\n  return { a, b };\n}`;
-    const suggestions = __internal.collectSuggestionsForSource({
+    const suggestions = collectSuggestionsForSource({
       filePath: 'app/data/fetchers.ts',
       sourceText: source,
       kind: 'server',

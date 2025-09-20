@@ -79,7 +79,12 @@
       "properties": {
         "route": { "type": "string", "minLength": 1 },
         "rootNodeId": { "type": "string", "minLength": 1 },
-        "changedAt": { "type": "string", "format": "date-time" }
+        "changedAt": { "type": "string", "format": "date-time" },
+        "chunks": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "totalBytes": { "type": "number", "minimum": 0 }
       }
     },
     "BuildInfo": {

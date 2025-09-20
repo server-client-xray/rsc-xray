@@ -5,5 +5,6 @@ export * from './lib/clientBundles';
 export * from './lib/graph';
 export * from './lib/readManifests';
 export * from './lib/suggestions';
+export * from './lib/analyzeProject';
 export * from './types/next-manifest';
 export * from './rules/clientForbiddenImports';

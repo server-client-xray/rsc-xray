@@ -202,9 +202,4 @@ export async function collectSuggestions({
   return result;
 }
 
-export const __internal = {
-  collectSuggestionsForSource,
-  collectFetchSuggestions,
-  collectParallelSuggestions,
-  createSourceFile,
-};
+export { collectSuggestionsForSource };
