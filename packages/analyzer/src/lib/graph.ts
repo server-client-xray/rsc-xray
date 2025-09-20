@@ -3,7 +3,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 
 import * as ts from 'typescript';
 
-import type { Diagnostic, RouteEntry, XNode } from '@server-client-xray/schemas';
+import type { Diagnostic, RouteEntry, Suggestion, XNode } from '@server-client-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
 import type { ClientComponentBundle } from './clientBundles';
@@ -15,6 +15,7 @@ export interface BuildGraphOptions {
   appDir?: string;
   diagnosticsByFile?: Record<string, Diagnostic[]>;
   clientBundles?: ClientComponentBundle[];
+  suggestionsByFile?: Record<string, Suggestion[]>;
 }
 
 export interface BuildGraphResult {
@@ -145,6 +146,7 @@ export async function buildGraph({
   appDir = 'app',
   diagnosticsByFile,
   clientBundles,
+  suggestionsByFile,
 }: BuildGraphOptions): Promise<BuildGraphResult> {
   const availableFiles = new Set(classifiedFiles.map((file) => toPosixPath(file.filePath)));
 
@@ -163,6 +165,18 @@ export async function buildGraph({
   }
 
   const bundleLookup = attributeBytes(clientBundles);
+  const suggestionLookup = new Map<string, Suggestion[]>();
+  if (suggestionsByFile) {
+    for (const [filePath, suggestionList] of Object.entries(suggestionsByFile)) {
+      if (!suggestionList?.length) {
+        continue;
+      }
+      suggestionLookup.set(
+        toPosixPath(filePath),
+        suggestionList.map((entry) => ({ ...entry }))
+      );
+    }
+  }
 
   const moduleMetas = new Map<string, ModuleMeta>();
 
@@ -197,6 +211,7 @@ export async function buildGraph({
   for (const meta of moduleMetas.values()) {
     const diagnostics = diagnosticsLookup.get(meta.filePath);
     const bundle = bundleLookup[meta.filePath];
+    const suggestions = suggestionLookup.get(meta.filePath);
 
     nodes[meta.id] = {
       id: meta.id,
@@ -206,6 +221,7 @@ export async function buildGraph({
       children: meta.imports,
       ...(diagnostics ? { diagnostics } : {}),
       ...(bundle && bundle.totalBytes > 0 ? { bytes: bundle.totalBytes } : {}),
+      ...(suggestions ? { suggestions } : {}),
     };
   }
 

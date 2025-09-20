@@ -4,5 +4,6 @@ export * from './lib/attributeBytes';
 export * from './lib/clientBundles';
 export * from './lib/graph';
 export * from './lib/readManifests';
+export * from './lib/suggestions';
 export * from './types/next-manifest';
 export * from './rules/clientForbiddenImports';

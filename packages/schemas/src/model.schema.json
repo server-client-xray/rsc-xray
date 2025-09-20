@@ -58,6 +58,10 @@
           "type": "array",
           "items": { "$ref": "#/definitions/Diagnostic" }
         },
+        "suggestions": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/Suggestion" }
+        },
         "children": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
@@ -106,6 +110,26 @@
         "samples": {
           "type": "array",
           "items": { "$ref": "#/definitions/FlightSample" }
+        }
+      }
+    },
+    "Suggestion": {
+      "type": "object",
+      "required": ["rule", "level", "message"],
+      "additionalProperties": false,
+      "properties": {
+        "rule": { "type": "string", "minLength": 1 },
+        "level": { "enum": ["info", "warn"] },
+        "message": { "type": "string", "minLength": 1 },
+        "loc": {
+          "type": "object",
+          "required": ["file", "line", "col"],
+          "additionalProperties": false,
+          "properties": {
+            "file": { "type": "string", "minLength": 1 },
+            "line": { "type": "integer", "minimum": 0 },
+            "col": { "type": "integer", "minimum": 0 }
+          }
         }
       }
     }
