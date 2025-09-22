@@ -2,26 +2,34 @@
 
 Core analyzer + CLI + schemas + offline HTML report.
 
-- Detect server/client boundaries (`use client`)
+## Features (Free/OSS)
+
+- Detect server/client boundaries (`'use client'`)
 - Suspense discovery
 - Bundle bytes per island
+- Forbidden import rules
 - Suggestions (hoist fetch, parallelize)
-- Export HTML/JSON report
-
-Pro/Team features (overlay UI, hydration timings, cache lens, VS Code, CI dashboards) live in the private repo.
+- Export JSON/HTML report
+- Compatibility banner (Next 13.4–15.x)
 
 ## Getting Started
 
-1. `corepack pnpm install` — install workspace dependencies (packages + example app).
-2. `corepack pnpm -r test` — run package test suites (schemas includes a schema smoke test).
-3. `pnpm -C examples/next-app dev` — launch the demo Next.js App Router project with Suspense/client islands.
+1. `corepack pnpm install` — install dependencies
+2. `corepack pnpm -r test` — run test suites
+3. `pnpm -C examples/next-app dev` — launch demo App Router project
 
-## Example Next.js App
+## Example
 
-The workspace ships with `examples/next-app`, a minimal App Router project:
+```bash
+pnpm -F @server-client-xray/cli analyze --project ./examples/next-app --out model.json
+pnpm -F @server-client-xray/cli report --model model.json --out report.html
+```
 
-- Server components render `/products` with Suspense fallbacks.
-- A client component (`app/components/Reviews.tsx`) hydrates on the product detail page and refetches data.
-- Artificial delays in `data/products.ts` surface waterfalls for analyzer experimentation.
+## Pro & Team
 
-Use this project when developing analyzer fixtures or demonstrating the OSS CLI.
+Looking for overlay UI, hydration timings, cache lens, CI dashboards?  
+See **[server-client-xray-pro](https://github.com/server-client-xray/server-client-xray-pro)**.
+
+## Docs
+
+See [docs/](./docs) for dev guide, backlog, and roadmap.

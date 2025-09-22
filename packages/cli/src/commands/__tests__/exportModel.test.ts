@@ -12,9 +12,7 @@ vi.mock('@server-client-xray/analyzer', () => ({
 
 const mockAnalyzeProject = async (): Promise<Model> => ({
   version: '0.1',
-  routes: [
-    { route: '/', rootNodeId: 'route:/' },
-  ],
+  routes: [{ route: '/', rootNodeId: 'route:/' }],
   nodes: {
     'route:/': {
       id: 'route:/',

@@ -3,7 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import type { Model } from '@server-client-xray/schemas';
 import { analyzeProject } from '@server-client-xray/analyzer';
 
-interface ExportModelOptions {
+export interface ExportModelOptions {
   projectRoot: string;
   distDir?: string;
   appDir?: string;
