@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildGraph } from '../graph';
+import type { Suggestion } from '@server-client-xray/schemas';
 import type { Diagnostic } from '@server-client-xray/schemas';
 import { classifyFiles } from '../classifyFiles';
 
@@ -44,6 +45,17 @@ describe('buildGraph', () => {
       ],
     };
 
+    const suggestionsByFile: Record<string, Suggestion[]> = {
+      'app/components/Button.tsx': [
+        {
+          rule: 'client-hoist-fetch',
+          level: 'warn',
+          message: 'Move fetch to server',
+          loc: { file: 'app/components/Button.tsx', line: 5, col: 3 },
+        },
+      ],
+    };
+
     const graph = await buildGraph({
       projectRoot,
       classifiedFiles: classified,
@@ -55,6 +67,7 @@ describe('buildGraph', () => {
           totalBytes: 3072,
         },
       ],
+      suggestionsByFile,
     });
 
     expect(graph.routes).toEqual([
@@ -82,6 +95,7 @@ describe('buildGraph', () => {
       children: [],
       diagnostics: diagnosticsByFile['app/components/Button.tsx'],
       bytes: 3072,
+      suggestions: suggestionsByFile['app/components/Button.tsx'],
     });
 
     expect(graph.nodes['route:/products']).toMatchObject({

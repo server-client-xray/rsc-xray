@@ -13,6 +13,13 @@ export interface Diagnostic {
   loc?: DiagnosticLocation;
 }
 
+export interface Suggestion {
+  rule: string;
+  level: 'info' | 'warn';
+  message: string;
+  loc?: DiagnosticLocation;
+}
+
 export interface XNode {
   id: string;
   file?: string;
@@ -21,6 +28,7 @@ export interface XNode {
   bytes?: number;
   hydrationMs?: number;
   diagnostics?: Diagnostic[];
+  suggestions?: Suggestion[];
   children?: string[];
   tags?: string[];
 }
@@ -29,6 +37,8 @@ export interface RouteEntry {
   route: string;
   rootNodeId: string;
   changedAt?: string;
+  chunks?: string[];
+  totalBytes?: number;
 }
 
 export interface BuildInfo {

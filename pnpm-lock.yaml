@@ -86,6 +86,9 @@ importers:
       '@server-client-xray/analyzer':
         specifier: workspace:*
         version: link:../analyzer
+      '@server-client-xray/schemas':
+        specifier: workspace:*
+        version: link:../schemas
 
   packages/report-html: {}
 
