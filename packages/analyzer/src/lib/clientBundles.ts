@@ -133,7 +133,7 @@ export async function collectClientComponentBundles({
         const relativePath = relative(projectRoot, modulePath) || modulePath;
         const existing = componentChunks.get(relativePath) ?? new Set<string>();
         for (const chunk of normalizeChunkList(meta.chunks)) {
-          existing.add(chunk);
+          existing.add(decodeChunkPath(chunk));
         }
         componentChunks.set(relativePath, existing);
       }
