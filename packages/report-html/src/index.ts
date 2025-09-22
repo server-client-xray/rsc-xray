@@ -1,1 +1,1 @@
-export const placeholder = true;
+export { renderHtmlReport } from './renderReport';

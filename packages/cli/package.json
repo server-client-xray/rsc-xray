@@ -7,10 +7,14 @@
   "scripts": {
     "build": "tsc -b",
     "test": "vitest --run --passWithNoTests",
-    "print-manifest": "tsx src/bin/print-manifest.ts"
+    "print-manifest": "tsx src/bin/print-manifest.ts",
+    "analyze": "tsx src/bin/analyze.ts",
+    "report": "tsx src/bin/report.ts"
   },
   "dependencies": {
     "@server-client-xray/analyzer": "workspace:*",
-    "@server-client-xray/schemas": "workspace:*"
+    "@server-client-xray/report-html": "workspace:*",
+    "@server-client-xray/schemas": "workspace:*",
+    "ajv": "^8.17.1"
   }
 }
