@@ -143,9 +143,7 @@ export async function analyzeProject({
     appDir,
   });
 
-  const manifestLookup = new Map(
-    manifest.routes.map((route) => [route.route, route])
-  );
+  const manifestLookup = new Map(manifest.routes.map((route) => [route.route, route]));
 
   const routes = graph.routes.map((route) => {
     const info = manifestLookup.get(route.route);

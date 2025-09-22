@@ -6,15 +6,14 @@ import { describe, expect, it } from 'vitest';
 
 import { analyzeProject } from '../analyzeProject';
 
-const SIZE_MANIFEST = (projectRoot: string) =>
-  JSON.stringify(
-    {
-      'static/chunks/app/page.js': [{ name: 'page.js', size: 4096 }],
-      'static/chunks/app/client-island.js': [{ name: 'client-island.js', size: 1536 }],
-    },
-    null,
-    2
-  );
+const SIZE_MANIFEST = JSON.stringify(
+  {
+    'static/chunks/app/page.js': [{ name: 'page.js', size: 4096 }],
+    'static/chunks/app/client-island.js': [{ name: 'client-island.js', size: 1536 }],
+  },
+  null,
+  2
+);
 
 const BUILD_MANIFEST = JSON.stringify(
   {
@@ -67,10 +66,14 @@ describe('analyzeProject', () => {
       );
 
       await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
-      await writeFile(join(projectRoot, '.next/server/app-build-manifest.json'), APP_BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
       await writeFile(
         join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
-        SIZE_MANIFEST(projectRoot),
+        SIZE_MANIFEST,
         'utf8'
       );
       await writeFile(
