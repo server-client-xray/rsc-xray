@@ -86,27 +86,44 @@ function renderSuggestionsBadge(suggestions?: Suggestion[]): string {
   return `<span class="badge ${hasWarn ? 'warn' : 'info'}" title="${title}">Suggestions ${suggestions.length}</span>`;
 }
 
+function indentLabel(label: string, depth: number): string {
+  if (depth <= 0) {
+    return label;
+  }
+  const padding = '&nbsp;'.repeat(depth * 4);
+  return `${padding}${label}`;
+}
+
+function renderNodeRows(model: Model, nodeId: string, depth: number): string {
+  const node = model.nodes[nodeId];
+  if (!node) {
+    return '';
+  }
+
+  const label = indentLabel(node.file ?? node.name ?? node.id, depth);
+  const bytesLabel = formatBytes(node.bytes);
+  const suggestions = renderSuggestionsBadge(node.suggestions);
+
+  const currentRow = `<tr>
+    <td>${node.kind.toUpperCase()}</td>
+    <td>${label}</td>
+    <td>${bytesLabel}</td>
+    <td>${suggestions}</td>
+  </tr>`;
+
+  const childRows = (node.children ?? [])
+    .map((childId) => renderNodeRows(model, childId, depth + 1))
+    .join('');
+
+  return `${currentRow}${childRows}`;
+}
+
 export function renderHtmlReport(model: Model): string {
   const routeSections = model.routes
     .map((route) => {
       const node = model.nodes[route.rootNodeId];
-      const children = node?.children ?? [];
-      const rows = children
-        .map((childId) => {
-          const childNode = model.nodes[childId];
-          if (!childNode) {
-            return '';
-          }
-          const label = childNode.file ?? childNode.name ?? childNode.id;
-          const bytesLabel = formatBytes(childNode.bytes);
-          const suggestions = renderSuggestionsBadge(childNode.suggestions);
-          return `<tr>
-            <td>${childNode.kind.toUpperCase()}</td>
-            <td>${label}</td>
-            <td>${bytesLabel}</td>
-            <td>${suggestions}</td>
-          </tr>`;
-        })
+      const rows = (node?.children ?? [])
+        .map((childId) => renderNodeRows(model, childId, 0))
         .join('');
 
       const chunkLabel = route.chunks?.join(', ') ?? 'n/a';

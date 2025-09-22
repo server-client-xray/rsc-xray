@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-export default function HomePage() {
+export default function HomePage(): JSX.Element {
   return (
     <main>
       <section>

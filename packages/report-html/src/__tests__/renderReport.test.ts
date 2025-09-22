@@ -60,5 +60,7 @@ describe('renderHtmlReport', () => {
     expect(html).toContain('/');
     expect(html).toContain('static/chunks/app/page.js');
     expect(html).toContain('Suggestions 1');
+    expect(html).toContain('app/components/ClientIsland.tsx');
+    expect(html).toContain('CLIENT');
   });
 });

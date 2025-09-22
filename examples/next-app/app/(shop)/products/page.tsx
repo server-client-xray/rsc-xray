@@ -4,7 +4,7 @@ import { getProducts } from '../../../data/products';
 
 export const revalidate = 60;
 
-export default async function ProductsPage() {
+export default async function ProductsPage(): Promise<JSX.Element> {
   const products = await getProducts();
 
   return (

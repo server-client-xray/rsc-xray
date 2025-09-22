@@ -1,6 +1,9 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
+import { createHydrationHook } from '@server-client-xray/hydration';
+
+const useHydrationTimings = createHydrationHook({ useEffect, useRef });
 
 interface Review {
   id: string;
@@ -13,7 +16,8 @@ interface ReviewsProps {
   reviewsPromise: Promise<Review[]>;
 }
 
-export default function Reviews({ productId, reviewsPromise }: ReviewsProps) {
+export default function Reviews({ productId, reviewsPromise }: ReviewsProps): JSX.Element {
+  useHydrationTimings('module:app/components/Reviews.tsx');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [isPending, startTransition] = useTransition();
 
@@ -30,10 +34,12 @@ export default function Reviews({ productId, reviewsPromise }: ReviewsProps) {
   }, [reviewsPromise]);
 
   const refetch = () => {
-    startTransition(async () => {
-      const { getProductReviews } = await import('../../data/products');
-      const next = await getProductReviews(productId);
-      setReviews(next);
+    startTransition(() => {
+      void (async () => {
+        const { getProductReviews } = await import('../../data/products');
+        const next = await getProductReviews(productId);
+        setReviews(next);
+      })();
     });
   };
 
