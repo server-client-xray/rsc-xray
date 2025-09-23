@@ -59,8 +59,10 @@ describe('renderHtmlReport', () => {
     expect(html).toContain('Server-Client XRay Report');
     expect(html).toContain('/');
     expect(html).toContain('static/chunks/app/page.js');
-    expect(html).toContain('Suggestions 1');
+    expect(html).toContain('<table class="suggestions-table">');
+    expect(html).toContain('<td>client-hoist-fetch</td>');
+    expect(html).toContain('<td class="suggestion-level-warn">WARN</td>');
+    expect(html).toContain('Move fetch to server component');
     expect(html).toContain('app/components/ClientIsland.tsx');
-    expect(html).toContain('CLIENT');
   });
 });

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import './globals.css';
+import { OverlayBootstrap } from './components/OverlayBootstrap';
 
 export const metadata: Metadata = {
   title: 'Server Client XRay Demo',
@@ -10,7 +11,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: ReactNode }): JSX.Element {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <OverlayBootstrap />
+        {children}
+      </body>
     </html>
   );
 }

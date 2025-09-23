@@ -60,7 +60,16 @@ export default function Reviews() {
 - Call the hook at the top of each client component you want to measure.
 - Use the analyzer’s node id (see `model.json` / overlay tree) so the overlay can associate metrics with the correct island.
 - The helper is safe to ship in production builds — it records to a local in-memory store (no telemetry) and the overlay simply reads those values.
-- In dev mode press **Control**+Shift+X to toggle the overlay (macOS uses the Control key). If that shortcut collides, run `window.__SCX_OVERLAY__?.toggle()` from the browser console or install the overlay yourself with a custom hotkey.
+- In dev mode press **Control**+Shift+X to toggle the overlay (macOS uses the Control key). If that shortcut collides, run `window.__SCX_OVERLAY__?.toggle()` from the browser console or install the overlay yourself with a custom hotkey. The OSS demo ships a stub implementation that logs instructions until the Pro overlay bundle is installed.
+
+## Scenario Playground
+
+- The home page lists example routes for analyzer smoke testing.
+  - “Product Listing” (valid baseline)
+  - “Sequential server awaits” (triggers the `server-promise-all` suggestion)
+  - “Client fetch on hydration” (triggers the `client-hoist-fetch` suggestion)
+  - “Cache lens” / “CI budget” placeholders with Coming Soon / Pro badges
+- Each scenario doubles as documentation—open the linked route, run `analyze/report`, and inspect the rendered suggestion table in `report.html`.
 
 ## Pro & Team
 
