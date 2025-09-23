@@ -4,9 +4,10 @@
 
 1. `corepack pnpm install` — install dependencies for all packages and the example Next.js app.
 2. `corepack pnpm -r test` — exercise package test suites (schemas validates the shared JSON schema).
-3. `pnpm -C examples/next-app dev` — launch the demo Suspense/client-island app at http://localhost:3000 (useful for exploring the overlay).
+3. `pnpm -C examples/next-app build` — produce `.next` artifacts for analysis (rerun after code changes you want to inspect).
+4. Keep [docs/WORKFLOWS.md](./WORKFLOWS.md) nearby for the command cheatsheets listed below.
 
-## Generate a report
+## Analyzer & Report Workflow
 
 ```bash
 # from repo root
@@ -15,13 +16,41 @@ pnpm -F @server-client-xray/cli analyze --project ./examples/next-app --out ./mo
 pnpm -F @server-client-xray/cli report --model ./model.json --out ./report.html
 ```
 
-- The analyzer reads `.next` build artifacts, so re-run `next build` whenever the app changes.
-- `report.html` is a static artifact you can open locally or upload from CI.
-- The home page includes a scenario grid with routes that intentionally trigger suggestions (e.g. `/scenarios/server-promise-all`, `/scenarios/client-hoist-fetch`). Use them to sanity-check analyzer output.
+- `model.json` powers CI, the HTML report, and the Pro overlay.
+- `report.html` is static; open it locally or publish it from CI for team review.
+- See the [scenario matrix](./WORKFLOWS.md#scenario-matrix) to trigger specific rules before you run the analyzer.
 
-## Hydration timings in the overlay
+## Flight Tap (Optional)
 
-- Client components can opt into hydration tracking by creating a hook via `createHydrationHook({ useEffect, useRef })` from `@server-client-xray/hydration`, then calling it with the analyzer node id.
-- The example `Reviews` island calls `createHydrationHook({ useEffect, useRef })('module:app/components/Reviews.tsx')`; open `/products/analyzer` (or `/products/1`, both map to the same demo product) in dev mode and toggle the overlay to see the timings badge. On macOS use **Control**+Shift+X, or run `window.__SCX_OVERLAY__?.toggle()` from the console if a global shortcut conflicts.
-- Until the Pro overlay bundle is installed the OSS demo exposes a stub `__SCX_OVERLAY__` object that logs setup instructions instead of opening a UI.
-- No telemetry leaves the browser — metrics are kept in-memory and consumed by the overlay only.
+Stream and persist Flight chunks while the dev server runs:
+
+```bash
+pnpm -C examples/next-app dev &
+pnpm -F @server-client-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
+```
+
+Sample output:
+
+```
+[scx-flight] t=18ms chunk 0 (1024 bytes)
+[scx-flight] t=47ms chunk 1 (2048 bytes)
+```
+
+Use the captured timings to correlate overlay observations with Flight delivery order.
+
+## Overlay Stub
+
+- The OSS demo ships a stub overlay that logs instructions until `@server-client-xray-pro/overlay` is installed.
+- Toggle it with **Control**+Shift+X (macOS uses the Control key) or via `window.__SCX_OVERLAY__?.toggle()`.
+- Install the Pro overlay package to visualize hydration timings, cache lens insights, and CI budgets inline.
+
+## Scenario Playground
+
+- The home page lists analyzer demos:
+  - `/products` — baseline
+  - `/scenarios/server-promise-all`
+  - `/scenarios/client-hoist-fetch`
+  - `/scenarios/client-forbidden-import`
+  - `/scenarios/cache-lens-coming-soon`
+  - `/scenarios/pro-budget-coming-soon`
+- `docs/VIOLATIONS.md` explains what each rule measures, the corresponding analyzer nodes, and where Pro features add depth.

@@ -35,7 +35,7 @@ jobs:
         run: corepack pnpm format:check
 
       - name: Test
-        run: corepack pnpm -r test -- --run --passWithNoTests
+        run: corepack pnpm -r test
 
       - name: Build
         run: corepack pnpm -r build

@@ -32,6 +32,13 @@ const SCENARIOS: ScenarioCard[] = [
     badge: 'Violation',
   },
   {
+    title: 'Client forbidden import',
+    description: 'Documents the client-forbidden-import diagnostic with a bundled example.',
+    href: '/scenarios/client-forbidden-import',
+    kind: 'violation',
+    badge: 'Violation',
+  },
+  {
     title: 'Cache lens scenario',
     description: 'Coming soon: data-tagged pages to exercise cache invalidation flows.',
     href: '/scenarios/cache-lens-coming-soon',
