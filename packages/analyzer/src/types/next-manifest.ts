@@ -1,3 +1,5 @@
+import type { RouteCacheMetadata } from '@server-client-xray/schemas';
+
 export interface NextBuildManifest {
   pages: Record<string, string[]>;
   app: Record<string, string[]>;
@@ -16,6 +18,7 @@ export interface ParsedRouteAsset {
   route: string;
   chunks: string[];
   totalBytes?: number;
+  cache?: RouteCacheMetadata;
 }
 
 export interface ParsedManifests {

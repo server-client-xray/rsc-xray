@@ -69,7 +69,9 @@
         "tags": {
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
-        }
+        },
+        "cache": { "$ref": "#/definitions/NodeCacheMetadata" },
+        "mutations": { "$ref": "#/definitions/NodeMutationMetadata" }
       }
     },
     "RouteEntry": {
@@ -84,7 +86,8 @@
           "type": "array",
           "items": { "type": "string", "minLength": 1 }
         },
-        "totalBytes": { "type": "number", "minimum": 0 }
+        "totalBytes": { "type": "number", "minimum": 0 },
+        "cache": { "$ref": "#/definitions/RouteCacheMetadata" }
       }
     },
     "BuildInfo": {
@@ -135,6 +138,51 @@
             "line": { "type": "integer", "minimum": 0 },
             "col": { "type": "integer", "minimum": 0 }
           }
+        }
+      }
+    },
+    "NodeCacheMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "modes": {
+          "type": "array",
+          "items": { "enum": ["force-cache", "no-store"] }
+        },
+        "revalidateSeconds": {
+          "type": "array",
+          "items": { "type": "number", "minimum": 0 }
+        },
+        "hasRevalidateFalse": { "type": "boolean" }
+      }
+    },
+    "NodeMutationMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        },
+        "paths": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "RouteCacheMetadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "revalidateSeconds": {
+          "oneOf": [
+            { "type": "number", "minimum": 0 },
+            { "type": "boolean", "enum": [false] }
+          ]
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 }
         }
       }
     }

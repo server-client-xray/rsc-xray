@@ -1,13 +1,20 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
-import type { Diagnostic, Model, Suggestion } from '@server-client-xray/schemas';
+import type {
+  Diagnostic,
+  Model,
+  NodeCacheMetadata,
+  RouteEntry,
+  Suggestion,
+} from '@server-client-xray/schemas';
 
 import { collectClientComponentBundles } from './clientBundles';
 import { buildGraph } from './graph';
 import { classifyFiles } from './classifyFiles';
 import { readManifests } from './readManifests';
 import { collectSuggestionsForSource } from './suggestions';
+import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata';
 import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports';
 
 interface AnalyzeProjectOptions {
@@ -20,6 +27,7 @@ interface SourceEntry {
   filePath: string;
   kind: 'server' | 'client';
   sourceText: string;
+  cacheMetadata: FileCacheMetadata;
 }
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
@@ -101,6 +109,7 @@ export async function analyzeProject({
         filePath: toPosix(entry.filePath),
         kind: entry.kind,
         sourceText,
+        cacheMetadata: collectCacheMetadata({ sourceText }),
       } as SourceEntry;
     })
   );
@@ -134,6 +143,11 @@ export async function analyzeProject({
   const clientBundles = await collectClientComponentBundles({ projectRoot, distDir });
   const manifest = await readManifests({ projectRoot, distDir });
 
+  const cacheMetadataByFile: Record<string, FileCacheMetadata> = {};
+  for (const entry of sources) {
+    cacheMetadataByFile[entry.filePath] = entry.cacheMetadata;
+  }
+
   const graph = await buildGraph({
     projectRoot,
     classifiedFiles: classified,
@@ -141,20 +155,72 @@ export async function analyzeProject({
     clientBundles,
     suggestionsByFile,
     appDir,
+    cacheMetadataByFile,
   });
 
   const manifestLookup = new Map(manifest.routes.map((route) => [route.route, route]));
+
+  const nodes = { ...graph.nodes };
 
   const routes = graph.routes.map((route) => {
     const info = manifestLookup.get(route.route);
     if (!info) {
       return route;
     }
-    return {
+    const result: RouteEntry = {
       ...route,
       chunks: info.chunks,
       totalBytes: info.totalBytes,
+      ...(info.cache ? { cache: info.cache } : {}),
     };
+
+    if (info.cache) {
+      const currentNode = nodes[route.rootNodeId];
+      if (currentNode) {
+        let updatedNode = currentNode;
+
+        if (info.cache.tags?.length) {
+          const combined = new Set<string>(currentNode.tags ?? []);
+          for (const tag of info.cache.tags) {
+            combined.add(tag);
+          }
+          if (combined.size) {
+            updatedNode = {
+              ...updatedNode,
+              tags: Array.from(combined).sort(),
+            };
+          }
+        }
+
+        if (typeof info.cache.revalidateSeconds !== 'undefined') {
+          const existingCache = updatedNode.cache ?? {};
+          const updatedCache: NodeCacheMetadata = { ...existingCache };
+
+          if (info.cache.revalidateSeconds === false) {
+            updatedCache.hasRevalidateFalse = true;
+          } else if (typeof info.cache.revalidateSeconds === 'number') {
+            const seconds = new Set<number>(updatedCache.revalidateSeconds ?? []);
+            seconds.add(info.cache.revalidateSeconds);
+            updatedCache.revalidateSeconds = Array.from(seconds).sort((a, b) => a - b);
+          }
+
+          if (
+            updatedCache.modes?.length ||
+            updatedCache.revalidateSeconds?.length ||
+            updatedCache.hasRevalidateFalse
+          ) {
+            updatedNode = {
+              ...updatedNode,
+              cache: updatedCache,
+            };
+          }
+        }
+
+        nodes[route.rootNodeId] = updatedNode;
+      }
+    }
+
+    return result;
   });
 
   const buildInfo = {
@@ -165,7 +231,7 @@ export async function analyzeProject({
   return {
     version: '0.1',
     routes,
-    nodes: graph.nodes,
+    nodes,
     build: buildInfo,
   };
 }

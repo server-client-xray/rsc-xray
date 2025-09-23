@@ -6,6 +6,7 @@ import type {
   NextBuildManifest,
   ParsedManifests,
 } from '../types/next-manifest';
+import type { RouteCacheMetadata } from '@server-client-xray/schemas';
 
 interface ReadManifestsOptions {
   projectRoot: string;
@@ -15,6 +16,17 @@ interface ReadManifestsOptions {
 interface NamedAssetSize {
   name: string;
   size: number;
+}
+
+interface NextPrerenderManifestRouteEntry {
+  initialRevalidateSeconds?: number | false;
+  initialHeaders?: Record<string, string>;
+}
+
+interface NextPrerenderManifest {
+  routes: Record<string, NextPrerenderManifestRouteEntry>;
+  dynamicRoutes: Record<string, unknown>;
+  notFoundRoutes: string[];
 }
 
 const DEFAULT_DIST_DIR = '.next';
@@ -40,6 +52,17 @@ async function readRequiredManifest<T>(paths: string[]): Promise<T> {
       ', '
     )}). Run "next build" for your project (e.g. "pnpm -C examples/next-app build") before executing the analyzer CLI.`
   );
+}
+
+async function readOptionalManifest<T>(filePath: string): Promise<T | undefined> {
+  try {
+    return await readJsonFile<T>(filePath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return undefined;
+    }
+    throw error;
+  }
 }
 
 function sumBytes(assets: NamedAssetSize[] | undefined): number | undefined {
@@ -123,6 +146,7 @@ export async function readManifests({
     join(projectRoot, distDir, 'app-build-manifest.json'),
   ];
   const sizeManifestPath = join(projectRoot, distDir, 'build-manifest.json.__scx_sizes__');
+  const prerenderManifestPath = join(projectRoot, distDir, 'prerender-manifest.json');
 
   const [buildManifest, appBuildManifest] = await Promise.all([
     readRequiredManifest<NextBuildManifest>([manifestPath]),
@@ -178,6 +202,42 @@ export async function readManifests({
 
   const chunkSizeCache = new Map<string, number>();
 
+  const prerenderManifest =
+    await readOptionalManifest<NextPrerenderManifest>(prerenderManifestPath);
+  const routeCacheMeta = new Map<string, RouteCacheMetadata>();
+
+  if (prerenderManifest) {
+    for (const [routeKey, entry] of Object.entries(prerenderManifest.routes ?? {})) {
+      const normalizedRoute = normalizeRoute(routeKey);
+      const cache: RouteCacheMetadata = {};
+
+      if (typeof entry.initialRevalidateSeconds !== 'undefined') {
+        cache.revalidateSeconds = entry.initialRevalidateSeconds;
+      }
+
+      const headers = entry.initialHeaders ?? {};
+      const headerKey = Object.keys(headers).find(
+        (key) => key.toLowerCase() === 'x-next-cache-tags'
+      );
+      if (headerKey) {
+        const raw = headers[headerKey];
+        if (typeof raw === 'string') {
+          const tags = raw
+            .split(',')
+            .map((tag) => tag.trim())
+            .filter((tag) => tag.length > 0 && !tag.startsWith('_N_'));
+          if (tags.length) {
+            cache.tags = Array.from(new Set(tags)).sort();
+          }
+        }
+      }
+
+      if (cache.tags?.length || typeof cache.revalidateSeconds !== 'undefined') {
+        routeCacheMeta.set(normalizedRoute, cache);
+      }
+    }
+  }
+
   const routes = await Promise.all(
     Array.from(seenRoutes.entries()).map(async ([route, chunks]) => {
       const chunkArray = Array.from(chunks);
@@ -193,6 +253,7 @@ export async function readManifests({
         route,
         chunks: chunkArray,
         totalBytes,
+        cache: routeCacheMeta.get(route),
       };
     })
   );
