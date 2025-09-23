@@ -62,6 +62,30 @@ const styles = `
     background: rgba(56, 189, 248, 0.2);
     color: rgb(125, 211, 252);
   }
+  .suggestions-table {
+    margin-top: 12px;
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .suggestions-table th,
+  .suggestions-table td {
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    padding: 6px 4px;
+    text-align: left;
+  }
+  .suggestions-table th {
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 12px;
+    color: rgba(226, 232, 240, 0.7);
+  }
+  .suggestion-level-warn {
+    color: rgb(249, 115, 22);
+  }
+  .suggestion-level-info {
+    color: rgb(56, 189, 248);
+  }
 `;
 
 function formatBytes(bytes?: number): string {
@@ -86,28 +110,101 @@ function renderSuggestionsBadge(suggestions?: Suggestion[]): string {
   return `<span class="badge ${hasWarn ? 'warn' : 'info'}" title="${title}">Suggestions ${suggestions.length}</span>`;
 }
 
+function indentLabel(label: string, depth: number): string {
+  if (depth <= 0) {
+    return label;
+  }
+  const padding = '&nbsp;'.repeat(depth * 4);
+  return `${padding}${label}`;
+}
+
+function renderNodeRows(model: Model, nodeId: string, depth: number): string {
+  const node = model.nodes[nodeId];
+  if (!node) {
+    return '';
+  }
+
+  const label = indentLabel(node.file ?? node.name ?? node.id, depth);
+  const bytesLabel = formatBytes(node.bytes);
+  const suggestions = renderSuggestionsBadge(node.suggestions);
+
+  const currentRow = `<tr>
+    <td>${node.kind.toUpperCase()}</td>
+    <td>${label}</td>
+    <td>${bytesLabel}</td>
+    <td>${suggestions}</td>
+  </tr>`;
+
+  const childRows = (node.children ?? [])
+    .map((childId) => renderNodeRows(model, childId, depth + 1))
+    .join('');
+
+  return `${currentRow}${childRows}`;
+}
+
+interface CollectedSuggestion {
+  nodeLabel: string;
+  suggestion: Suggestion;
+}
+
+function collectRouteSuggestions(model: Model, nodeId: string): CollectedSuggestion[] {
+  const node = model.nodes[nodeId];
+  if (!node) {
+    return [];
+  }
+
+  const nodeLabel = node.file ?? node.name ?? node.id;
+  const ownSuggestions = (node.suggestions ?? []).map((suggestion) => ({
+    nodeLabel,
+    suggestion,
+  }));
+
+  const childSuggestions = (node.children ?? [])
+    .map((childId) => collectRouteSuggestions(model, childId))
+    .flat();
+
+  return [...ownSuggestions, ...childSuggestions];
+}
+
 export function renderHtmlReport(model: Model): string {
   const routeSections = model.routes
     .map((route) => {
       const node = model.nodes[route.rootNodeId];
-      const children = node?.children ?? [];
-      const rows = children
-        .map((childId) => {
-          const childNode = model.nodes[childId];
-          if (!childNode) {
-            return '';
-          }
-          const label = childNode.file ?? childNode.name ?? childNode.id;
-          const bytesLabel = formatBytes(childNode.bytes);
-          const suggestions = renderSuggestionsBadge(childNode.suggestions);
-          return `<tr>
-            <td>${childNode.kind.toUpperCase()}</td>
-            <td>${label}</td>
-            <td>${bytesLabel}</td>
-            <td>${suggestions}</td>
-          </tr>`;
-        })
+      const rows = (node?.children ?? [])
+        .map((childId) => renderNodeRows(model, childId, 0))
         .join('');
+
+      const collectedSuggestions = collectRouteSuggestions(model, route.rootNodeId);
+      const suggestionsTable = collectedSuggestions.length
+        ? `<table class="suggestions-table">
+            <thead>
+              <tr>
+                <th>Rule</th>
+                <th>Level</th>
+                <th>Location</th>
+                <th>Message</th>
+                <th>Node</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${collectedSuggestions
+                .map(({ nodeLabel, suggestion }) => {
+                  const loc = suggestion.loc
+                    ? `${suggestion.loc.file}:${suggestion.loc.line}:${suggestion.loc.col}`
+                    : 'n/a';
+                  const levelClass = `suggestion-level-${suggestion.level}`;
+                  return `<tr>
+                    <td>${suggestion.rule}</td>
+                    <td class="${levelClass}">${suggestion.level.toUpperCase()}</td>
+                    <td>${loc}</td>
+                    <td>${suggestion.message}</td>
+                    <td>${nodeLabel}</td>
+                  </tr>`;
+                })
+                .join('')}
+            </tbody>
+          </table>`
+        : '<p style="margin-top: 12px; font-size: 13px; color: rgba(148, 163, 184, 0.75);">No suggestions for this route.</p>';
 
       const chunkLabel = route.chunks?.join(', ') ?? 'n/a';
       const bytesLabel = formatBytes(route.totalBytes);
@@ -127,10 +224,11 @@ export function renderHtmlReport(model: Model): string {
               <th>Bytes</th>
               <th>Suggestions</th>
             </tr>
-          </thead>
-          <tbody>${rows}
+         </thead>
+         <tbody>${rows}
           </tbody>
-        </table>
+       </table>
+        ${suggestionsTable}
       </section>`;
     })
     .join('\n');

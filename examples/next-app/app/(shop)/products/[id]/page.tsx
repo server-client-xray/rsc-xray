@@ -9,7 +9,7 @@ interface ProductPageProps {
 
 export const dynamicParams = true;
 
-export default async function ProductPage({ params }: ProductPageProps) {
+export default async function ProductPage({ params }: ProductPageProps): Promise<JSX.Element> {
   const product = await getProduct(params.id);
 
   if (!product) {

@@ -29,7 +29,17 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function getProduct(id: string): Promise<Product | undefined> {
   await new Promise((resolve) => setTimeout(resolve, 60));
-  return PRODUCTS.find((product) => product.id === id);
+  const directMatch = PRODUCTS.find((product) => product.id === id);
+  if (directMatch) {
+    return directMatch;
+  }
+
+  const numericIndex = Number.parseInt(id, 10);
+  if (!Number.isNaN(numericIndex) && numericIndex >= 1 && numericIndex <= PRODUCTS.length) {
+    return PRODUCTS[numericIndex - 1];
+  }
+
+  return undefined;
 }
 
 export async function getProductReviews(

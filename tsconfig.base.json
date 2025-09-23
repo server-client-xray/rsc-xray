@@ -15,7 +15,8 @@
       "@server-client-xray/schemas": ["packages/schemas/src/index.ts"],
       "@server-client-xray/analyzer": ["packages/analyzer/src/index.ts"],
       "@server-client-xray/cli": ["packages/cli/src/index.ts"],
-      "@server-client-xray/report-html": ["packages/report-html/src/index.ts"]
+      "@server-client-xray/report-html": ["packages/report-html/src/index.ts"],
+      "@server-client-xray/hydration": ["packages/hydration/src/index.ts"]
     }
   }
 }

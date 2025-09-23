@@ -1,4 +1,4 @@
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import vm from 'node:vm';
 
@@ -26,6 +26,14 @@ type ClientManifest = Record<string, ClientManifestEntry>;
 async function loadJson<T>(filePath: string): Promise<T> {
   const raw = await readFile(filePath, 'utf8');
   return JSON.parse(raw) as T;
+}
+
+function decodeChunkPath(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 async function loadAssetSizes(
@@ -125,7 +133,7 @@ export async function collectClientComponentBundles({
         const relativePath = relative(projectRoot, modulePath) || modulePath;
         const existing = componentChunks.get(relativePath) ?? new Set<string>();
         for (const chunk of normalizeChunkList(meta.chunks)) {
-          existing.add(chunk);
+          existing.add(decodeChunkPath(chunk));
         }
         componentChunks.set(relativePath, existing);
       }
@@ -133,9 +141,37 @@ export async function collectClientComponentBundles({
   }
 
   const bundles: ClientComponentBundle[] = [];
+  const chunkSizeCache = new Map<string, number>();
+
+  async function resolveChunkSize(chunk: string): Promise<number> {
+    if (typeof assetSizes[chunk] === 'number') {
+      return assetSizes[chunk];
+    }
+    if (chunkSizeCache.has(chunk)) {
+      return chunkSizeCache.get(chunk)!;
+    }
+    try {
+      const decoded = decodeChunkPath(chunk);
+      const chunkPath = join(projectRoot, distDir, decoded);
+      const stats = await stat(chunkPath);
+      chunkSizeCache.set(chunk, stats.size);
+      return stats.size;
+    } catch {
+      try {
+        const stats = await stat(join(projectRoot, distDir, chunk));
+        chunkSizeCache.set(chunk, stats.size);
+        return stats.size;
+      } catch {
+        chunkSizeCache.set(chunk, 0);
+        return 0;
+      }
+    }
+  }
+
   for (const [filePath, chunks] of componentChunks.entries()) {
     const chunkList = Array.from(chunks).sort();
-    const totalBytes = chunkList.reduce((acc, chunk) => acc + (assetSizes[chunk] ?? 0), 0);
+    const sizes = await Promise.all(chunkList.map((chunk) => resolveChunkSize(chunk)));
+    const totalBytes = sizes.reduce((acc, size) => acc + size, 0);
     bundles.push({ filePath, chunks: chunkList, totalBytes });
   }
 
