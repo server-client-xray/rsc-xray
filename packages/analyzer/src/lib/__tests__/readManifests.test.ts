@@ -17,6 +17,7 @@ describe('readManifests', () => {
       chunks: expect.arrayContaining(['static/chunks/app/page.js', 'static/chunks/main.js']),
       totalBytes: 1234,
     });
+    expect(routes['/']?.cache).toBeUndefined();
 
     expect(routes['/products/[id]']).toMatchObject({
       chunks: expect.arrayContaining([
@@ -56,6 +57,45 @@ describe('readManifests', () => {
     const route = result.routes.find((item) => item.route === '/');
     expect(route).toBeDefined();
     expect(route?.totalBytes).toBe(size);
+
+    await rm(cwd, { recursive: true, force: true });
+  });
+
+  it('parses prerender manifest cache metadata', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'scx-prerender-'));
+    const distDir = join(cwd, '.next');
+    await mkdir(join(distDir, 'server'), { recursive: true });
+
+    await writeFile(
+      join(distDir, 'build-manifest.json'),
+      JSON.stringify({ pages: {}, app: { '/': ['static/chunks/app/page.js'] } })
+    );
+    await writeFile(join(distDir, 'app-build-manifest.json'), JSON.stringify({ pages: {} }));
+
+    await writeFile(
+      join(distDir, 'prerender-manifest.json'),
+      JSON.stringify({
+        version: 4,
+        routes: {
+          '/': {
+            initialRevalidateSeconds: 60,
+            initialHeaders: {
+              'content-type': 'text/html',
+              'x-next-cache-tags': 'products, _N_T_/layout',
+            },
+          },
+        },
+        dynamicRoutes: {},
+        notFoundRoutes: [],
+      })
+    );
+
+    const result = await readManifests({ projectRoot: cwd });
+    const route = result.routes.find((entry) => entry.route === '/');
+    expect(route?.cache).toEqual({
+      revalidateSeconds: 60,
+      tags: ['products'],
+    });
 
     await rm(cwd, { recursive: true, force: true });
   });

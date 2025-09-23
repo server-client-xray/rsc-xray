@@ -31,6 +31,8 @@ export interface XNode {
   suggestions?: Suggestion[];
   children?: string[];
   tags?: string[];
+  cache?: NodeCacheMetadata;
+  mutations?: NodeMutationMetadata;
 }
 
 export interface RouteEntry {
@@ -39,6 +41,7 @@ export interface RouteEntry {
   changedAt?: string;
   chunks?: string[];
   totalBytes?: number;
+  cache?: RouteCacheMetadata;
 }
 
 export interface BuildInfo {
@@ -63,4 +66,20 @@ export interface Model {
   nodes: Record<string, XNode>;
   build: BuildInfo;
   flight?: FlightData;
+}
+
+export interface NodeCacheMetadata {
+  modes?: Array<'force-cache' | 'no-store'>;
+  revalidateSeconds?: number[];
+  hasRevalidateFalse?: boolean;
+}
+
+export interface NodeMutationMetadata {
+  tags?: string[];
+  paths?: string[];
+}
+
+export interface RouteCacheMetadata {
+  revalidateSeconds?: number | false;
+  tags?: string[];
 }

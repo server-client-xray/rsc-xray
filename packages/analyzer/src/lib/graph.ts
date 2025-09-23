@@ -3,11 +3,19 @@ import { dirname, join, relative, resolve } from 'node:path';
 
 import * as ts from 'typescript';
 
-import type { Diagnostic, RouteEntry, Suggestion, XNode } from '@server-client-xray/schemas';
+import type {
+  Diagnostic,
+  NodeCacheMetadata,
+  NodeMutationMetadata,
+  RouteEntry,
+  Suggestion,
+  XNode,
+} from '@server-client-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
 import type { ClientComponentBundle } from './clientBundles';
 import { attributeBytes } from './attributeBytes';
+import type { FileCacheMetadata } from './cacheMetadata';
 
 export interface BuildGraphOptions {
   projectRoot: string;
@@ -16,6 +24,7 @@ export interface BuildGraphOptions {
   diagnosticsByFile?: Record<string, Diagnostic[]>;
   clientBundles?: ClientComponentBundle[];
   suggestionsByFile?: Record<string, Suggestion[]>;
+  cacheMetadataByFile?: Record<string, FileCacheMetadata>;
 }
 
 export interface BuildGraphResult {
@@ -147,6 +156,7 @@ export async function buildGraph({
   diagnosticsByFile,
   clientBundles,
   suggestionsByFile,
+  cacheMetadataByFile,
 }: BuildGraphOptions): Promise<BuildGraphResult> {
   const availableFiles = new Set(classifiedFiles.map((file) => toPosixPath(file.filePath)));
 
@@ -175,6 +185,13 @@ export async function buildGraph({
         toPosixPath(filePath),
         suggestionList.map((entry) => ({ ...entry }))
       );
+    }
+  }
+
+  const cacheMetadataLookup = new Map<string, FileCacheMetadata>();
+  if (cacheMetadataByFile) {
+    for (const [filePath, meta] of Object.entries(cacheMetadataByFile)) {
+      cacheMetadataLookup.set(toPosixPath(filePath), meta);
     }
   }
 
@@ -213,6 +230,57 @@ export async function buildGraph({
     const bundle = bundleLookup[meta.filePath];
     const suggestions = suggestionLookup.get(meta.filePath);
 
+    const cacheMetadata = cacheMetadataLookup.get(meta.filePath);
+    const tagSet = new Set<string>();
+    if (cacheMetadata) {
+      for (const tag of cacheMetadata.tags) {
+        if (tag) {
+          tagSet.add(tag);
+        }
+      }
+    }
+
+    const nodeCache: NodeCacheMetadata | undefined = cacheMetadata
+      ? (() => {
+          const modes = Array.from(cacheMetadata.cacheModes);
+          const revalidateSeconds = Array.from(cacheMetadata.revalidateSeconds).sort(
+            (a, b) => a - b
+          );
+          if (!modes.length && !revalidateSeconds.length && !cacheMetadata.hasRevalidateFalse) {
+            return undefined;
+          }
+          const result: NodeCacheMetadata = {};
+          if (modes.length) {
+            result.modes = modes;
+          }
+          if (revalidateSeconds.length) {
+            result.revalidateSeconds = revalidateSeconds;
+          }
+          if (cacheMetadata.hasRevalidateFalse) {
+            result.hasRevalidateFalse = true;
+          }
+          return result;
+        })()
+      : undefined;
+
+    const nodeMutations: NodeMutationMetadata | undefined = cacheMetadata
+      ? (() => {
+          const mutationTags = Array.from(cacheMetadata.revalidateTagCalls).sort();
+          const mutationPaths = Array.from(cacheMetadata.revalidatePathCalls).sort();
+          if (!mutationTags.length && !mutationPaths.length) {
+            return undefined;
+          }
+          const result: NodeMutationMetadata = {};
+          if (mutationTags.length) {
+            result.tags = mutationTags;
+          }
+          if (mutationPaths.length) {
+            result.paths = mutationPaths;
+          }
+          return result;
+        })()
+      : undefined;
+
     nodes[meta.id] = {
       id: meta.id,
       kind: meta.kind,
@@ -222,6 +290,9 @@ export async function buildGraph({
       ...(diagnostics ? { diagnostics } : {}),
       ...(bundle && bundle.totalBytes > 0 ? { bytes: bundle.totalBytes } : {}),
       ...(suggestions ? { suggestions } : {}),
+      ...(tagSet.size ? { tags: Array.from(tagSet).sort() } : {}),
+      ...(nodeCache ? { cache: nodeCache } : {}),
+      ...(nodeMutations ? { mutations: nodeMutations } : {}),
     };
   }
 
