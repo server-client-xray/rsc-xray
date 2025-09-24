@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 
+import { scheduleHydrationSnapshot } from '../../lib/hydrationTelemetry';
+
 declare global {
   interface Window {
     __SCX_OVERLAY__?: {
@@ -28,6 +30,8 @@ export function OverlayBootstrap(): JSX.Element | null {
     }
 
     const warn = () => console.warn(WARNING_MESSAGE);
+
+    scheduleHydrationSnapshot();
     window.__SCX_OVERLAY__ = {
       open: warn,
       close: warn,
