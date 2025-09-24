@@ -110,4 +110,66 @@ describe('analyzeProject', () => {
       await rm(projectRoot, { recursive: true, force: true });
     }
   });
+
+  it('applies hydration snapshot data to nodes and route totals', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-hydration-'));
+    try {
+      await mkdir(join(projectRoot, 'app/components'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+      await mkdir(join(projectRoot, '.scx'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/page.tsx'),
+        `import { ClientIsland } from './components/ClientIsland';\n\nexport default function Page() {\n  return <ClientIsland />;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(
+        join(projectRoot, 'app/components/ClientIsland.tsx'),
+        `'use client';\nexport function ClientIsland() {\n  return <div>island</div>;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
+        SIZE_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/server/app/page_client-reference-manifest.js'),
+        CLIENT_REFERENCE_MANIFEST(projectRoot),
+        'utf8'
+      );
+
+      await writeFile(
+        join(projectRoot, '.scx/hydration.json'),
+        JSON.stringify(
+          {
+            'module:app/components/ClientIsland.tsx': 42.5,
+            'module:app/components/Missing.tsx': -10,
+          },
+          null,
+          2
+        ),
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+      const clientNode = model.nodes['module:app/components/ClientIsland.tsx'];
+      expect(clientNode?.hydrationMs).toBeCloseTo(42.5);
+
+      const rootId = model.routes[0]?.rootNodeId;
+      expect(rootId).toBeTruthy();
+      const routeNode = rootId ? model.nodes[rootId] : undefined;
+      expect(routeNode?.hydrationMs).toBeCloseTo(42.5);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
 });
