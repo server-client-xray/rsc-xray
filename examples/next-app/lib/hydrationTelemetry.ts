@@ -16,6 +16,8 @@ function shouldCollect(): boolean {
 function sendDurations(): void {
   const durations = getHydrationDurations();
   if (!durations || Object.keys(durations).length === 0) {
+    scheduled = false;
+    window.setTimeout(scheduleHydrationSnapshot, 250);
     return;
   }
 
@@ -36,6 +38,8 @@ function sendDurations(): void {
     });
   } catch (error) {
     console.warn('[scx] Failed to report hydration durations', error);
+  } finally {
+    scheduled = false;
   }
 }
 

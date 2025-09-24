@@ -7,6 +7,7 @@ import type {
   NodeCacheMetadata,
   RouteEntry,
   Suggestion,
+  XNode,
 } from '@server-client-xray/schemas';
 
 import { collectClientComponentBundles } from './clientBundles';
