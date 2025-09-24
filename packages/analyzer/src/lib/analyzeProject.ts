@@ -7,6 +7,7 @@ import type {
   NodeCacheMetadata,
   RouteEntry,
   Suggestion,
+  XNode,
 } from '@server-client-xray/schemas';
 
 import { collectClientComponentBundles } from './clientBundles';
@@ -32,8 +33,101 @@ interface SourceEntry {
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.next', '.turbo']);
+const HYDRATION_SNAPSHOT_PATH = ['.scx', 'hydration.json'] as const;
 
 const toPosix = (value: string) => value.replace(/\\/g, '/');
+
+async function readHydrationSnapshot(projectRoot: string): Promise<Record<string, number>> {
+  try {
+    const raw = await readFile(join(projectRoot, ...HYDRATION_SNAPSHOT_PATH), 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object') {
+      return {};
+    }
+
+    const durations: Record<string, number> = {};
+    for (const [nodeId, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof nodeId !== 'string' || nodeId.length === 0) {
+        continue;
+      }
+      const numeric = typeof value === 'number' ? value : Number(value);
+      if (Number.isFinite(numeric) && numeric >= 0) {
+        durations[nodeId] = numeric;
+      }
+    }
+    return durations;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return {};
+    }
+    return {};
+  }
+}
+
+function sumHydrationDuration(
+  nodeId: string,
+  nodes: Record<string, XNode>,
+  visiting: Set<string>
+): number {
+  if (visiting.has(nodeId)) {
+    return 0;
+  }
+  const node = nodes[nodeId];
+  if (!node) {
+    return 0;
+  }
+  visiting.add(nodeId);
+
+  const shouldCountSelf = node.kind === 'client' || node.kind === 'suspense';
+  let total =
+    shouldCountSelf && typeof node.hydrationMs === 'number' && Number.isFinite(node.hydrationMs)
+      ? node.hydrationMs
+      : 0;
+
+  for (const childId of node.children ?? []) {
+    total += sumHydrationDuration(childId, nodes, visiting);
+  }
+
+  visiting.delete(nodeId);
+  return total;
+}
+
+function applyHydrationDurations(
+  nodes: Record<string, XNode>,
+  routes: RouteEntry[],
+  durations: Record<string, number>
+): void {
+  const entries = Object.entries(durations);
+  if (!entries.length) {
+    return;
+  }
+
+  for (const [nodeId, duration] of entries) {
+    const node = nodes[nodeId];
+    if (!node) {
+      continue;
+    }
+    nodes[nodeId] = {
+      ...node,
+      hydrationMs: duration,
+    };
+  }
+
+  for (const route of routes) {
+    const total = sumHydrationDuration(route.rootNodeId, nodes, new Set());
+    if (total <= 0) {
+      continue;
+    }
+    const existing = nodes[route.rootNodeId];
+    if (!existing) {
+      continue;
+    }
+    nodes[route.rootNodeId] = {
+      ...existing,
+      hydrationMs: total,
+    };
+  }
+}
 
 async function pathExists(path: string): Promise<boolean> {
   try {
@@ -158,6 +252,8 @@ export async function analyzeProject({
     cacheMetadataByFile,
   });
 
+  const hydrationDurations = await readHydrationSnapshot(projectRoot);
+
   const manifestLookup = new Map(manifest.routes.map((route) => [route.route, route]));
 
   const nodes = { ...graph.nodes };
@@ -227,6 +323,8 @@ export async function analyzeProject({
     nextVersion: await readNextVersion(projectRoot),
     timestamp: new Date().toISOString(),
   };
+
+  applyHydrationDurations(nodes, routes, hydrationDurations);
 
   return {
     version: '0.1',
