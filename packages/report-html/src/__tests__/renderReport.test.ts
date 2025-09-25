@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Model } from '@server-client-xray/schemas';
+import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@server-client-xray/schemas';
 
 import { renderHtmlReport } from '../renderReport';
 
@@ -21,6 +22,14 @@ describe('renderHtmlReport', () => {
         'route:/': {
           id: 'route:/',
           kind: 'route',
+          suggestions: [
+            {
+              rule: ROUTE_WATERFALL_SUGGESTION_RULE,
+              level: 'warn',
+              message:
+                'Waterfall suspected in app/page.tsx. Wrap independent awaits in Promise.all, or use Next.js preload / React 19 cache() to start work earlier.',
+            },
+          ],
           children: ['module:app/page.tsx'],
         },
         'module:app/page.tsx': {
@@ -64,5 +73,7 @@ describe('renderHtmlReport', () => {
     expect(html).toContain('<td class="suggestion-level-warn">WARN</td>');
     expect(html).toContain('Move fetch to server component');
     expect(html).toContain('app/components/ClientIsland.tsx');
+    expect(html).toContain('Waterfall suspected');
+    expect(html).toContain('Promise.all');
   });
 });
