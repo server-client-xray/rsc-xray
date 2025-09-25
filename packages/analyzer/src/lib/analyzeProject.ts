@@ -10,7 +10,7 @@ import {
   type RouteEntry,
   type Suggestion,
   type XNode,
-} from '@server-client-xray/schemas';
+} from '@rsc-xray/schemas';
 
 import { collectClientComponentBundles } from './clientBundles';
 import { buildGraph } from './graph';

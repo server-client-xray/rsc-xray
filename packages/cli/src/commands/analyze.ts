@@ -1,6 +1,6 @@
 import { rm } from 'node:fs/promises';
 
-import type { Model } from '@server-client-xray/schemas';
+import type { Model } from '@rsc-xray/schemas';
 
 import { exportModel, type ExportModelOptions } from './exportModel';
 import { ensureValidModel } from '../utils/validateModel';

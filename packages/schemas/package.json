@@ -1,5 +1,5 @@
 {
-  "name": "@server-client-xray/schemas",
+  "name": "@rsc-xray/schemas",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",

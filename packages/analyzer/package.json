@@ -1,5 +1,5 @@
 {
-  "name": "@server-client-xray/analyzer",
+  "name": "@rsc-xray/analyzer",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -15,6 +15,6 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@server-client-xray/schemas": "workspace:*"
+    "@rsc-xray/schemas": "workspace:*"
   }
 }

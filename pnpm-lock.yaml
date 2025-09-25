@@ -52,7 +52,7 @@ importers:
 
   examples/next-app:
     dependencies:
-      '@server-client-xray/hydration':
+      '@rsc-xray/hydration':
         specifier: workspace:*
         version: link:../../packages/hydration
       next:
@@ -83,19 +83,19 @@ importers:
 
   packages/analyzer:
     dependencies:
-      '@server-client-xray/schemas':
+      '@rsc-xray/schemas':
         specifier: workspace:*
         version: link:../schemas
 
   packages/cli:
     dependencies:
-      '@server-client-xray/analyzer':
+      '@rsc-xray/analyzer':
         specifier: workspace:*
         version: link:../analyzer
-      '@server-client-xray/report-html':
+      '@rsc-xray/report-html':
         specifier: workspace:*
         version: link:../report-html
-      '@server-client-xray/schemas':
+      '@rsc-xray/schemas':
         specifier: workspace:*
         version: link:../schemas
       ajv:
@@ -126,7 +126,7 @@ importers:
 
   packages/report-html:
     dependencies:
-      '@server-client-xray/schemas':
+      '@rsc-xray/schemas':
         specifier: workspace:*
         version: link:../schemas
 

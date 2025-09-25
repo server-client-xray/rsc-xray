@@ -1,6 +1,6 @@
 import type { Writable } from 'node:stream';
 
-import { readManifests } from '@server-client-xray/analyzer';
+import { readManifests } from '@rsc-xray/analyzer';
 
 interface PrintManifestOptions {
   projectRoot: string;

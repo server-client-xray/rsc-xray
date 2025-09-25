@@ -5,10 +5,10 @@ This document threads the core OSS flows into repeatable checklists so you can r
 ## Analyze → Report
 
 1. `pnpm -C examples/next-app build` – produce `.next` artifacts (rerun after code changes you want to inspect).
-2. `pnpm -F @server-client-xray/cli analyze --project ./examples/next-app --out ./model.json`
+2. `pnpm -F @rsc-xray/cli analyze --project ./examples/next-app --out ./model.json`
    - Outputs `model.json` in the current working directory.
    - Validates collected data against the shared JSON schema.
-3. `pnpm -F @server-client-xray/cli report --model ./model.json --out ./report.html`
+3. `pnpm -F @rsc-xray/cli report --model ./model.json --out ./report.html`
    - Generates an offline HTML report beside the model file.
 4. Open `report.html` locally or publish it as a CI artifact.
 
@@ -18,7 +18,7 @@ This document threads the core OSS flows into repeatable checklists so you can r
 2. From the repo root, stream the route you want to inspect:
 
    ```bash
-   pnpm -F @server-client-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
+   pnpm -F @rsc-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
    ```
 
 3. The command writes human-readable chunk timings to STDOUT and saves the sampled data when `--out` is provided. Use these samples to align overlay observations with Flight delivery order.
@@ -27,7 +27,7 @@ This document threads the core OSS flows into repeatable checklists so you can r
 
 - The OSS demo injects `OverlayBootstrap`, which registers a console warning if the Pro overlay bundle is missing.
 - Toggle with **Control**+Shift+X while the demo runs, or call `window.__SCX_OVERLAY__?.toggle()` in the browser console.
-- To access the full UI (hydration timings, cache lens, budgets), install `@server-client-xray-pro/overlay` in the example app and invoke `autoInstallOverlay()`.
+- To access the full UI (hydration timings, cache lens, budgets), install `@rsc-xray-pro/overlay` in the example app and invoke `autoInstallOverlay()`.
 
 ## Scenario Matrix
 

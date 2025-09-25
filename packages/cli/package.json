@@ -1,5 +1,5 @@
 {
-  "name": "@server-client-xray/cli",
+  "name": "@rsc-xray/cli",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",
@@ -12,9 +12,9 @@
     "report": "tsx src/bin/report.ts"
   },
   "dependencies": {
-    "@server-client-xray/analyzer": "workspace:*",
-    "@server-client-xray/report-html": "workspace:*",
-    "@server-client-xray/schemas": "workspace:*",
+    "@rsc-xray/analyzer": "workspace:*",
+    "@rsc-xray/report-html": "workspace:*",
+    "@rsc-xray/schemas": "workspace:*",
     "ajv": "^8.17.1"
   }
 }

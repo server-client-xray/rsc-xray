@@ -12,8 +12,8 @@
 ```bash
 # from repo root
 pnpm -C examples/next-app build
-pnpm -F @server-client-xray/cli analyze --project ./examples/next-app --out ./model.json
-pnpm -F @server-client-xray/cli report --model ./model.json --out ./report.html
+pnpm -F @rsc-xray/cli analyze --project ./examples/next-app --out ./model.json
+pnpm -F @rsc-xray/cli report --model ./model.json --out ./report.html
 ```
 
 - `model.json` powers CI, the HTML report, and the Pro overlay.
@@ -26,7 +26,7 @@ Stream and persist Flight chunks while the dev server runs:
 
 ```bash
 pnpm -C examples/next-app dev &
-pnpm -F @server-client-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
+pnpm -F @rsc-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
 ```
 
 Sample output:
@@ -40,7 +40,7 @@ Use the captured timings to correlate overlay observations with Flight delivery 
 
 ## Overlay Stub
 
-- The OSS demo ships a stub overlay that logs instructions until `@server-client-xray-pro/overlay` is installed.
+- The OSS demo ships a stub overlay that logs instructions until `@rsc-xray-pro/overlay` is installed.
 - Toggle it with **Control**+Shift+X (macOS uses the Control key) or via `window.__SCX_OVERLAY__?.toggle()`.
 - Install the Pro overlay package to visualize hydration timings, cache lens insights, and CI budgets inline.
 

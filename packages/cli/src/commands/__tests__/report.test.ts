@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import type { Model } from '@server-client-xray/schemas';
+import type { Model } from '@rsc-xray/schemas';
 
 import { generateReport } from '../report';
 
@@ -56,7 +56,7 @@ describe('generateReport', () => {
       await generateReport({ modelPath, outputPath });
 
       const html = await readFile(outputPath, 'utf8');
-      expect(html).toContain('Server-Client XRay Report');
+      expect(html).toContain('RSC XRay Report');
       expect(html).toContain('/');
       expect(html).toContain('app/page.tsx');
     } finally {

@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@server-client-xray/schemas';
+import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@rsc-xray/schemas';
 
 import { analyzeProject } from '../analyzeProject';
 

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import type { Writable } from 'node:stream';
 
-import type { Model, Suggestion } from '@server-client-xray/schemas';
+import type { Model, Suggestion } from '@rsc-xray/schemas';
 
 interface PrintSuggestionsOptions {
   modelPath: string;

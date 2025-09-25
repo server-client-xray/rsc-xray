@@ -1,4 +1,4 @@
-import type { RouteCacheMetadata } from '@server-client-xray/schemas';
+import type { RouteCacheMetadata } from '@rsc-xray/schemas';
 
 export interface NextBuildManifest {
   pages: Record<string, string[]>;

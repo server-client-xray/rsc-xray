@@ -4,7 +4,7 @@ import './globals.css';
 import { OverlayBootstrap } from './components/OverlayBootstrap';
 
 export const metadata: Metadata = {
-  title: 'Server Client XRay Demo',
+  title: 'RSC XRay Demo',
   description: 'Demo Next.js App Router project with Suspense islands.',
 };
 

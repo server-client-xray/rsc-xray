@@ -65,7 +65,7 @@ export default function HomePage(): JSX.Element {
   return (
     <main style={{ padding: '24px 32px' }}>
       <section style={{ maxWidth: 840, margin: '0 auto' }}>
-        <h1 style={{ fontSize: 32, marginBottom: 8 }}>Server Client XRay Demo</h1>
+        <h1 style={{ fontSize: 32, marginBottom: 8 }}>RSC XRay Demo</h1>
         <p style={{ marginBottom: 16 }}>
           Use the scenarios below to generate analyzer output or to exercise the Pro overlay. Each
           card links to a route designed to highlight a specific rule or future capability.

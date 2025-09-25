@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 
-import type { Model } from '@server-client-xray/schemas';
-import { renderHtmlReport } from '@server-client-xray/report-html';
+import type { Model } from '@rsc-xray/schemas';
+import { renderHtmlReport } from '@rsc-xray/report-html';
 
 import { ensureValidModel } from '../utils/validateModel';
 

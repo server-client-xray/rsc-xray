@@ -14,8 +14,8 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@server-client-xray/report-html': resolve(__dirname, '../report-html/src/index.ts'),
-      '@server-client-xray/schemas': resolve(__dirname, '../schemas/src/index.ts'),
+      '@rsc-xray/report-html': resolve(__dirname, '../report-html/src/index.ts'),
+      '@rsc-xray/schemas': resolve(__dirname, '../schemas/src/index.ts'),
     },
   },
 });

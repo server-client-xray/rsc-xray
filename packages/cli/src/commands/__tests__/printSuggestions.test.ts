@@ -5,7 +5,7 @@ import { PassThrough } from 'node:stream';
 
 import { describe, expect, it } from 'vitest';
 
-import type { Model } from '@server-client-xray/schemas';
+import type { Model } from '@rsc-xray/schemas';
 
 import { printSuggestions } from '../printSuggestions';
 

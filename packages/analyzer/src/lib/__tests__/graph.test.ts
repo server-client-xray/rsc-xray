@@ -4,8 +4,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { buildGraph } from '../graph';
-import type { Suggestion } from '@server-client-xray/schemas';
-import type { Diagnostic } from '@server-client-xray/schemas';
+import type { Suggestion } from '@rsc-xray/schemas';
+import type { Diagnostic } from '@rsc-xray/schemas';
 import { classifyFiles } from '../classifyFiles';
 
 async function collectTsFiles(root: string): Promise<string[]> {
