@@ -4,6 +4,8 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@server-client-xray/schemas';
+
 import { analyzeProject } from '../analyzeProject';
 
 const SIZE_MANIFEST = JSON.stringify(
@@ -95,6 +97,12 @@ describe('analyzeProject', () => {
 
       const routeNode = model.nodes['route:/'];
       expect(routeNode).toBeTruthy();
+      const routeWaterfall = routeNode?.suggestions?.find(
+        (item) => item.rule === ROUTE_WATERFALL_SUGGESTION_RULE
+      );
+      expect(routeWaterfall?.level).toBe('warn');
+      expect(routeWaterfall?.message).toContain('Waterfall suspected');
+      expect(routeWaterfall?.message).toContain('app/page.tsx');
 
       const serverNode = model.nodes['module:app/page.tsx'];
       expect(serverNode?.suggestions?.[0]?.rule).toBe('server-promise-all');

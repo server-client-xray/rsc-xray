@@ -1,3 +1,4 @@
+import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@server-client-xray/schemas';
 import type { Model, Suggestion } from '@server-client-xray/schemas';
 
 const styles = `
@@ -110,6 +111,14 @@ function renderSuggestionsBadge(suggestions?: Suggestion[]): string {
   return `<span class="badge ${hasWarn ? 'warn' : 'info'}" title="${title}">Suggestions ${suggestions.length}</span>`;
 }
 
+function escapeHtmlAttr(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function indentLabel(label: string, depth: number): string {
   if (depth <= 0) {
     return label;
@@ -175,6 +184,12 @@ export function renderHtmlReport(model: Model): string {
         .join('');
 
       const collectedSuggestions = collectRouteSuggestions(model, route.rootNodeId);
+      const routeWaterfall = node?.suggestions?.find(
+        (suggestion) => suggestion.rule === ROUTE_WATERFALL_SUGGESTION_RULE
+      );
+      const waterfallBadge = routeWaterfall
+        ? `<span class="badge warn" title="${escapeHtmlAttr(routeWaterfall.message)}">Waterfall suspected</span>`
+        : '';
       const suggestionsTable = collectedSuggestions.length
         ? `<table class="suggestions-table">
             <thead>
@@ -215,6 +230,7 @@ export function renderHtmlReport(model: Model): string {
           <span class="route-chunks">${chunkLabel}</span>
           <span class="badge">${node?.kind.toUpperCase()}</span>
           <span class="badge">${bytesLabel || '0 KB'}</span>
+          ${waterfallBadge}
         </div>
         <table>
           <thead>
