@@ -33,5 +33,9 @@
   "lint-staged": {
     "*.{ts,tsx,js,jsx,json,css,md}": "prettier --write",
     "*.{ts,tsx,js,jsx}": "eslint --max-warnings=0"
+  },
+  "volta": {
+    "node": "20.17.0",
+    "pnpm": "9.12.0"
   }
 }
