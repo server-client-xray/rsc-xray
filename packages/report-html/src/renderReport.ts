@@ -1,5 +1,5 @@
-import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@server-client-xray/schemas';
-import type { Model, Suggestion } from '@server-client-xray/schemas';
+import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@rsc-xray/schemas';
+import type { Model, Suggestion } from '@rsc-xray/schemas';
 
 const styles = `
   body {
@@ -253,11 +253,11 @@ export function renderHtmlReport(model: Model): string {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Server-Client XRay Report</title>
+    <title>RSC XRay Report</title>
     <style>${styles}</style>
   </head>
   <body>
-    <h1>Server-Client XRay Report</h1>
+    <h1>RSC XRay Report</h1>
     ${routeSections}
   </body>
 </html>`;

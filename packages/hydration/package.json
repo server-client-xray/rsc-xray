@@ -1,5 +1,5 @@
 {
-  "name": "@server-client-xray/hydration",
+  "name": "@rsc-xray/hydration",
   "version": "0.0.0",
   "type": "module",
   "main": "dist/index.js",

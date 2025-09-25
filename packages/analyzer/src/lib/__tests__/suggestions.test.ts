@@ -4,7 +4,7 @@ import { join } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-import type { Suggestion } from '@server-client-xray/schemas';
+import type { Suggestion } from '@rsc-xray/schemas';
 
 import { collectSuggestions, collectSuggestionsForSource } from '../suggestions';
 

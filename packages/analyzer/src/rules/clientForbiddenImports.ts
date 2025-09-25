@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import type { Diagnostic } from '@server-client-xray/schemas';
+import type { Diagnostic } from '@rsc-xray/schemas';
 
 import { classifyComponent } from '../lib/classify';
 import type { ComponentKind } from '../lib/classify';

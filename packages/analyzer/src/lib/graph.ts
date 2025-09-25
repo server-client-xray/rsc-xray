@@ -10,7 +10,7 @@ import type {
   RouteEntry,
   Suggestion,
   XNode,
-} from '@server-client-xray/schemas';
+} from '@rsc-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
 import type { ClientComponentBundle } from './clientBundles';

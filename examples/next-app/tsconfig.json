@@ -15,7 +15,7 @@
     "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@server-client-xray/hydration": ["../../packages/hydration/src/index.ts"]
+      "@rsc-xray/hydration": ["../../packages/hydration/src/index.ts"]
     },
     "plugins": [
       {

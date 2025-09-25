@@ -1,7 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 
-import type { Model } from '@server-client-xray/schemas';
-import { analyzeProject } from '@server-client-xray/analyzer';
+import type { Model } from '@rsc-xray/schemas';
+import { analyzeProject } from '@rsc-xray/analyzer';
 
 export interface ExportModelOptions {
   projectRoot: string;

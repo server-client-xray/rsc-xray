@@ -3,7 +3,7 @@ import { join } from 'node:path';
 
 import * as ts from 'typescript';
 
-import type { Suggestion } from '@server-client-xray/schemas';
+import type { Suggestion } from '@rsc-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
 import type { ComponentKind } from './classify';

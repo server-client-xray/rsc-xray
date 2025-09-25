@@ -1,4 +1,4 @@
-import { getHydrationDurations } from '@server-client-xray/hydration';
+import { getHydrationDurations } from '@rsc-xray/hydration';
 
 const SNAPSHOT_ENDPOINT = '/api/scx/hydration';
 let scheduled = false;

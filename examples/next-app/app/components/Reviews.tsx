@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
-import { createHydrationHook } from '@server-client-xray/hydration';
+import { createHydrationHook } from '@rsc-xray/hydration';
 
 const useHydrationTimings = createHydrationHook({ useEffect, useRef });
 

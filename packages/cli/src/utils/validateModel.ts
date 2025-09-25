@@ -1,6 +1,6 @@
 import Ajv, { type ValidateFunction } from 'ajv';
 
-import { modelSchema, type Model } from '@server-client-xray/schemas';
+import { modelSchema, type Model } from '@rsc-xray/schemas';
 
 const ajv = new Ajv({ allErrors: true, strict: false });
 ajv.addFormat('date-time', {

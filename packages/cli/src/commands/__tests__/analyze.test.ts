@@ -4,19 +4,17 @@ import { join } from 'node:path';
 
 import { MockedFunction, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Model } from '@server-client-xray/schemas';
+import type { Model } from '@rsc-xray/schemas';
 
-vi.mock('@server-client-xray/analyzer', async () => {
-  const actual = await vi.importActual<typeof import('@server-client-xray/analyzer')>(
-    '@server-client-xray/analyzer'
-  );
+vi.mock('@rsc-xray/analyzer', async () => {
+  const actual = await vi.importActual<typeof import('@rsc-xray/analyzer')>('@rsc-xray/analyzer');
   return {
     ...actual,
     analyzeProject: vi.fn(),
   } satisfies Partial<typeof actual>;
 });
 
-const { analyzeProject } = await import('@server-client-xray/analyzer');
+const { analyzeProject } = await import('@rsc-xray/analyzer');
 const analyzeProjectMock = analyzeProject as MockedFunction<typeof analyzeProject>;
 
 const VALID_MODEL: Model = {

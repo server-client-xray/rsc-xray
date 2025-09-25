@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://server-client-xray.dev/schemas/model.schema.json",
-  "title": "Server Client XRay Model",
+  "$id": "https://rsc-xray.dev/schemas/model.schema.json",
+  "title": "RSC XRay Model",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "routes", "nodes", "build"],

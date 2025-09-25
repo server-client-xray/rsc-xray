@@ -1,4 +1,4 @@
-# server-client-xray (OSS)
+# rsc-xray (OSS)
 
 Core analyzer + CLI + schemas + offline HTML report.
 
@@ -17,7 +17,7 @@ Core analyzer + CLI + schemas + offline HTML report.
 - [docs/QUICKSTART.md](./docs/QUICKSTART.md) — one-page setup and checklist.
 - [docs/WORKFLOWS.md](./docs/WORKFLOWS.md) — repeatable commands for analyze/report, flight tap, and overlay stub usage.
 - [docs/VIOLATIONS.md](./docs/VIOLATIONS.md) — rule triggers, demo routes, and artifact references.
-- Looking for milestone plans or commercialization work? Those live in the Pro repo; see [server-client-xray-pro](https://github.com/server-client-xray/server-client-xray-pro).
+- Looking for milestone plans or commercialization work? Those live in the Pro repo; see [rsc-xray-pro](https://github.com/rsc-xray/rsc-xray-pro).
 
 ## Getting Started
 
@@ -32,8 +32,8 @@ Core analyzer + CLI + schemas + offline HTML report.
 # from repo root
 docs/WORKFLOWS.md details each step, but in short:
 pnpm -C examples/next-app build
-pnpm -F @server-client-xray/cli analyze --project ./examples/next-app --out ./model.json
-pnpm -F @server-client-xray/cli report --model ./model.json --out ./report.html
+pnpm -F @rsc-xray/cli analyze --project ./examples/next-app --out ./model.json
+pnpm -F @rsc-xray/cli report --model ./model.json --out ./report.html
 ```
 
 `model.json` and `report.html` are written relative to your working directory (the repo root in this example).
@@ -44,7 +44,7 @@ Capture RSC/Flight streaming timings while the demo is running:
 
 ```bash
 pnpm -C examples/next-app dev &
-pnpm -F @server-client-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
+pnpm -F @rsc-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
 ```
 
 STDOUT prints chunk timings; the optional `--out` flag stores the samples for later inspection.
@@ -63,9 +63,9 @@ STDOUT prints chunk timings; the optional `--out` flag stores the samples for la
 
 - `OverlayBootstrap` registers a console hint when the Pro overlay bundle is missing.
 - Toggle with **Control**+Shift+X or run `window.__SCX_OVERLAY__?.toggle()` in the browser console.
-- Install `@server-client-xray-pro/overlay` in the example app to unlock the full UI (hydration timings, cache lens, CI budgets).
+- Install `@rsc-xray-pro/overlay` in the example app to unlock the full UI (hydration timings, cache lens, CI budgets).
 
 ## Pro & Team
 
 Interested in overlay UI, hydration timings, cache lens, CI dashboards, or licensing flows?  
-See **[server-client-xray-pro](https://github.com/server-client-xray/server-client-xray-pro)**.
+See **[rsc-xray-pro](https://github.com/rsc-xray/rsc-xray-pro)**.

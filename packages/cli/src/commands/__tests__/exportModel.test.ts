@@ -4,9 +4,9 @@ import { join } from 'node:path';
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Model } from '@server-client-xray/schemas';
+import type { Model } from '@rsc-xray/schemas';
 
-vi.mock('@server-client-xray/analyzer', () => ({
+vi.mock('@rsc-xray/analyzer', () => ({
   analyzeProject: vi.fn(),
 }));
 
@@ -27,7 +27,7 @@ const mockAnalyzeProject = async (): Promise<Model> => ({
   },
 });
 
-import { analyzeProject } from '@server-client-xray/analyzer';
+import { analyzeProject } from '@rsc-xray/analyzer';
 import { exportModel } from '../exportModel';
 
 beforeEach(() => {

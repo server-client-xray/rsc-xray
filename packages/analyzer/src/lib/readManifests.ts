@@ -6,7 +6,7 @@ import type {
   NextBuildManifest,
   ParsedManifests,
 } from '../types/next-manifest';
-import type { RouteCacheMetadata } from '@server-client-xray/schemas';
+import type { RouteCacheMetadata } from '@rsc-xray/schemas';
 
 interface ReadManifestsOptions {
   projectRoot: string;

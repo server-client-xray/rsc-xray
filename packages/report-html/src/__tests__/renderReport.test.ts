@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Model } from '@server-client-xray/schemas';
-import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@server-client-xray/schemas';
+import type { Model } from '@rsc-xray/schemas';
+import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@rsc-xray/schemas';
 
 import { renderHtmlReport } from '../renderReport';
 
@@ -65,7 +65,7 @@ describe('renderHtmlReport', () => {
 
     const html = renderHtmlReport(model);
 
-    expect(html).toContain('Server-Client XRay Report');
+    expect(html).toContain('RSC XRay Report');
     expect(html).toContain('/');
     expect(html).toContain('static/chunks/app/page.js');
     expect(html).toContain('<table class="suggestions-table">');
