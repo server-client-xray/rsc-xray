@@ -1,13 +1,15 @@
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { extname, join, relative } from 'node:path';
 
-import type {
-  Diagnostic,
-  Model,
-  NodeCacheMetadata,
-  RouteEntry,
-  Suggestion,
-  XNode,
+import {
+  ROUTE_WATERFALL_SUGGESTION_RULE,
+  SERVER_PARALLEL_SUGGESTION_RULE,
+  type Diagnostic,
+  type Model,
+  type NodeCacheMetadata,
+  type RouteEntry,
+  type Suggestion,
+  type XNode,
 } from '@server-client-xray/schemas';
 
 import { collectClientComponentBundles } from './clientBundles';
@@ -125,6 +127,110 @@ function applyHydrationDurations(
     nodes[route.rootNodeId] = {
       ...existing,
       hydrationMs: total,
+    };
+  }
+}
+
+interface WaterfallOccurrence {
+  node: XNode;
+  suggestion: Suggestion;
+}
+
+function collectWaterfallOccurrences(
+  nodeId: string,
+  nodes: Record<string, XNode>,
+  visiting: Set<string>,
+  out: WaterfallOccurrence[]
+): void {
+  if (visiting.has(nodeId)) {
+    return;
+  }
+  const node = nodes[nodeId];
+  if (!node) {
+    return;
+  }
+
+  visiting.add(nodeId);
+
+  for (const suggestion of node.suggestions ?? []) {
+    if (suggestion.rule === SERVER_PARALLEL_SUGGESTION_RULE) {
+      out.push({ node, suggestion });
+    }
+  }
+
+  for (const childId of node.children ?? []) {
+    collectWaterfallOccurrences(childId, nodes, visiting, out);
+  }
+
+  visiting.delete(nodeId);
+}
+
+function formatFileList(files: string[]): string {
+  if (files.length === 0) {
+    return '';
+  }
+  if (files.length === 1) {
+    return files[0]!.replace(/\\/g, '/');
+  }
+  if (files.length === 2) {
+    const [first, second] = files;
+    return `${first.replace(/\\/g, '/')} and ${second.replace(/\\/g, '/')}`;
+  }
+  const last = files[files.length - 1]!.replace(/\\/g, '/');
+  const head = files
+    .slice(0, -1)
+    .map((file) => file.replace(/\\/g, '/'))
+    .join(', ');
+  return `${head}, and ${last}`;
+}
+
+function applyRouteWaterfallSuggestions(nodes: Record<string, XNode>, routes: RouteEntry[]): void {
+  for (const route of routes) {
+    const rootId = route.rootNodeId;
+    const root = nodes[rootId];
+    if (!root) {
+      continue;
+    }
+
+    const occurrences: WaterfallOccurrence[] = [];
+    collectWaterfallOccurrences(rootId, nodes, new Set(), occurrences);
+    if (occurrences.length === 0) {
+      continue;
+    }
+
+    const existingSuggestions = root.suggestions ?? [];
+    if (existingSuggestions.some((item) => item.rule === ROUTE_WATERFALL_SUGGESTION_RULE)) {
+      continue;
+    }
+
+    const files = new Set<string>();
+    for (const occurrence of occurrences) {
+      const locFile = occurrence.suggestion.loc?.file;
+      if (locFile) {
+        files.add(locFile);
+        continue;
+      }
+      if (occurrence.node.file) {
+        files.add(occurrence.node.file);
+      }
+    }
+
+    const fileList = formatFileList(Array.from(files));
+    const wherePart = fileList ? ` in ${fileList}` : '';
+    const guidance =
+      'Wrap independent awaits in Promise.all, or use Next.js preload / React 19 cache() to start work earlier.';
+    const message = `Waterfall suspected${wherePart}. ${guidance}`;
+
+    const aggregated: Suggestion = {
+      rule: ROUTE_WATERFALL_SUGGESTION_RULE,
+      level: 'warn',
+      message,
+      ...(occurrences[0]?.suggestion.loc ? { loc: occurrences[0]!.suggestion.loc } : {}),
+    };
+
+    nodes[rootId] = {
+      ...root,
+      suggestions: [aggregated, ...existingSuggestions],
     };
   }
 }
@@ -325,6 +431,7 @@ export async function analyzeProject({
   };
 
   applyHydrationDurations(nodes, routes, hydrationDurations);
+  applyRouteWaterfallSuggestions(nodes, routes);
 
   return {
     version: '0.1',
