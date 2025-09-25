@@ -12,30 +12,45 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Enable Corepack
-        run: corepack enable
+      - name: Install Volta
+        uses: volta-cli/action@v4
 
-      - name: Prepare pnpm
-        run: corepack prepare pnpm@9.12.0 --activate
+      - name: Install pinned toolchain
+        run: |
+          NODE_VERSION=$(jq -r '.volta.node' package.json)
+          PNPM_VERSION=$(jq -r '.volta.pnpm' package.json)
+          volta install node@"$NODE_VERSION"
+          volta install pnpm@"$PNPM_VERSION"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Show tool versions
+        run: |
+          volta --version
+          node --version
+          pnpm --version
+
+      - name: Determine pnpm store path
+        id: pnpm-store
+        run: echo "store=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
         with:
-          node-version: 20
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+          path: ${{ steps.pnpm-store.outputs.store }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
 
       - name: Install dependencies
-        run: corepack pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: corepack pnpm lint
+        run: pnpm lint
 
       - name: Format Check
-        run: corepack pnpm format:check
+        run: pnpm format:check
 
       - name: Test
-        run: corepack pnpm -r test
+        run: pnpm -r test
 
       - name: Build
-        run: corepack pnpm -r build
+        run: pnpm -r build
