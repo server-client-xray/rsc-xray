@@ -1,0 +1,56 @@
+name: Publish Packages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: volta-cli/action@v4
+
+      - name: Install pinned toolchain
+        run: |
+          NODE_VERSION=$(jq -r '.volta.node' package.json)
+          PNPM_VERSION=$(jq -r '.volta.pnpm' package.json)
+          volta install node@"$NODE_VERSION"
+          volta install pnpm@"$PNPM_VERSION"
+
+      - name: Show tool versions
+        run: |
+          volta --version
+          node --version
+          pnpm --version
+
+      - name: Determine pnpm store path
+        id: pnpm-store
+        run: echo "store=$(pnpm store path)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.store }}
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm -r build
+
+      - name: Run tests
+        run: pnpm -r test
+
+      - name: Publish to npm
+        run: pnpm run release -- --access public --no-git-tag --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

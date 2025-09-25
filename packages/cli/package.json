@@ -16,5 +16,23 @@
     "@rsc-xray/report-html": "workspace:*",
     "@rsc-xray/schemas": "workspace:*",
     "ajv": "^8.17.1"
-  }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/server-client-xray/rsc-xray"
+  },
+  "license": "MIT"
 }

@@ -7,7 +7,6 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./src/index.ts",
       "default": "./dist/index.js"
     }
   },
@@ -17,5 +16,17 @@
   },
   "dependencies": {
     "@rsc-xray/schemas": "workspace:*"
-  }
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/server-client-xray/rsc-xray"
+  },
+  "license": "MIT"
 }
