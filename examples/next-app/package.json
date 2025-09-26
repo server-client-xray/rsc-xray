@@ -9,7 +9,7 @@
     "test:hydration": "playwright test tests/hydration.spec.ts"
   },
   "dependencies": {
-    "@rsc-xray/hydration": "workspace:*",
+    "@rsc-xray/hydration": "workspace:^0.1.2",
     "next": "14.2.5",
     "react": "18.3.1",
     "react-dom": "18.3.1"
