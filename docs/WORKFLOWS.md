@@ -18,10 +18,13 @@ This document threads the core OSS flows into repeatable checklists so you can r
 2. From the repo root, stream the route you want to inspect:
 
    ```bash
-   pnpm -F @rsc-xray/cli flight-tap --url http://localhost:3000/products/analyzer --out ./flight.json
+   pnpm -F @rsc-xray/cli flight-tap \
+     --url http://localhost:3000/(shop)/products/1 \
+     --route /products/[id] \
+     --out examples/next-app/.scx/flight.json
    ```
 
-3. The command writes human-readable chunk timings to STDOUT and saves the sampled data when `--out` is provided. Use these samples to align overlay observations with Flight delivery order.
+3. The command writes chunk timings to STDOUT and saves a model-compatible snapshot (`{ "samples": [...] }`) when `--out` is provided. Analyzer runs fold this data into `model.flight`, enabling the Pro overlay to surface timeline summaries.
 
 ## Overlay Stub Behavior
 

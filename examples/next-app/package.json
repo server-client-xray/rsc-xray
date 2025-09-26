@@ -7,6 +7,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:hydration": "playwright test tests/hydration.spec.ts",
+    "test:flight": "playwright test tests/flightTap.spec.ts",
     "test:lighthouse": "pnpm exec tsx scripts/runLighthouse.ts"
   },
   "dependencies": {

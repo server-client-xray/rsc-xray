@@ -5,6 +5,7 @@ import {
   ROUTE_WATERFALL_SUGGESTION_RULE,
   SERVER_PARALLEL_SUGGESTION_RULE,
   type Diagnostic,
+  type FlightSample,
   type Model,
   type NodeCacheMetadata,
   type RouteEntry,
@@ -36,6 +37,7 @@ interface SourceEntry {
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.next', '.turbo']);
 const HYDRATION_SNAPSHOT_PATH = ['.scx', 'hydration.json'] as const;
+const FLIGHT_SNAPSHOT_PATH = ['.scx', 'flight.json'] as const;
 
 const toPosix = (value: string) => value.replace(/\\/g, '/');
 
@@ -63,6 +65,53 @@ async function readHydrationSnapshot(projectRoot: string): Promise<Record<string
       return {};
     }
     return {};
+  }
+}
+
+async function readFlightSnapshot(projectRoot: string): Promise<FlightSample[]> {
+  try {
+    const raw = await readFile(join(projectRoot, ...FLIGHT_SNAPSHOT_PATH), 'utf8');
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== 'object') {
+      return [];
+    }
+
+    const samplesInput = (parsed as { samples?: unknown }).samples;
+    if (!Array.isArray(samplesInput)) {
+      return [];
+    }
+
+    const samples: FlightSample[] = [];
+    for (const entry of samplesInput) {
+      if (!entry || typeof entry !== 'object') {
+        continue;
+      }
+      const { route, ts, chunkIndex, label } = entry as Record<string, unknown>;
+      if (typeof route !== 'string' || route.trim().length === 0) {
+        continue;
+      }
+      const tsNumber = typeof ts === 'number' ? ts : Number(ts);
+      const chunkNumber = typeof chunkIndex === 'number' ? chunkIndex : Number(chunkIndex);
+      if (!Number.isFinite(tsNumber) || !Number.isFinite(chunkNumber)) {
+        continue;
+      }
+      const chunk = Math.max(0, Math.trunc(chunkNumber));
+      const sample: FlightSample = {
+        route,
+        ts: tsNumber,
+        chunkIndex: chunk,
+      };
+      if (typeof label === 'string' && label.trim().length > 0) {
+        sample.label = label;
+      }
+      samples.push(sample);
+    }
+    return samples;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      return [];
+    }
+    return [];
   }
 }
 
@@ -432,11 +481,13 @@ export async function analyzeProject({
 
   applyHydrationDurations(nodes, routes, hydrationDurations);
   applyRouteWaterfallSuggestions(nodes, routes);
+  const flightSamples = await readFlightSnapshot(projectRoot);
 
   return {
     version: '0.1',
     routes,
     nodes,
     build: buildInfo,
+    ...(flightSamples.length > 0 ? { flight: { samples: flightSamples } } : {}),
   };
 }
