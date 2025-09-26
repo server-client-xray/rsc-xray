@@ -1,13 +1,13 @@
 {
   "name": "@rsc-xray/analyzer",
-  "version": "0.0.0",
+  "version": "0.1.2",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./src/index.ts",
-      "default": "./src/index.ts"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "scripts": {
@@ -15,6 +15,18 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@rsc-xray/schemas": "workspace:*"
-  }
+    "@rsc-xray/schemas": "workspace:^0.1.2"
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/server-client-xray/rsc-xray"
+  },
+  "license": "MIT"
 }

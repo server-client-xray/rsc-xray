@@ -1,19 +1,20 @@
-name: CI
+name: Version Packages
 
 on:
   push:
-    branches: [main]
-  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-test:
+  version:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install Volta
-        uses: volta-cli/action@v4
+      - uses: volta-cli/action@v4
 
       - name: Install pinned toolchain
         run: |
@@ -43,14 +44,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Format Check
-        run: pnpm format:check
-
-      - name: Build
-        run: pnpm -r build
-
-      - name: Test
-        run: pnpm -r test
+      - name: Create or update Changesets PR
+        uses: changesets/action@v1
+        with:
+          publish: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
