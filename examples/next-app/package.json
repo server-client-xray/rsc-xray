@@ -6,7 +6,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test:hydration": "playwright test tests/hydration.spec.ts"
+    "test:hydration": "playwright test tests/hydration.spec.ts",
+    "test:lighthouse": "pnpm exec tsx scripts/runLighthouse.ts"
   },
   "dependencies": {
     "@rsc-xray/hydration": "workspace:^0.1.2",
@@ -19,6 +20,8 @@
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
     "typescript": "5.5.4",
-    "@playwright/test": "^1.47.0"
+    "@playwright/test": "^1.47.0",
+    "lighthouse": "^12.8.2",
+    "tree-kill": "^1.2.2"
   }
 }

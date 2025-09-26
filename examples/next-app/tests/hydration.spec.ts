@@ -1,42 +1,20 @@
 import { spawn } from 'node:child_process';
 import { readFile, rm } from 'node:fs/promises';
-import net from 'node:net';
+import { once } from 'node:events';
 import path from 'node:path';
 
 import { expect, test } from '@playwright/test';
 
-const PORT = 3100;
+import { getAvailablePort } from './utils/getAvailablePort';
+import { waitForPort } from './utils/waitForPort';
+import treeKill from 'tree-kill';
+
 const HOST = '127.0.0.1';
 const exampleRoot = path.resolve(__dirname, '..');
 const snapshotPath = path.join(exampleRoot, '.scx', 'hydration.json');
 
-async function waitForPort({
-  port,
-  host,
-  timeoutMs = 30_000,
-}: {
-  port: number;
-  host: string;
-  timeoutMs?: number;
-}) {
-  const start = Date.now();
-  while (Date.now() - start < timeoutMs) {
-    const isOpen = await new Promise<boolean>((resolve) => {
-      const socket = net.createConnection({ port, host }, () => {
-        socket.end();
-        resolve(true);
-      });
-      socket.on('error', () => {
-        resolve(false);
-      });
-    });
-    if (isOpen) {
-      return;
-    }
-    await new Promise((resolve) => setTimeout(resolve, 250));
-  }
-  throw new Error(`Timed out waiting for http://${host}:${port}`);
-}
+const DEFAULT_PORT = 3100;
+let port: number;
 
 test.describe('hydration telemetry', () => {
   let server: ReturnType<typeof spawn> | undefined;
@@ -48,24 +26,39 @@ test.describe('hydration telemetry', () => {
       console.warn('[scx] Failed to reset hydration snapshot', error);
     }
 
-    server = spawn('pnpm', ['dev', '--hostname', HOST, '--port', String(PORT)], {
+    port = await getAvailablePort(DEFAULT_PORT);
+
+    server = spawn('pnpm', ['dev', '--hostname', HOST, '--port', String(port)], {
       cwd: exampleRoot,
-      env: { ...process.env, PORT: String(PORT) },
+      env: { ...process.env, PORT: String(port) },
       stdio: 'inherit',
     });
 
-    await waitForPort({ port: PORT, host: HOST });
+    await waitForPort({ port, host: HOST });
   });
 
   test.afterAll(async () => {
     if (server) {
-      server.kill();
+      try {
+        await new Promise<void>((resolve, reject) => {
+          treeKill(server!.pid, 'SIGTERM', (error) => {
+            if (error && (error as NodeJS.ErrnoException).code !== 'ESRCH') {
+              reject(error);
+              return;
+            }
+            resolve();
+          });
+        });
+        await once(server, 'exit');
+      } catch (error) {
+        console.warn('[scx] Failed to terminate Next dev server cleanly', error);
+      }
       server = undefined;
     }
   });
 
   test('writes hydration snapshot after initial render', async ({ page }) => {
-    await page.goto(`http://${HOST}:${PORT}/products/1`, { waitUntil: 'networkidle' });
+    await page.goto(`http://${HOST}:${port}/products/1`, { waitUntil: 'networkidle' });
 
     await expect
       .poll(async () => {
