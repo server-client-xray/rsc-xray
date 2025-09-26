@@ -2,10 +2,14 @@ import { performance } from 'node:perf_hooks';
 import type { Writable } from 'node:stream';
 import { ReadableStream } from 'node:stream/web';
 
+import type { FlightSample } from '@rsc-xray/schemas';
+
 interface FlightTapOptions {
   url: string;
+  route?: string;
   output?: Writable;
   fetchImpl?: typeof fetch;
+  now?: () => number;
 }
 
 interface FlightTapResult {
@@ -14,17 +18,36 @@ interface FlightTapResult {
 }
 
 const DEFAULT_OUTPUT: Writable = process.stdout;
+const DEFAULT_NOW = () => performance.now();
+const BYTES_IN_KILOBYTE = 1024;
 
-export interface FlightSample {
-  chunkIndex: number;
-  sizeBytes: number;
-  timestampMs: number;
+function resolveRoute(url: string, explicit?: string): string {
+  if (explicit && explicit.trim().length > 0) {
+    return explicit;
+  }
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname || '/';
+  } catch {
+    return '/';
+  }
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < BYTES_IN_KILOBYTE) {
+    return `${bytes} bytes`;
+  }
+  const kilobytes = bytes / BYTES_IN_KILOBYTE;
+  const precision = kilobytes >= 100 ? 0 : kilobytes >= 10 ? 1 : 2;
+  return `${kilobytes.toFixed(precision)} KB`;
 }
 
 export async function flightTap({
   url,
+  route,
   output = DEFAULT_OUTPUT,
   fetchImpl = fetch,
+  now = DEFAULT_NOW,
 }: FlightTapOptions): Promise<FlightTapResult> {
   const response = await fetchImpl(url);
   if (!response.body) {
@@ -32,8 +55,9 @@ export async function flightTap({
   }
 
   let chunkIndex = 0;
-  const start = performance.now();
+  const start = now();
   const reader = response.body.getReader();
+  const routeId = resolveRoute(url, route);
   const samples: FlightSample[] = [];
 
   while (true) {
@@ -42,15 +66,20 @@ export async function flightTap({
       break;
     }
     if (value) {
-      const timestamp = Math.round(performance.now() - start);
+      const timestamp = Math.round(now() - start);
+      const sizeLabel = formatSize(value.byteLength);
       output.write(
-        `[scx-flight] t=${timestamp}ms chunk ${chunkIndex} (${value.byteLength} bytes)\n`
+        `[scx-flight] route=${routeId} t=${timestamp}ms chunk ${chunkIndex} (${sizeLabel})\n`
       );
-      samples.push({
+      const sample: FlightSample = {
+        route: routeId,
         chunkIndex,
-        sizeBytes: value.byteLength,
-        timestampMs: timestamp,
-      });
+        ts: timestamp,
+      };
+      if (value.byteLength > 0) {
+        sample.label = sizeLabel;
+      }
+      samples.push(sample);
       chunkIndex += 1;
     }
   }

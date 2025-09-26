@@ -180,4 +180,60 @@ describe('analyzeProject', () => {
       await rm(projectRoot, { recursive: true, force: true });
     }
   });
+
+  it('includes flight snapshot data in the model when available', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-flight-'));
+    try {
+      await mkdir(join(projectRoot, 'app/components'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+      await mkdir(join(projectRoot, '.scx'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/page.tsx'),
+        `export default function Page() {\n  return <div>hello</div>;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
+        SIZE_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/server/app/page_client-reference-manifest.js'),
+        CLIENT_REFERENCE_MANIFEST(projectRoot),
+        'utf8'
+      );
+
+      await writeFile(
+        join(projectRoot, '.scx/flight.json'),
+        JSON.stringify(
+          {
+            samples: [
+              { route: '/', ts: 12, chunkIndex: 0, label: '8 KB' },
+              { route: '/', ts: 48.7, chunkIndex: 1 },
+              { route: '/ignore', ts: 'oops', chunkIndex: 2 },
+            ],
+          },
+          null,
+          2
+        ),
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+      expect(model.flight?.samples).toEqual([
+        { route: '/', ts: 12, chunkIndex: 0, label: '8 KB' },
+        { route: '/', ts: 48.7, chunkIndex: 1 },
+      ]);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
 });
