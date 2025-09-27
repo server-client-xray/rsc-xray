@@ -16,6 +16,12 @@ describe('renderHtmlReport', () => {
           rootNodeId: 'route:/',
           chunks: ['static/chunks/app/page.js'],
           totalBytes: 4096,
+          cache: {
+            revalidateSeconds: 120,
+            tags: ['catalog'],
+            dynamic: 'force-static',
+            experimentalPpr: true,
+          },
         },
       ],
       nodes: {
@@ -75,5 +81,10 @@ describe('renderHtmlReport', () => {
     expect(html).toContain('app/components/ClientIsland.tsx');
     expect(html).toContain('Waterfall suspected');
     expect(html).toContain('Promise.all');
+    expect(html).toContain('ISR 120s');
+    expect(html).toContain('Force static');
+    expect(html).toContain('PPR');
+    expect(html).toContain('Cache tags:');
+    expect(html).toContain('catalog');
   });
 });

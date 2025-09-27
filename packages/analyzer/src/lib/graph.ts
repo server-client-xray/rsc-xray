@@ -7,6 +7,7 @@ import type {
   Diagnostic,
   NodeCacheMetadata,
   NodeMutationMetadata,
+  RouteCacheMetadata,
   RouteEntry,
   Suggestion,
   XNode,
@@ -82,6 +83,39 @@ function deriveRouteFromAppFile(appDir: string, filePath: string): string | unde
 
 function createNodeId(kind: NodeKind, key: string): string {
   return `${kind}:${key}`;
+}
+
+function createRouteCacheMetadata(
+  meta: FileCacheMetadata | undefined
+): RouteCacheMetadata | undefined {
+  if (!meta) {
+    return undefined;
+  }
+
+  const cache: RouteCacheMetadata = {};
+
+  if (meta.hasRevalidateFalse) {
+    cache.revalidateSeconds = false;
+  } else if (meta.revalidateSeconds.size > 0) {
+    const values = Array.from(meta.revalidateSeconds).filter((value) => Number.isFinite(value));
+    if (values.length) {
+      cache.revalidateSeconds = Math.min(...values);
+    }
+  }
+
+  if (meta.tags.size) {
+    cache.tags = Array.from(meta.tags).sort();
+  }
+
+  if (meta.exportedDynamic) {
+    cache.dynamic = meta.exportedDynamic;
+  }
+
+  if (meta.experimentalPpr) {
+    cache.experimentalPpr = true;
+  }
+
+  return Object.keys(cache).length ? cache : undefined;
 }
 
 async function extractRelativeImports(absPath: string): Promise<string[]> {
@@ -246,7 +280,17 @@ export async function buildGraph({
           const revalidateSeconds = Array.from(cacheMetadata.revalidateSeconds).sort(
             (a, b) => a - b
           );
-          if (!modes.length && !revalidateSeconds.length && !cacheMetadata.hasRevalidateFalse) {
+          const hasRevalidateFalse = cacheMetadata.hasRevalidateFalse;
+          const dynamic = cacheMetadata.exportedDynamic;
+          const experimentalPpr = cacheMetadata.experimentalPpr;
+
+          if (
+            !modes.length &&
+            !revalidateSeconds.length &&
+            !hasRevalidateFalse &&
+            !dynamic &&
+            !experimentalPpr
+          ) {
             return undefined;
           }
           const result: NodeCacheMetadata = {};
@@ -256,8 +300,14 @@ export async function buildGraph({
           if (revalidateSeconds.length) {
             result.revalidateSeconds = revalidateSeconds;
           }
-          if (cacheMetadata.hasRevalidateFalse) {
+          if (hasRevalidateFalse) {
             result.hasRevalidateFalse = true;
+          }
+          if (dynamic) {
+            result.dynamic = dynamic;
+          }
+          if (experimentalPpr) {
+            result.experimentalPpr = true;
           }
           return result;
         })()
@@ -309,15 +359,21 @@ export async function buildGraph({
     }
 
     const routeId = createNodeId('route', route);
+    const routeCache = createRouteCacheMetadata(cacheMetadataLookup.get(meta.filePath));
     const routeNode: XNode = {
       id: routeId,
       kind: 'route',
       name: route,
       children: [meta.id],
+      ...(routeCache?.tags?.length ? { tags: routeCache.tags } : {}),
     };
 
     nodes[routeId] = routeNode;
-    routes.push({ route, rootNodeId: routeId });
+    routes.push({
+      route,
+      rootNodeId: routeId,
+      ...(routeCache ? { cache: routeCache } : {}),
+    });
   }
 
   routes.sort((a, b) => a.route.localeCompare(b.route));

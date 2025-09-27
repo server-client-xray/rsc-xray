@@ -1,6 +1,7 @@
 import type { Writable } from 'node:stream';
 
 import { readManifests } from '@rsc-xray/analyzer';
+import type { RouteCacheMetadata } from '@rsc-xray/schemas';
 
 interface PrintManifestOptions {
   projectRoot: string;
@@ -21,6 +22,44 @@ function formatBytes(bytes: number | undefined): string {
   return `${kb.toFixed(1)} kB`;
 }
 
+function formatCache(cache: RouteCacheMetadata | undefined): string {
+  if (!cache) {
+    return '';
+  }
+
+  const parts: string[] = [];
+
+  if (typeof cache.revalidateSeconds !== 'undefined') {
+    if (cache.revalidateSeconds === false) {
+      parts.push('Manual revalidate');
+    } else {
+      parts.push(`ISR ${cache.revalidateSeconds}s`);
+    }
+  }
+
+  if (cache.dynamic) {
+    const label =
+      cache.dynamic === 'force-dynamic'
+        ? 'Force dynamic'
+        : cache.dynamic === 'force-static'
+          ? 'Force static'
+          : cache.dynamic === 'error'
+            ? 'Dynamic error'
+            : 'Dynamic auto';
+    parts.push(label);
+  }
+
+  if (cache.experimentalPpr) {
+    parts.push('PPR');
+  }
+
+  if (cache.tags?.length) {
+    parts.push(`Tags: ${cache.tags.join(', ')}`);
+  }
+
+  return parts.length ? `[cache: ${parts.join('; ')}]` : '';
+}
+
 export async function printManifest({
   projectRoot,
   distDir,
@@ -33,9 +72,11 @@ export async function printManifest({
     .map((route) => {
       const chunkList = route.chunks.join(', ');
       const bytesLabel = formatBytes(route.totalBytes);
-      return bytesLabel
+      const cacheLabel = formatCache(route.cache);
+      const base = bytesLabel
         ? `${route.route} -> ${chunkList} (${bytesLabel})`
         : `${route.route} -> ${chunkList}`;
+      return cacheLabel ? `${base} ${cacheLabel}` : base;
     });
 
   if (lines.length === 0) {

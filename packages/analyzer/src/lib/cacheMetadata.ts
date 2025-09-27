@@ -7,6 +7,8 @@ export interface FileCacheMetadata {
   hasRevalidateFalse: boolean;
   revalidateTagCalls: Set<string>;
   revalidatePathCalls: Set<string>;
+  exportedDynamic?: 'auto' | 'force-dynamic' | 'force-static' | 'error';
+  experimentalPpr: boolean;
 }
 
 interface CollectOptions {
@@ -14,6 +16,7 @@ interface CollectOptions {
 }
 
 const CACHE_LITERAL_VALUES = new Set(['force-cache', 'no-store']);
+const DYNAMIC_LITERAL_VALUES = new Set(['auto', 'force-dynamic', 'force-static', 'error']);
 
 function createEmptyMetadata(): FileCacheMetadata {
   return {
@@ -23,6 +26,7 @@ function createEmptyMetadata(): FileCacheMetadata {
     hasRevalidateFalse: false,
     revalidateTagCalls: new Set<string>(),
     revalidatePathCalls: new Set<string>(),
+    experimentalPpr: false,
   };
 }
 
@@ -43,6 +47,16 @@ function extractStaticNumber(node: ts.Expression): number | null {
   if (ts.isNumericLiteral(node)) {
     const value = Number(node.text);
     return Number.isFinite(value) ? value : null;
+  }
+  return null;
+}
+
+function extractStaticBoolean(node: ts.Expression): boolean | null {
+  if (node.kind === ts.SyntaxKind.TrueKeyword) {
+    return true;
+  }
+  if (node.kind === ts.SyntaxKind.FalseKeyword) {
+    return false;
   }
   return null;
 }
@@ -162,6 +176,55 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
   );
 
   const visit = (node: ts.Node) => {
+    if (
+      ts.isVariableStatement(node) &&
+      node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)
+    ) {
+      for (const declaration of node.declarationList.declarations) {
+        if (!ts.isIdentifier(declaration.name)) {
+          continue;
+        }
+        const initializer = declaration.initializer;
+        if (!initializer || !ts.isExpression(initializer)) {
+          continue;
+        }
+
+        switch (declaration.name.text) {
+          case 'revalidate': {
+            if (initializer.kind === ts.SyntaxKind.FalseKeyword) {
+              metadata.hasRevalidateFalse = true;
+            } else {
+              const value = extractStaticNumber(initializer);
+              if (typeof value === 'number') {
+                metadata.revalidateSeconds.add(value);
+              }
+            }
+            break;
+          }
+          case 'dynamic': {
+            const literal = extractStaticString(initializer);
+            if (literal && DYNAMIC_LITERAL_VALUES.has(literal)) {
+              metadata.exportedDynamic = literal as
+                | 'auto'
+                | 'force-dynamic'
+                | 'force-static'
+                | 'error';
+            }
+            break;
+          }
+          case 'experimental_ppr': {
+            const value = extractStaticBoolean(initializer);
+            if (value === true) {
+              metadata.experimentalPpr = true;
+            }
+            break;
+          }
+          default:
+            break;
+        }
+      }
+    }
+
     if (ts.isCallExpression(node)) {
       if (isIdentifierWithName(node.expression, 'fetch') && node.arguments.length >= 2) {
         const options = node.arguments[1];

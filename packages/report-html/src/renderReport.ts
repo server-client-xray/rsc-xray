@@ -1,5 +1,5 @@
 import { ROUTE_WATERFALL_SUGGESTION_RULE } from '@rsc-xray/schemas';
-import type { Model, Suggestion } from '@rsc-xray/schemas';
+import type { Model, RouteCacheMetadata, Suggestion } from '@rsc-xray/schemas';
 
 const styles = `
   body {
@@ -29,6 +29,28 @@ const styles = `
   .route-chunks {
     font-size: 13px;
     color: rgba(148, 163, 184, 0.8);
+  }
+  .route-cache-tags {
+    margin-top: 8px;
+    font-size: 12px;
+    color: rgba(148, 163, 184, 0.85);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+  .route-cache-tags strong {
+    color: rgba(226, 232, 240, 0.85);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  .route-tag-chip {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: rgba(191, 219, 254, 0.95);
+    font-size: 11px;
+    padding: 2px 6px;
+    border-radius: 999px;
   }
   table {
     width: 100%;
@@ -119,6 +141,10 @@ function escapeHtmlAttr(value: string): string {
     .replace(/>/g, '&gt;');
 }
 
+function escapeHtml(value: string): string {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 function indentLabel(label: string, depth: number): string {
   if (depth <= 0) {
     return label;
@@ -175,6 +201,59 @@ function collectRouteSuggestions(model: Model, nodeId: string): CollectedSuggest
   return [...ownSuggestions, ...childSuggestions];
 }
 
+function formatDynamicLabel(dynamic: RouteCacheMetadata['dynamic']): string | null {
+  if (!dynamic) {
+    return null;
+  }
+  switch (dynamic) {
+    case 'force-dynamic':
+      return 'Force dynamic';
+    case 'force-static':
+      return 'Force static';
+    case 'error':
+      return 'Dynamic error';
+    case 'auto':
+      return 'Dynamic auto';
+    default:
+      return dynamic;
+  }
+}
+
+function renderRouteCacheBadges(cache: RouteCacheMetadata | undefined): string {
+  if (!cache) {
+    return '';
+  }
+
+  const badges: string[] = [];
+
+  if (typeof cache.revalidateSeconds !== 'undefined') {
+    const label =
+      cache.revalidateSeconds === false ? 'Manual revalidate' : `ISR ${cache.revalidateSeconds}s`;
+    badges.push(`<span class="badge info">${label}</span>`);
+  }
+
+  const dynamicLabel = formatDynamicLabel(cache.dynamic);
+  if (dynamicLabel) {
+    badges.push(`<span class="badge info">${dynamicLabel}</span>`);
+  }
+
+  if (cache.experimentalPpr) {
+    badges.push('<span class="badge info">PPR</span>');
+  }
+
+  return badges.join('');
+}
+
+function renderRouteCacheTags(cache: RouteCacheMetadata | undefined): string {
+  if (!cache?.tags?.length) {
+    return '';
+  }
+  const chips = cache.tags
+    .map((tag) => `<span class="route-tag-chip">${escapeHtml(tag)}</span>`)
+    .join('');
+  return `<div class="route-cache-tags"><strong>Cache tags:</strong>${chips}</div>`;
+}
+
 export function renderHtmlReport(model: Model): string {
   const routeSections = model.routes
     .map((route) => {
@@ -190,6 +269,7 @@ export function renderHtmlReport(model: Model): string {
       const waterfallBadge = routeWaterfall
         ? `<span class="badge warn" title="${escapeHtmlAttr(routeWaterfall.message)}">Waterfall suspected</span>`
         : '';
+      const cacheBadges = renderRouteCacheBadges(route.cache);
       const suggestionsTable = collectedSuggestions.length
         ? `<table class="suggestions-table">
             <thead>
@@ -230,8 +310,10 @@ export function renderHtmlReport(model: Model): string {
           <span class="route-chunks">${chunkLabel}</span>
           <span class="badge">${node?.kind.toUpperCase()}</span>
           <span class="badge">${bytesLabel || '0 KB'}</span>
+          ${cacheBadges}
           ${waterfallBadge}
         </div>
+        ${renderRouteCacheTags(route.cache)}
         <table>
           <thead>
             <tr>

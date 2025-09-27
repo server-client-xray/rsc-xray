@@ -3,6 +3,8 @@ export const ROUTE_WATERFALL_SUGGESTION_RULE = 'route-waterfall' as const;
 
 export type NodeKind = 'server' | 'client' | 'suspense' | 'route';
 
+export type CacheDynamicMode = 'auto' | 'force-dynamic' | 'force-static' | 'error';
+
 export interface DiagnosticLocation {
   file: string;
   line: number;
@@ -75,6 +77,8 @@ export interface NodeCacheMetadata {
   modes?: Array<'force-cache' | 'no-store'>;
   revalidateSeconds?: number[];
   hasRevalidateFalse?: boolean;
+  dynamic?: CacheDynamicMode;
+  experimentalPpr?: boolean;
 }
 
 export interface NodeMutationMetadata {
@@ -85,4 +89,6 @@ export interface NodeMutationMetadata {
 export interface RouteCacheMetadata {
   revalidateSeconds?: number | false;
   tags?: string[];
+  dynamic?: CacheDynamicMode;
+  experimentalPpr?: boolean;
 }
