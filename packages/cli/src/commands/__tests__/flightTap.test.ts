@@ -46,6 +46,23 @@ describe('flightTap', () => {
     expect(content).toContain('chunk 1');
   });
 
+  it('fails fast when the fetch is aborted by the timeout', async () => {
+    const abortableFetch: typeof fetch = ((_input, init) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => {
+          reject(new DOMException('Aborted', 'AbortError'));
+        });
+      })) as typeof fetch;
+
+    const fakeFetch = vi.fn(abortableFetch);
+
+    await expect(
+      flightTap({ url: 'http://localhost:3000/products/slow', fetchImpl: fakeFetch, timeoutMs: 5 })
+    ).rejects.toThrow('Flight tap request timed out after 5ms');
+
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
+  });
+
   it('creates a readable stream from strings', async () => {
     const stream = streamFromStrings(['a', 'b']);
     const reader = stream.getReader();

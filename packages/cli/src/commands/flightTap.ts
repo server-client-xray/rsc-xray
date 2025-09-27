@@ -10,6 +10,7 @@ interface FlightTapOptions {
   output?: Writable;
   fetchImpl?: typeof fetch;
   now?: () => number;
+  timeoutMs?: number;
 }
 
 interface FlightTapResult {
@@ -20,6 +21,7 @@ interface FlightTapResult {
 const DEFAULT_OUTPUT: Writable = process.stdout;
 const DEFAULT_NOW = () => performance.now();
 const BYTES_IN_KILOBYTE = 1024;
+const DEFAULT_FLIGHT_TIMEOUT_MS = 30_000;
 
 function resolveRoute(url: string, explicit?: string): string {
   if (explicit && explicit.trim().length > 0) {
@@ -42,49 +44,90 @@ function formatSize(bytes: number): string {
   return `${kilobytes.toFixed(precision)} KB`;
 }
 
+function isAbortError(error: unknown): boolean {
+  if (!error) {
+    return false;
+  }
+  if (typeof DOMException !== 'undefined' && error instanceof DOMException) {
+    return error.name === 'AbortError';
+  }
+  return (error as { name?: string }).name === 'AbortError';
+}
+
 export async function flightTap({
   url,
   route,
   output = DEFAULT_OUTPUT,
   fetchImpl = fetch,
   now = DEFAULT_NOW,
+  timeoutMs,
 }: FlightTapOptions): Promise<FlightTapResult> {
-  const response = await fetchImpl(url);
-  if (!response.body) {
-    throw new Error(`No response body for ${url}`);
+  const effectiveTimeout =
+    typeof timeoutMs === 'number' && Number.isFinite(timeoutMs)
+      ? timeoutMs
+      : DEFAULT_FLIGHT_TIMEOUT_MS;
+  const useTimeout = typeof effectiveTimeout === 'number' && effectiveTimeout > 0;
+  const controller = useTimeout ? new AbortController() : undefined;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+  let abortedByTimeout = false;
+
+  if (controller && useTimeout) {
+    timeoutId = setTimeout(() => {
+      abortedByTimeout = true;
+      controller.abort();
+    }, effectiveTimeout);
   }
 
-  let chunkIndex = 0;
-  const start = now();
-  const reader = response.body.getReader();
-  const routeId = resolveRoute(url, route);
-  const samples: FlightSample[] = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
+  try {
+    const response = await fetchImpl(
+      url,
+      controller ? ({ signal: controller.signal } as RequestInit) : undefined
+    );
+    if (!response.body) {
+      throw new Error(`No response body for ${url}`);
     }
-    if (value) {
-      const timestamp = Math.round(now() - start);
-      const sizeLabel = formatSize(value.byteLength);
-      output.write(
-        `[scx-flight] route=${routeId} t=${timestamp}ms chunk ${chunkIndex} (${sizeLabel})\n`
-      );
-      const sample: FlightSample = {
-        route: routeId,
-        chunkIndex,
-        ts: timestamp,
-      };
-      if (value.byteLength > 0) {
-        sample.label = sizeLabel;
+
+    let chunkIndex = 0;
+    const start = now();
+    const reader = response.body.getReader();
+    const routeId = resolveRoute(url, route);
+    const samples: FlightSample[] = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) {
+        break;
       }
-      samples.push(sample);
-      chunkIndex += 1;
+      if (value) {
+        const timestamp = Math.round(now() - start);
+        const sizeLabel = formatSize(value.byteLength);
+        output.write(
+          `[scx-flight] route=${routeId} t=${timestamp}ms chunk ${chunkIndex} (${sizeLabel})\n`
+        );
+        const sample: FlightSample = {
+          route: routeId,
+          chunkIndex,
+          ts: timestamp,
+        };
+        if (value.byteLength > 0) {
+          sample.label = sizeLabel;
+        }
+        samples.push(sample);
+        chunkIndex += 1;
+      }
+    }
+
+    return { chunks: chunkIndex, samples };
+  } catch (error) {
+    if (controller && (abortedByTimeout || isAbortError(error))) {
+      throw new Error(`Flight tap request timed out after ${effectiveTimeout}ms`);
+    }
+    throw error;
+  } finally {
+    if (timeoutId) {
+      clearTimeout(timeoutId);
     }
   }
-
-  return { chunks: chunkIndex, samples };
 }
 
 export function streamFromStrings(chunks: string[], delayMs = 0): ReadableStream<Uint8Array> {

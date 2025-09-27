@@ -5,7 +5,6 @@ import {
   ROUTE_WATERFALL_SUGGESTION_RULE,
   SERVER_PARALLEL_SUGGESTION_RULE,
   type Diagnostic,
-  type FlightSample,
   type Model,
   type NodeCacheMetadata,
   type RouteCacheMetadata,
@@ -21,6 +20,7 @@ import { readManifests } from './readManifests';
 import { collectSuggestionsForSource } from './suggestions';
 import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata';
 import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports';
+import { readFlightSnapshot, readHydrationSnapshot } from './snapshots';
 
 interface AnalyzeProjectOptions {
   projectRoot: string;
@@ -37,8 +37,6 @@ interface SourceEntry {
 
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.next', '.turbo']);
-const HYDRATION_SNAPSHOT_PATH = ['.scx', 'hydration.json'] as const;
-const FLIGHT_SNAPSHOT_PATH = ['.scx', 'flight.json'] as const;
 
 function mergeRouteCacheMetadata(
   ...sources: Array<RouteCacheMetadata | undefined>
@@ -143,80 +141,6 @@ function mergeNodeCacheWithRoute(
 }
 
 const toPosix = (value: string) => value.replace(/\\/g, '/');
-
-async function readHydrationSnapshot(projectRoot: string): Promise<Record<string, number>> {
-  try {
-    const raw = await readFile(join(projectRoot, ...HYDRATION_SNAPSHOT_PATH), 'utf8');
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== 'object') {
-      return {};
-    }
-
-    const durations: Record<string, number> = {};
-    for (const [nodeId, value] of Object.entries(parsed as Record<string, unknown>)) {
-      if (typeof nodeId !== 'string' || nodeId.length === 0) {
-        continue;
-      }
-      const numeric = typeof value === 'number' ? value : Number(value);
-      if (Number.isFinite(numeric) && numeric >= 0) {
-        durations[nodeId] = numeric;
-      }
-    }
-    return durations;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return {};
-    }
-    return {};
-  }
-}
-
-async function readFlightSnapshot(projectRoot: string): Promise<FlightSample[]> {
-  try {
-    const raw = await readFile(join(projectRoot, ...FLIGHT_SNAPSHOT_PATH), 'utf8');
-    const parsed = JSON.parse(raw) as unknown;
-    if (!parsed || typeof parsed !== 'object') {
-      return [];
-    }
-
-    const samplesInput = (parsed as { samples?: unknown }).samples;
-    if (!Array.isArray(samplesInput)) {
-      return [];
-    }
-
-    const samples: FlightSample[] = [];
-    for (const entry of samplesInput) {
-      if (!entry || typeof entry !== 'object') {
-        continue;
-      }
-      const { route, ts, chunkIndex, label } = entry as Record<string, unknown>;
-      if (typeof route !== 'string' || route.trim().length === 0) {
-        continue;
-      }
-      const tsNumber = typeof ts === 'number' ? ts : Number(ts);
-      const chunkNumber = typeof chunkIndex === 'number' ? chunkIndex : Number(chunkIndex);
-      if (!Number.isFinite(tsNumber) || !Number.isFinite(chunkNumber)) {
-        continue;
-      }
-      const chunk = Math.max(0, Math.trunc(chunkNumber));
-      const sample: FlightSample = {
-        route,
-        ts: tsNumber,
-        chunkIndex: chunk,
-      };
-      if (typeof label === 'string' && label.trim().length > 0) {
-        sample.label = label;
-      }
-      samples.push(sample);
-    }
-    return samples;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return [];
-    }
-    return [];
-  }
-}
 
 function sumHydrationDuration(
   nodeId: string,
