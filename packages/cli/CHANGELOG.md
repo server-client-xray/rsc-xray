@@ -1,5 +1,18 @@
 # @rsc-xray/cli
 
+## 0.2.0
+
+### Minor Changes
+
+- Expand cache metadata to capture route dynamic/ISR semantics, surface the data in the CLI/report, and expose policy hints for cache lens consumers.
+
+### Patch Changes
+
+- Updated dependencies
+  - @rsc-xray/schemas@0.2.0
+  - @rsc-xray/analyzer@0.2.0
+  - @rsc-xray/report-html@0.2.0
+
 ## 0.1.2
 
 ### Patch Changes

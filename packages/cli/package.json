@@ -1,6 +1,6 @@
 {
   "name": "@rsc-xray/cli",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -12,9 +12,9 @@
     "report": "tsx src/bin/report.ts"
   },
   "dependencies": {
-    "@rsc-xray/analyzer": "workspace:^0.1.2",
-    "@rsc-xray/report-html": "workspace:^0.1.2",
-    "@rsc-xray/schemas": "workspace:^0.1.2",
+    "@rsc-xray/analyzer": "workspace:^0.2.0",
+    "@rsc-xray/report-html": "workspace:^0.2.0",
+    "@rsc-xray/schemas": "workspace:^0.2.0",
     "ajv": "^8.17.1"
   },
   "exports": {
