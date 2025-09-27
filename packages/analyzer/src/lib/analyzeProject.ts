@@ -8,6 +8,7 @@ import {
   type FlightSample,
   type Model,
   type NodeCacheMetadata,
+  type RouteCacheMetadata,
   type RouteEntry,
   type Suggestion,
   type XNode,
@@ -38,6 +39,108 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 const IGNORED_DIRECTORIES = new Set(['node_modules', '.git', '.next', '.turbo']);
 const HYDRATION_SNAPSHOT_PATH = ['.scx', 'hydration.json'] as const;
 const FLIGHT_SNAPSHOT_PATH = ['.scx', 'flight.json'] as const;
+
+function mergeRouteCacheMetadata(
+  ...sources: Array<RouteCacheMetadata | undefined>
+): RouteCacheMetadata | undefined {
+  let resolvedRevalidate: number | false | undefined;
+  const tagSet = new Set<string>();
+  let hasTags = false;
+  let dynamic: RouteCacheMetadata['dynamic'];
+  let experimentalPpr = false;
+
+  for (const source of sources) {
+    if (!source) {
+      continue;
+    }
+
+    if (typeof source.revalidateSeconds !== 'undefined') {
+      if (source.revalidateSeconds === false) {
+        resolvedRevalidate = false;
+      } else if (resolvedRevalidate !== false) {
+        resolvedRevalidate =
+          typeof resolvedRevalidate === 'number'
+            ? Math.min(resolvedRevalidate, source.revalidateSeconds)
+            : source.revalidateSeconds;
+      }
+    }
+
+    if (source.tags?.length) {
+      hasTags = true;
+      for (const tag of source.tags) {
+        tagSet.add(tag);
+      }
+    }
+
+    if (source.dynamic) {
+      dynamic = source.dynamic;
+    }
+
+    if (source.experimentalPpr) {
+      experimentalPpr = true;
+    }
+  }
+
+  const result: RouteCacheMetadata = {};
+
+  if (resolvedRevalidate === false) {
+    result.revalidateSeconds = false;
+  } else if (typeof resolvedRevalidate === 'number') {
+    result.revalidateSeconds = resolvedRevalidate;
+  }
+
+  if (hasTags) {
+    result.tags = Array.from(tagSet).sort();
+  }
+
+  if (dynamic) {
+    result.dynamic = dynamic;
+  }
+
+  if (experimentalPpr) {
+    result.experimentalPpr = true;
+  }
+
+  return Object.keys(result).length ? result : undefined;
+}
+
+function mergeNodeCacheWithRoute(
+  base: NodeCacheMetadata | undefined,
+  routeCache: RouteCacheMetadata | undefined
+): NodeCacheMetadata | undefined {
+  if (!base && !routeCache) {
+    return undefined;
+  }
+
+  const result: NodeCacheMetadata = { ...(base ?? {}) };
+
+  if (routeCache) {
+    if (typeof routeCache.revalidateSeconds !== 'undefined') {
+      if (routeCache.revalidateSeconds === false) {
+        result.hasRevalidateFalse = true;
+        delete result.revalidateSeconds;
+      } else {
+        const values = new Set(result.revalidateSeconds ?? []);
+        values.add(routeCache.revalidateSeconds);
+        result.revalidateSeconds = Array.from(values).sort((a, b) => a - b);
+      }
+    }
+
+    if (routeCache.dynamic) {
+      result.dynamic = routeCache.dynamic;
+    }
+
+    if (routeCache.experimentalPpr) {
+      result.experimentalPpr = true;
+    }
+  }
+
+  if (result.revalidateSeconds && result.revalidateSeconds.length === 0) {
+    delete result.revalidateSeconds;
+  }
+
+  return Object.keys(result).length ? result : undefined;
+}
 
 const toPosix = (value: string) => value.replace(/\\/g, '/');
 
@@ -415,60 +518,41 @@ export async function analyzeProject({
 
   const routes = graph.routes.map((route) => {
     const info = manifestLookup.get(route.route);
-    if (!info) {
-      return route;
-    }
+    const mergedCache = mergeRouteCacheMetadata(route.cache, info?.cache);
     const result: RouteEntry = {
       ...route,
-      chunks: info.chunks,
-      totalBytes: info.totalBytes,
-      ...(info.cache ? { cache: info.cache } : {}),
+      ...(info ? { chunks: info.chunks, totalBytes: info.totalBytes } : {}),
+      ...(mergedCache ? { cache: mergedCache } : {}),
     };
 
-    if (info.cache) {
-      const currentNode = nodes[route.rootNodeId];
-      if (currentNode) {
-        let updatedNode = currentNode;
+    const cacheForNode = mergedCache ?? route.cache ?? info?.cache;
+    const currentNode = nodes[route.rootNodeId];
 
-        if (info.cache.tags?.length) {
-          const combined = new Set<string>(currentNode.tags ?? []);
-          for (const tag of info.cache.tags) {
-            combined.add(tag);
-          }
-          if (combined.size) {
-            updatedNode = {
-              ...updatedNode,
-              tags: Array.from(combined).sort(),
-            };
-          }
+    if (currentNode && cacheForNode) {
+      let updatedNode = currentNode;
+
+      if (cacheForNode.tags?.length) {
+        const combined = new Set<string>(currentNode.tags ?? []);
+        for (const tag of cacheForNode.tags) {
+          combined.add(tag);
         }
-
-        if (typeof info.cache.revalidateSeconds !== 'undefined') {
-          const existingCache = updatedNode.cache ?? {};
-          const updatedCache: NodeCacheMetadata = { ...existingCache };
-
-          if (info.cache.revalidateSeconds === false) {
-            updatedCache.hasRevalidateFalse = true;
-          } else if (typeof info.cache.revalidateSeconds === 'number') {
-            const seconds = new Set<number>(updatedCache.revalidateSeconds ?? []);
-            seconds.add(info.cache.revalidateSeconds);
-            updatedCache.revalidateSeconds = Array.from(seconds).sort((a, b) => a - b);
-          }
-
-          if (
-            updatedCache.modes?.length ||
-            updatedCache.revalidateSeconds?.length ||
-            updatedCache.hasRevalidateFalse
-          ) {
-            updatedNode = {
-              ...updatedNode,
-              cache: updatedCache,
-            };
-          }
+        if (combined.size) {
+          updatedNode = {
+            ...updatedNode,
+            tags: Array.from(combined).sort(),
+          };
         }
-
-        nodes[route.rootNodeId] = updatedNode;
       }
+
+      const mergedNodeCache = mergeNodeCacheWithRoute(updatedNode.cache, cacheForNode);
+      if (mergedNodeCache) {
+        updatedNode = {
+          ...updatedNode,
+          cache: mergedNodeCache,
+        };
+      }
+
+      nodes[route.rootNodeId] = updatedNode;
     }
 
     return result;

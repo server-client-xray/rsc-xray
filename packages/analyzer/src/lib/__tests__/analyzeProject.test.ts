@@ -119,6 +119,80 @@ describe('analyzeProject', () => {
     }
   });
 
+  it('merges route cache metadata from source exports and manifest data', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-cache-meta-'));
+    try {
+      await mkdir(join(projectRoot, 'app/components'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/page.tsx'),
+        `import { revalidateTag } from 'next/cache';\n\nexport const revalidate = 30;\nexport const dynamic = 'force-dynamic';\nexport const experimental_ppr = true;\n\nexport default async function Page() {\n  revalidateTag('products');\n  return <div>ok</div>;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
+        SIZE_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/server/app/page_client-reference-manifest.js'),
+        CLIENT_REFERENCE_MANIFEST(projectRoot),
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/prerender-manifest.json'),
+        JSON.stringify(
+          {
+            version: 4,
+            routes: {
+              '/': {
+                initialRevalidateSeconds: 60,
+                initialHeaders: {
+                  'x-next-cache-tags': 'catalog',
+                },
+              },
+            },
+            dynamicRoutes: {},
+            notFoundRoutes: [],
+          },
+          null,
+          2
+        ),
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+      const route = model.routes.find((entry) => entry.route === '/');
+      expect(route?.cache).toMatchObject({
+        revalidateSeconds: 30,
+        tags: ['catalog'],
+        dynamic: 'force-dynamic',
+        experimentalPpr: true,
+      });
+
+      const routeNode = model.nodes['route:/'];
+      expect(routeNode?.tags).toContain('catalog');
+      expect(routeNode?.cache).toMatchObject({
+        dynamic: 'force-dynamic',
+        revalidateSeconds: [30],
+        experimentalPpr: true,
+      });
+
+      const pageNode = model.nodes['module:app/page.tsx'];
+      expect(pageNode?.cache).toMatchObject({ dynamic: 'force-dynamic' });
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
   it('applies hydration snapshot data to nodes and route totals', async () => {
     const projectRoot = await mkdtemp(join(tmpdir(), 'scx-hydration-'));
     try {

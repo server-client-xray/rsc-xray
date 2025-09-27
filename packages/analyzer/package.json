@@ -1,6 +1,6 @@
 {
   "name": "@rsc-xray/analyzer",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,7 +15,7 @@
     "test": "vitest --run"
   },
   "dependencies": {
-    "@rsc-xray/schemas": "workspace:^0.1.2"
+    "@rsc-xray/schemas": "workspace:^0.2.0"
   },
   "files": [
     "README.md",

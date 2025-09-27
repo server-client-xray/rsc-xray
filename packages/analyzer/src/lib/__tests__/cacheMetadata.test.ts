@@ -43,6 +43,7 @@ describe('collectCacheMetadata', () => {
 
   it('tracks explicit disable of revalidation', () => {
     const source = `
+      export const revalidate = false;
       export async function loader() {
         await fetch('https://example.com', {
           next: { revalidate: false }
@@ -53,5 +54,19 @@ describe('collectCacheMetadata', () => {
     const meta = collectCacheMetadata({ sourceText: source });
 
     expect(meta.hasRevalidateFalse).toBe(true);
+  });
+
+  it('captures exported revalidate, dynamic, and experimental_ppr flags', () => {
+    const source = `
+      export const revalidate = 120;
+      export const dynamic = 'force-dynamic';
+      export const experimental_ppr = true;
+    `;
+
+    const meta = collectCacheMetadata({ sourceText: source });
+
+    expect(toArray(meta.revalidateSeconds)).toEqual([120]);
+    expect(meta.exportedDynamic).toBe('force-dynamic');
+    expect(meta.experimentalPpr).toBe(true);
   });
 });
