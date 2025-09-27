@@ -47,6 +47,6 @@ jobs:
       - name: Create or update Changesets PR
         uses: changesets/action@v1
         with:
-          publish: false
+          publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
