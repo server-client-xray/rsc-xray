@@ -21,10 +21,11 @@ This document threads the core OSS flows into repeatable checklists so you can r
    pnpm -F @rsc-xray/cli flight-tap \
      --url http://localhost:3000/(shop)/products/1 \
      --route /products/[id] \
-     --out examples/next-app/.scx/flight.json
+     --out examples/next-app/.scx/flight.json \
+     --timeout 30000
    ```
 
-3. The command writes chunk timings to STDOUT and saves a model-compatible snapshot (`{ "samples": [...] }`) when `--out` is provided. Analyzer runs fold this data into `model.flight`, enabling the Pro overlay to surface timeline summaries.
+3. The command writes chunk timings to STDOUT and saves a model-compatible snapshot (`{ "samples": [...] }`) when `--out` is provided. Analyzer runs fold this data into `model.flight`, enabling the Pro overlay to surface timeline summaries. Use `--timeout <ms>` to raise/lower the default 30s guard (set `0` to disable).
 
 ## Overlay Stub Behavior
 

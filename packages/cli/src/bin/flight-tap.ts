@@ -4,10 +4,20 @@ import process from 'node:process';
 
 import { flightTap } from '../commands/flightTap';
 
-function parseArgs(argv: string[]) {
+interface ParsedArgs {
+  url: string;
+  route?: string;
+  out?: string;
+  timeoutMs?: number;
+  help?: boolean;
+}
+
+function parseArgs(argv: string[]): ParsedArgs {
   let url = 'http://localhost:3000/products';
   let out: string | undefined;
   let route: string | undefined;
+  let timeoutMs: number | undefined;
+
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if ((arg === '--url' || arg === '-u') && argv[i + 1]) {
@@ -16,24 +26,34 @@ function parseArgs(argv: string[]) {
       route = argv[++i];
     } else if ((arg === '--out' || arg === '-o') && argv[i + 1]) {
       out = argv[++i];
+    } else if ((arg === '--timeout' || arg === '--timeout-ms') && argv[i + 1]) {
+      const value = Number(argv[++i]);
+      if (Number.isFinite(value) && value >= 0) {
+        timeoutMs = Math.floor(value);
+      }
     } else if (arg === '--help' || arg === '-h') {
-      return { help: true } as const;
+      return { help: true, url };
     }
   }
-  return { url, route, out } as const;
+
+  return { url, route, out, timeoutMs };
 }
 
 async function main() {
   const parsed = parseArgs(process.argv.slice(2));
-  if ('help' in parsed) {
+  if (parsed.help) {
     console.log(
-      'Usage: flight-tap [--url http://localhost:3000/products] [--route /products/[id]] [--out .scx/flight.json]'
+      'Usage: flight-tap [--url http://localhost:3000/products] [--route /products/[id]] [--out .scx/flight.json] [--timeout 30000]'
     );
     process.exit(0);
   }
 
   try {
-    const result = await flightTap({ url: parsed.url, route: parsed.route });
+    const result = await flightTap({
+      url: parsed.url,
+      route: parsed.route,
+      timeoutMs: parsed.timeoutMs,
+    });
     if (parsed.out) {
       const payload = { samples: result.samples };
       await writeFile(parsed.out, JSON.stringify(payload, null, 2), 'utf8');

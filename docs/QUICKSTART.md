@@ -38,6 +38,8 @@ Sample output:
 
 Use the captured timings to correlate overlay observations with Flight delivery order.
 
+- The `--timeout <ms>` flag aborts the capture if a stream hangs (defaults to 30000). Set `--timeout 0` to disable the guard when debugging long-running routes.
+
 ## Overlay Stub
 
 - The OSS demo ships a stub overlay that logs instructions until `@rsc-xray/pro-overlay` is installed.
