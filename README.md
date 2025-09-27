@@ -63,7 +63,7 @@ STDOUT prints chunk timings; the optional `--out` flag stores the samples for la
 
 - `OverlayBootstrap` registers a console hint when the Pro overlay bundle is missing.
 - Toggle with **Control**+Shift+X or run `window.__SCX_OVERLAY__?.toggle()` in the browser console.
-- Install `@rsc-xray-pro/overlay` in the example app to unlock the full UI (hydration timings, cache lens, CI budgets).
+- Install `@rsc-xray/pro-overlay` in the example app to unlock the full UI (hydration timings, cache lens, CI budgets).
 
 ## Pro & Team
 

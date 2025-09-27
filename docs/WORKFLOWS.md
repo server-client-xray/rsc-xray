@@ -30,7 +30,7 @@ This document threads the core OSS flows into repeatable checklists so you can r
 
 - The OSS demo injects `OverlayBootstrap`, which registers a console warning if the Pro overlay bundle is missing.
 - Toggle with **Control**+Shift+X while the demo runs, or call `window.__SCX_OVERLAY__?.toggle()` in the browser console.
-- To access the full UI (hydration timings, cache lens, budgets), install `@rsc-xray-pro/overlay` in the example app and invoke `autoInstallOverlay()`.
+- To access the full UI (hydration timings, cache lens, budgets), install `@rsc-xray/pro-overlay` in the example app and invoke `autoInstallOverlay()`.
 
 ## Scenario Matrix
 

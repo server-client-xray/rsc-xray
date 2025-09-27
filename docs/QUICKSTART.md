@@ -40,7 +40,7 @@ Use the captured timings to correlate overlay observations with Flight delivery 
 
 ## Overlay Stub
 
-- The OSS demo ships a stub overlay that logs instructions until `@rsc-xray-pro/overlay` is installed.
+- The OSS demo ships a stub overlay that logs instructions until `@rsc-xray/pro-overlay` is installed.
 - Toggle it with **Control**+Shift+X (macOS uses the Control key) or via `window.__SCX_OVERLAY__?.toggle()`.
 - Install the Pro overlay package to visualize hydration timings, cache lens insights, and CI budgets inline.
 

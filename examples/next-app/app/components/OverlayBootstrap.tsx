@@ -16,7 +16,7 @@ declare global {
 }
 
 const WARNING_MESSAGE =
-  'RSC XRay Pro overlay not detected. Install @rsc-xray-pro/overlay and call autoInstallOverlay() to enable the in-app view.';
+  'RSC XRay Pro overlay not detected. Install @rsc-xray/pro-overlay and call autoInstallOverlay() to enable the in-app view.';
 
 export function OverlayBootstrap(): JSX.Element | null {
   useEffect(() => {
