@@ -32,9 +32,9 @@ Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, 
 
 ## Analyzer + Report Example
 
+From the repo root (see docs/WORKFLOWS.md for details):
+
 ```bash
-# from repo root
-docs/WORKFLOWS.md details each step, but in short:
 pnpm -C examples/next-app build
 pnpm -F @rsc-xray/cli analyze --project ./examples/next-app --out ./model.json
 pnpm -F @rsc-xray/cli report --model ./model.json --out ./report.html
