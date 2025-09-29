@@ -266,6 +266,58 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
       }
     }
 
+    // Detect dynamic import patterns assigning next/headers or next/cache
+    if (ts.isVariableDeclaration(node)) {
+      const init = node.initializer;
+      // Handle: const nh = await import('next/headers')
+      //         const { headers } = await import('next/headers')
+      //         const nh = import('next/headers')
+      let call: ts.CallExpression | null = null;
+      if (init && ts.isAwaitExpression(init) && ts.isCallExpression(init.expression)) {
+        call = init.expression;
+      } else if (init && ts.isCallExpression(init)) {
+        call = init;
+      }
+      if (
+        call &&
+        call.expression.kind === ts.SyntaxKind.ImportKeyword &&
+        call.arguments.length >= 1 &&
+        ts.isStringLiteral(call.arguments[0]!)
+      ) {
+        const spec = (call.arguments[0] as ts.StringLiteral).text;
+        const isHeaders = spec === 'next/headers';
+        const isCache = spec === 'next/cache';
+        if (isHeaders || isCache) {
+          // Conservative: mark dynamic
+          metadata.usesDynamicApis = true;
+
+          const name = node.name;
+          if (ts.isObjectBindingPattern(name)) {
+            for (const elem of name.elements) {
+              const importedNode = elem.propertyName ?? elem.name;
+              if (!ts.isIdentifier(importedNode)) continue;
+              const imported = importedNode.text;
+              const local = ts.isIdentifier(elem.name) ? elem.name.text : undefined;
+              if (!local) continue;
+              if (isHeaders) {
+                if (imported === 'headers') headersIdents.add(local);
+                if (imported === 'cookies') cookiesIdents.add(local);
+                if (imported === 'draftMode') draftModeIdents.add(local);
+              } else if (isCache) {
+                if (imported === 'noStore' || imported === 'unstable_noStore') {
+                  noStoreIdents.add(local);
+                }
+              }
+            }
+          } else if (ts.isIdentifier(name)) {
+            // Namespace-style
+            if (isHeaders) headersNamespaces.add(name.text);
+            if (isCache) cacheNamespaces.add(name.text);
+          }
+        }
+      }
+    }
+
     if (ts.isCallExpression(node)) {
       if (isIdentifierWithName(node.expression, 'fetch') && node.arguments.length >= 2) {
         const options = node.arguments[1];

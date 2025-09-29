@@ -119,4 +119,26 @@ describe('collectCacheMetadata', () => {
     const meta = collectCacheMetadata({ sourceText: source });
     expect(meta.usesDynamicApis).toBe(true);
   });
+  it('marks dynamic when destructuring from dynamic import of next/headers', () => {
+    const source = `
+      export async function Page() {
+        const { headers, cookies } = await import('next/headers');
+        headers(); cookies();
+        return null;
+      }
+    `;
+    const meta = collectCacheMetadata({ sourceText: source });
+    expect(meta.usesDynamicApis).toBe(true);
+  });
+
+  it('marks dynamic when assigning namespace from dynamic import of next/cache', () => {
+    const source = `
+      export async function doWork() {
+        const nc = await import('next/cache');
+        nc.noStore();
+      }
+    `;
+    const meta = collectCacheMetadata({ sourceText: source });
+    expect(meta.usesDynamicApis).toBe(true);
+  });
 });
