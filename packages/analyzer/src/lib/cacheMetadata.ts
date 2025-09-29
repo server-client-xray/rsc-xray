@@ -9,6 +9,7 @@ export interface FileCacheMetadata {
   revalidatePathCalls: Set<string>;
   exportedDynamic?: 'auto' | 'force-dynamic' | 'force-static' | 'error';
   experimentalPpr: boolean;
+  usesDynamicApis: boolean;
 }
 
 interface CollectOptions {
@@ -27,6 +28,7 @@ function createEmptyMetadata(): FileCacheMetadata {
     revalidateTagCalls: new Set<string>(),
     revalidatePathCalls: new Set<string>(),
     experimentalPpr: false,
+    usesDynamicApis: false,
   };
 }
 
@@ -175,7 +177,46 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
     ts.ScriptKind.TSX
   );
 
+  // Track local identifiers imported for dynamic APIs
+  const headersIdents = new Set<string>();
+  const cookiesIdents = new Set<string>();
+  const draftModeIdents = new Set<string>();
+  const noStoreIdents = new Set<string>();
+  const headersNamespaces = new Set<string>();
+  const cacheNamespaces = new Set<string>();
+
   const visit = (node: ts.Node) => {
+    // import { cookies, headers, draftMode } from 'next/headers'
+    // import { noStore, unstable_noStore } from 'next/cache'
+    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
+      const module = node.moduleSpecifier.text;
+      const bindings = node.importClause?.namedBindings;
+      if (bindings && ts.isNamedImports(bindings)) {
+        for (const element of bindings.elements) {
+          const importedNode = element.propertyName ?? element.name;
+          const importedName = ts.isIdentifier(importedNode) ? importedNode.text : undefined;
+          const localName = ts.isIdentifier(element.name) ? element.name.text : undefined;
+          if (!localName) continue;
+          if (module === 'next/headers') {
+            if (importedName === 'headers') headersIdents.add(localName);
+            if (importedName === 'cookies') cookiesIdents.add(localName);
+            if (importedName === 'draftMode') draftModeIdents.add(localName);
+          } else if (module === 'next/cache') {
+            if (importedName === 'noStore' || importedName === 'unstable_noStore') {
+              noStoreIdents.add(localName);
+            }
+          }
+        }
+      } else if (bindings && ts.isNamespaceImport(bindings)) {
+        const localName = bindings.name.text;
+        if (module === 'next/headers') {
+          headersNamespaces.add(localName);
+        } else if (module === 'next/cache') {
+          cacheNamespaces.add(localName);
+        }
+      }
+    }
+
     if (
       ts.isVariableStatement(node) &&
       node.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword)
@@ -230,6 +271,27 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
         const options = node.arguments[1];
         if (ts.isObjectLiteralExpression(options)) {
           collectCacheFromObjectLiteral(options, metadata);
+        }
+      } else if (
+        ts.isIdentifier(node.expression) &&
+        (headersIdents.has(node.expression.text) ||
+          cookiesIdents.has(node.expression.text) ||
+          draftModeIdents.has(node.expression.text) ||
+          noStoreIdents.has(node.expression.text))
+      ) {
+        metadata.usesDynamicApis = true;
+      } else if (ts.isPropertyAccessExpression(node.expression)) {
+        const expr = node.expression;
+        if (ts.isIdentifier(expr.expression) && ts.isIdentifier(expr.name)) {
+          const ns = expr.expression.text;
+          const prop = expr.name.text;
+          if (
+            (headersNamespaces.has(ns) &&
+              (prop === 'headers' || prop === 'cookies' || prop === 'draftMode')) ||
+            (cacheNamespaces.has(ns) && (prop === 'noStore' || prop === 'unstable_noStore'))
+          ) {
+            metadata.usesDynamicApis = true;
+          }
         }
       } else if (isIdentifierWithName(node.expression, 'revalidateTag')) {
         const [first] = node.arguments;

@@ -193,6 +193,46 @@ describe('analyzeProject', () => {
     }
   });
 
+  it('sets dynamic route and node cache when using next/headers dynamic APIs', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-dynamic-apis-'));
+    try {
+      await mkdir(join(projectRoot, 'app'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/page.tsx'),
+        `import { cookies } from 'next/headers';\n\nexport default function Page() {\n  cookies();\n  return <div>ok</div>;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
+        SIZE_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/server/app/page_client-reference-manifest.js'),
+        CLIENT_REFERENCE_MANIFEST(projectRoot),
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+      const route = model.routes.find((entry) => entry.route === '/');
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+
+      const pageNode = model.nodes['module:app/page.tsx'];
+      expect(pageNode?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
   it('applies hydration snapshot data to nodes and route totals', async () => {
     const projectRoot = await mkdtemp(join(tmpdir(), 'scx-hydration-'));
     try {

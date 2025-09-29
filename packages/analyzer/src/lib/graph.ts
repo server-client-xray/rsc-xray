@@ -109,6 +109,8 @@ function createRouteCacheMetadata(
 
   if (meta.exportedDynamic) {
     cache.dynamic = meta.exportedDynamic;
+  } else if (meta.usesDynamicApis) {
+    cache.dynamic = 'force-dynamic';
   }
 
   if (meta.experimentalPpr) {
@@ -281,7 +283,9 @@ export async function buildGraph({
             (a, b) => a - b
           );
           const hasRevalidateFalse = cacheMetadata.hasRevalidateFalse;
-          const dynamic = cacheMetadata.exportedDynamic;
+          const dynamic =
+            cacheMetadata.exportedDynamic ??
+            (cacheMetadata.usesDynamicApis ? 'force-dynamic' : undefined);
           const experimentalPpr = cacheMetadata.experimentalPpr;
 
           if (
