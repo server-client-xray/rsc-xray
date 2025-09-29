@@ -1,5 +1,8 @@
 # @rsc-xray/analyzer
 
+[![npm](https://img.shields.io/npm/v/@rsc-xray/analyzer.svg)](https://www.npmjs.com/package/@rsc-xray/analyzer)
+[![Downloads](https://img.shields.io/npm/dm/@rsc-xray/analyzer.svg)](https://www.npmjs.com/package/@rsc-xray/analyzer)
+
 Static analyzer that inspects a Next.js App Router build and produces the shared `model.json` contract consumed by the OSS report, Pro overlay, and CI automations.
 
 ## What it solves
@@ -57,3 +60,17 @@ Run the analyzer suite with:
 ```bash
 pnpm -F @rsc-xray/analyzer test -- --run
 ```
+
+### RSC X‑Ray Pro
+
+Paid plans available — unlock the full toolkit:
+
+- Overlay UI — live boundary tree, Suspense markers, bundle bytes, hydration timings
+- Flight tap & timeline — capture React Flight streaming; visualize chunk order, sizes, labels
+- Cache lens — inspect `tags`, revalidate policies, and route impact
+- Waterfall detector — find sequential awaits; guided fixes (preload/parallelize)
+- Codemods — `use client`, wrap with Suspense, add preload/hydration hook
+- VS Code extension — analyzer diagnostics + “Open in XRay” deep links
+- CI budgets & trends — PR comments, thresholds, and historical deltas
+
+Learn more → https://rsc-xray.dev • Pricing → https://rsc-xray.dev/pricing

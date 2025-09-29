@@ -1,5 +1,8 @@
 # @rsc-xray/schemas
 
+[![npm](https://img.shields.io/npm/v/@rsc-xray/schemas.svg)](https://www.npmjs.com/package/@rsc-xray/schemas)
+[![Downloads](https://img.shields.io/npm/dm/@rsc-xray/schemas.svg)](https://www.npmjs.com/package/@rsc-xray/schemas)
+
 Shared TypeScript types and JSON schema that define the `model.json` contract between the analyzer, CLI, HTML report, and Pro tooling.
 
 ## What it solves
@@ -49,3 +52,17 @@ Run the schema tests with:
 ```bash
 pnpm -F @rsc-xray/schemas test -- --run
 ```
+
+### RSC X‑Ray Pro
+
+Paid plans available — unlock the full toolkit:
+
+- Overlay UI — live boundary tree, Suspense markers, bundle bytes, hydration timings
+- Flight tap & timeline — capture React Flight streaming; visualize chunk order, sizes, labels
+- Cache lens — inspect `tags`, revalidate policies, and route impact
+- Waterfall detector — find sequential awaits; guided fixes (preload/parallelize)
+- Codemods — `use client`, wrap with Suspense, add preload/hydration hook
+- VS Code extension — analyzer diagnostics + “Open in XRay” deep links
+- CI budgets & trends — PR comments, thresholds, and historical deltas
+
+Learn more → https://rsc-xray.dev • Pricing → https://rsc-xray.dev/pricing

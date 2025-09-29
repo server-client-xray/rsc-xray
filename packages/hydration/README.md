@@ -1,5 +1,8 @@
 # @rsc-xray/hydration
 
+[![npm](https://img.shields.io/npm/v/@rsc-xray/hydration.svg)](https://www.npmjs.com/package/@rsc-xray/hydration)
+[![Downloads](https://img.shields.io/npm/dm/@rsc-xray/hydration.svg)](https://www.npmjs.com/package/@rsc-xray/hydration)
+
 Tiny helper library that records hydration timings for client components and exposes a hook that plugs into React.
 
 ## What it solves
@@ -61,3 +64,17 @@ Run the suite with:
 ```bash
 pnpm -F @rsc-xray/hydration test -- --run
 ```
+
+### RSC X‑Ray Pro
+
+Paid plans available — unlock the full toolkit:
+
+- Overlay UI — live boundary tree, Suspense markers, bundle bytes, hydration timings
+- Flight tap & timeline — capture React Flight streaming; visualize chunk order, sizes, labels
+- Cache lens — inspect `tags`, revalidate policies, and route impact
+- Waterfall detector — find sequential awaits; guided fixes (preload/parallelize)
+- Codemods — `use client`, wrap with Suspense, add preload/hydration hook
+- VS Code extension — analyzer diagnostics + “Open in XRay” deep links
+- CI budgets & trends — PR comments, thresholds, and historical deltas
+
+Learn more → https://rsc-xray.dev • Pricing → https://rsc-xray.dev/pricing
