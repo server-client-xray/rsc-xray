@@ -119,7 +119,6 @@ describe('collectCacheMetadata', () => {
     const meta = collectCacheMetadata({ sourceText: source });
     expect(meta.usesDynamicApis).toBe(true);
   });
-
   it('marks dynamic when destructuring from dynamic import of next/headers', () => {
     const source = `
       export async function Page() {
