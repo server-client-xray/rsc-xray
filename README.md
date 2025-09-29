@@ -82,3 +82,9 @@ Paid plans available — unlock the full toolkit:
 - CI budgets & trends — PR comments, thresholds, and historical deltas
 
 Learn more → https://rsc-xray.dev • Pricing → https://rsc-xray.dev/pricing
+
+## Releases
+
+- Create a changeset: `pnpm changeset`
+- Merge to `main`; the Version/Publish workflows build and publish to npm
+- Pro release process and general guidance are documented in the Pro repo: `docs/12-Release-Handbook.md`

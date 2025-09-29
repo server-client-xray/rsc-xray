@@ -14,7 +14,7 @@
     "format:check": "pnpm exec prettier --check .",
     "prepare": "husky",
     "changeset": "changeset",
-    "version:packages": "changeset version",
+    "version:packages": "changeset version && pnpm install",
     "release": "changeset publish"
   },
   "devDependencies": {
