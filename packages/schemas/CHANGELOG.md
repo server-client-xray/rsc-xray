@@ -1,5 +1,14 @@
 # @rsc-xray/schemas
 
+## 0.2.2
+
+### Patch Changes
+
+- edefd17: Release: align docs & features; dynamic detection improvements
+  - Analyzer: infer dynamic via cookies/headers/noStore + dynamic import patterns
+  - CLI/Report: align with analyzer updates
+  - Docs: example and cross-links polished
+
 ## 0.2.1
 
 ### Patch Changes
