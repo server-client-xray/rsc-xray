@@ -182,6 +182,8 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
   const cookiesIdents = new Set<string>();
   const draftModeIdents = new Set<string>();
   const noStoreIdents = new Set<string>();
+  const headersNamespaces = new Set<string>();
+  const cacheNamespaces = new Set<string>();
 
   const visit = (node: ts.Node) => {
     // import { cookies, headers, draftMode } from 'next/headers'
@@ -204,6 +206,13 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
               noStoreIdents.add(localName);
             }
           }
+        }
+      } else if (bindings && ts.isNamespaceImport(bindings)) {
+        const localName = bindings.name.text;
+        if (module === 'next/headers') {
+          headersNamespaces.add(localName);
+        } else if (module === 'next/cache') {
+          cacheNamespaces.add(localName);
         }
       }
     }
@@ -271,6 +280,19 @@ export function collectCacheMetadata({ sourceText }: CollectOptions): FileCacheM
           noStoreIdents.has(node.expression.text))
       ) {
         metadata.usesDynamicApis = true;
+      } else if (ts.isPropertyAccessExpression(node.expression)) {
+        const expr = node.expression;
+        if (ts.isIdentifier(expr.expression) && ts.isIdentifier(expr.name)) {
+          const ns = expr.expression.text;
+          const prop = expr.name.text;
+          if (
+            (headersNamespaces.has(ns) &&
+              (prop === 'headers' || prop === 'cookies' || prop === 'draftMode')) ||
+            (cacheNamespaces.has(ns) && (prop === 'noStore' || prop === 'unstable_noStore'))
+          ) {
+            metadata.usesDynamicApis = true;
+          }
+        }
       } else if (isIdentifierWithName(node.expression, 'revalidateTag')) {
         const [first] = node.arguments;
         if (first && ts.isExpression(first)) {

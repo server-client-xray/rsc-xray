@@ -95,4 +95,28 @@ describe('collectCacheMetadata', () => {
     const meta = collectCacheMetadata({ sourceText: source });
     expect(meta.usesDynamicApis).toBe(true);
   });
+
+  it('marks dynamic when using namespaced headers/cookies', () => {
+    const source = `
+      import * as nh from 'next/headers';
+      export default function Page() {
+        nh.headers();
+        nh.cookies();
+        return null;
+      }
+    `;
+    const meta = collectCacheMetadata({ sourceText: source });
+    expect(meta.usesDynamicApis).toBe(true);
+  });
+
+  it('marks dynamic when using namespaced noStore', () => {
+    const source = `
+      import * as nc from 'next/cache';
+      export async function loader() {
+        nc.noStore();
+      }
+    `;
+    const meta = collectCacheMetadata({ sourceText: source });
+    expect(meta.usesDynamicApis).toBe(true);
+  });
 });
