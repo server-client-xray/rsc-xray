@@ -2,3 +2,9 @@ node_modules/
 .next/
 dist/
 coverage/
+pnpm-lock.yaml
+**/pnpm-lock.yaml
+yarn.lock
+**/yarn.lock
+package-lock.json
+**/package-lock.json
