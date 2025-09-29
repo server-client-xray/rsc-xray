@@ -1,5 +1,11 @@
 # @rsc-xray/hydration
 
+## 0.2.1
+
+### Patch Changes
+
+- 610e586: chore(docs): add npm badges to package READMEs and keywords to manifests for improved discovery; include updated README content in published tarballs.
+
 ## 0.2.0
 
 ## 0.1.2
