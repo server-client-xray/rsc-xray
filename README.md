@@ -1,6 +1,10 @@
-# rsc-xray (OSS)
+# RSC X‑Ray — Next.js RSC analyzer & report
 
-Core analyzer + CLI + schemas + offline HTML report.
+[![npm](https://img.shields.io/npm/v/@rsc-xray/cli.svg)](https://www.npmjs.com/package/@rsc-xray/cli)
+[![CI](https://img.shields.io/github/actions/workflow/status/rsc-xray/rsc-xray/ci.yml?branch=main)](https://github.com/rsc-xray/rsc-xray/actions)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, and suggestions — export a shareable offline HTML report.
 
 ## Features (Free/OSS)
 
@@ -65,7 +69,16 @@ STDOUT prints chunk timings; the optional `--out` flag stores the samples for la
 - Toggle with **Control**+Shift+X or run `window.__SCX_OVERLAY__?.toggle()` in the browser console.
 - Install `@rsc-xray/pro-overlay` in the example app to unlock the full UI (hydration timings, cache lens, CI budgets).
 
-## Pro & Team
+### RSC X‑Ray Pro
 
-Interested in overlay UI, hydration timings, cache lens, CI dashboards, or licensing flows?  
-See **[rsc-xray-pro](https://github.com/rsc-xray/rsc-xray-pro)**.
+Paid plans available — unlock the full toolkit:
+
+- Overlay UI — live boundary tree, Suspense markers, bundle bytes, hydration timings
+- Flight tap & timeline — capture React Flight streaming; visualize chunk order, sizes, labels
+- Cache lens — inspect `tags`, revalidate policies, and route impact
+- Waterfall detector — find sequential awaits; guided fixes (preload/parallelize)
+- Codemods — `use client`, wrap with Suspense, add preload/hydration hook
+- VS Code extension — analyzer diagnostics + “Open in XRay” deep links
+- CI budgets & trends — PR comments, thresholds, and historical deltas
+
+Learn more → https://rsc-xray.dev • Pricing → https://rsc-xray.dev/pricing

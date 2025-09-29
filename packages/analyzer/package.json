@@ -4,6 +4,17 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "keywords": [
+    "react-server-components",
+    "rsc",
+    "nextjs",
+    "debug",
+    "observability",
+    "static-analysis",
+    "suspense",
+    "bundles",
+    "bytes"
+  ],
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
