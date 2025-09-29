@@ -94,19 +94,19 @@ importers:
   packages/analyzer:
     dependencies:
       '@rsc-xray/schemas':
-        specifier: workspace:^0.2.2
+        specifier: workspace:*
         version: link:../schemas
 
   packages/cli:
     dependencies:
       '@rsc-xray/analyzer':
-        specifier: workspace:^0.2.2
+        specifier: workspace:*
         version: link:../analyzer
       '@rsc-xray/report-html':
-        specifier: workspace:^0.2.2
+        specifier: workspace:*
         version: link:../report-html
       '@rsc-xray/schemas':
-        specifier: workspace:^0.2.2
+        specifier: workspace:*
         version: link:../schemas
       ajv:
         specifier: ^8.17.1
@@ -137,7 +137,7 @@ importers:
   packages/report-html:
     dependencies:
       '@rsc-xray/schemas':
-        specifier: workspace:^0.2.2
+        specifier: workspace:^
         version: link:../schemas
 
   packages/schemas: {}
