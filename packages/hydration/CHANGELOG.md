@@ -1,5 +1,14 @@
 # @rsc-xray/hydration
 
+## 0.2.3
+
+### Patch Changes
+
+- 3ba7be0: Release: align docs & features; dynamic detection improvements
+  - Analyzer: infer dynamic via cookies/headers/noStore + dynamic import patterns
+  - CLI/Report: align with analyzer updates
+  - Docs: example and cross-links polished
+
 ## 0.2.2
 
 ### Patch Changes
