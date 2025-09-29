@@ -25,7 +25,7 @@
     "test": "vitest --run --passWithNoTests"
   },
   "dependencies": {
-    "@rsc-xray/schemas": "workspace:^0.2.2"
+    "@rsc-xray/schemas": "workspace:^"
   },
   "files": [
     "README.md",

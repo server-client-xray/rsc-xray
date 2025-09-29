@@ -1,19 +1,32 @@
-name: Publish Packages
+name: Release Packages
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Validate auth/permissions only; skip publish'
+        type: boolean
+        default: true
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: write # commit version bumps/changelogs, push tags
+      pull-requests: write # open/update/comment on Version PR
+      id-token: write # required for npm provenance (--provenance)
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
+      # Use the same toolchain as developers (from package.json "volta")
       - uses: volta-cli/action@v4
 
       - name: Install pinned toolchain
@@ -29,6 +42,7 @@ jobs:
           node --version
           pnpm --version
 
+      # Cache PNPM store (since we’re not using setup-node’s built-in cache)
       - name: Determine pnpm store path
         id: pnpm-store
         run: echo "store=$(pnpm store path)" >> "$GITHUB_OUTPUT"
@@ -41,21 +55,51 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-
 
-      - name: Install dependencies
+      - name: Install deps
         run: pnpm install --frozen-lockfile
 
-      - name: Build packages
+      - name: Build
         run: pnpm -r build
 
-      - name: Run tests
+      - name: Test
         run: pnpm -r test
 
-      - name: Configure npm auth
-        run: echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > ~/.npmrc
+      # Auth ONLY for publishing; installs keep default npm registry
+      - name: Configure npm auth (publish only)
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "Missing NPM_TOKEN" >&2; exit 1
+          fi
+          {
+            echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}"
+            echo "always-auth=true"
+          } > ~/.npmrc
 
-      - name: Publish to npm
-        run: pnpm run release --access public --no-git-tag --provenance
+      - name: Validate npm auth (dry-run friendly)
+        run: |
+          npm whoami --registry https://registry.npmjs.org
+          npm ping   --registry https://registry.npmjs.org
+
+      # One step to do BOTH:
+      #  - Maintain Version PR (via `version:`)
+      #  - Publish to npm after Version PR merges (via `publish:`)
+      - name: Changesets (Version PR and Publish)
+        if: ${{ github.ref == 'refs/heads/main' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run == true) }}
+        uses: changesets/action@v1
+        with:
+          version: pnpm version:packages
+          commit: |
+            chore: version oss packages
+          title: |
+            chore: version oss packages
+          publish: pnpm release --access public --provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PRs/commits/tags
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # npm publish
+
+      - name: Dry run note
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true }}
+        run: |
+          echo "Dry run requested: no publish will occur. Auth/registry checks completed."
