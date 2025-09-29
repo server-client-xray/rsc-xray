@@ -69,4 +69,30 @@ describe('collectCacheMetadata', () => {
     expect(meta.exportedDynamic).toBe('force-dynamic');
     expect(meta.experimentalPpr).toBe(true);
   });
+
+  it('marks dynamic when using cookies()/headers() from next/headers', () => {
+    const source = `
+      import { cookies, headers, draftMode } from 'next/headers';
+      export default function Page() {
+        headers();
+        cookies();
+        draftMode();
+        return null;
+      }
+    `;
+    const meta = collectCacheMetadata({ sourceText: source });
+    expect(meta.usesDynamicApis).toBe(true);
+  });
+
+  it('marks dynamic when using noStore()/unstable_noStore() from next/cache', () => {
+    const source = `
+      import { noStore, unstable_noStore } from 'next/cache';
+      export async function loader() {
+        noStore();
+        unstable_noStore();
+      }
+    `;
+    const meta = collectCacheMetadata({ sourceText: source });
+    expect(meta.usesDynamicApis).toBe(true);
+  });
 });
