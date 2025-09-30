@@ -95,9 +95,9 @@ jobs:
           title: |
             chore: version oss packages
           publish: pnpm release --access public --provenance
-          createGithubReleases: aggregate
+          createGithubReleases: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PRs/commits/tags
+          GITHUB_TOKEN: ${{ secrets.CHANGESETS_TOKEN }} # PRs/commits/tags (PAT to trigger CI)
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # npm publish
 
       - name: Dry run note
