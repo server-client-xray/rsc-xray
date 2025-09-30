@@ -1,5 +1,11 @@
 # @rsc-xray/hydration
 
+## 0.2.4
+
+### Patch Changes
+
+- 2e28eef: Configuration and tooling improvements: upgraded TypeScript to 5.6.2, Vitest to 3.2.4, standardized dependencies, added Prettier config, security scanning, and developer tools
+
 ## 0.2.3
 
 ### Patch Changes
