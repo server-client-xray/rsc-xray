@@ -1,5 +1,15 @@
 # @rsc-xray/cli
 
+## 0.2.4
+
+### Patch Changes
+
+- 2e28eef: Configuration and tooling improvements: upgraded TypeScript to 5.6.2, Vitest to 3.2.4, standardized dependencies, added Prettier config, security scanning, and developer tools
+- Updated dependencies [2e28eef]
+  - @rsc-xray/report-html@0.2.4
+  - @rsc-xray/analyzer@0.2.4
+  - @rsc-xray/schemas@0.2.4
+
 ## 0.2.3
 
 ### Patch Changes
