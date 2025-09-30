@@ -14,9 +14,9 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # commit version bumps/changelogs, push tags
+      contents: write      # commit version bumps/changelogs, push tags, create releases
       pull-requests: write # open/update/comment on Version PR
-      id-token: write # required for npm provenance (--provenance)
+      id-token: write      # required for npm provenance (--provenance)
     concurrency:
       group: release-${{ github.ref }}
       cancel-in-progress: false
@@ -95,7 +95,7 @@ jobs:
           title: |
             chore: version oss packages
           publish: pnpm release --access public --provenance
-          createGithubReleases: aggregate
+          createGithubReleases: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PRs/commits/tags
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # npm publish
