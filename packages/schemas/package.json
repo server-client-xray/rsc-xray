@@ -1,6 +1,7 @@
 {
   "name": "@rsc-xray/schemas",
   "version": "0.2.3",
+  "description": "TypeScript types and JSON schema for RSC X-Ray model: shared contracts for analyzer, CLI, and reporting tools",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

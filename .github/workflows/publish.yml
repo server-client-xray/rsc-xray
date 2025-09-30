@@ -95,6 +95,7 @@ jobs:
           title: |
             chore: version oss packages
           publish: pnpm release --access public --provenance
+          createGithubReleases: aggregate
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # PRs/commits/tags
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }} # npm publish
