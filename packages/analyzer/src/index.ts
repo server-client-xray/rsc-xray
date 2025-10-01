@@ -9,3 +9,7 @@ export * from './lib/analyzeProject';
 export * from './types/next-manifest';
 export * from './rules/clientForbiddenImports';
 export * from './rules/serializationBoundary';
+export * from './rules/suspenseBoundary';
+export * from './rules/react19Cache';
+export * from './rules/clientSizeThreshold';
+export * from './rules/routeSegmentConfig';
