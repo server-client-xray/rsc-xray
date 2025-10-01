@@ -69,7 +69,7 @@ importers:
         specifier: ^6.38.4
         version: 6.38.4
       '@rsc-xray/hydration':
-        specifier: workspace:^0.6.3
+        specifier: workspace:^0.6.4
         version: link:../../packages/hydration
       codemirror:
         specifier: ^6.0.2

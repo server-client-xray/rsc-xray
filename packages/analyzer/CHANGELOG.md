@@ -1,5 +1,12 @@
 # @rsc-xray/analyzer
 
+## 0.6.4
+
+### Patch Changes
+
+- d8b2964: Fix missing .js extensions in clientForbiddenImports.ts for classify imports. Completes ES module migration.
+  - @rsc-xray/schemas@0.6.4
+
 ## 0.6.3
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @rsc-xray/report-html
 
+## 0.6.4
+
+### Patch Changes
+
+- @rsc-xray/schemas@0.6.4
+
 ## 0.6.3
 
 ### Patch Changes
