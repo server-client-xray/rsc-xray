@@ -142,10 +142,32 @@ export async function getUser(id: string) {
     },
   },
 
+  // Route Configuration
+  {
+    id: 'route-config',
+    title: 'Route Config Conflict',
+    category: 'performance',
+    isPro: false,
+    rule: 'route-segment-config-conflict',
+    description: 'Conflicting route segment configuration options',
+    code: `// app/page.tsx
+export const dynamic = 'force-static';
+export const revalidate = 60; // ⚠️ Conflict!
+
+export default function Page() {
+  return <div>Static page with revalidate?</div>;
+}`,
+    explanation: {
+      what: 'This route has conflicting configuration: force-static with revalidate',
+      why: "Static pages don't revalidate - these options are mutually exclusive",
+      how: "Choose either 'force-static' for full static or 'force-dynamic' with revalidate",
+    },
+  },
+
   // Pro Teasers
   {
-    id: 'route-waterfall',
-    title: 'Route Waterfall (Pro)',
+    id: 'pro-waterfall',
+    title: 'Waterfall Detection (Pro)',
     category: 'pro',
     isPro: true,
     rule: 'route-waterfall-detected',
