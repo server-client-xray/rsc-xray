@@ -13,3 +13,4 @@ export * from './rules/suspenseBoundary';
 export * from './rules/react19Cache';
 export * from './rules/clientSizeThreshold';
 export * from './rules/routeSegmentConfig';
+export * from './lsp';
