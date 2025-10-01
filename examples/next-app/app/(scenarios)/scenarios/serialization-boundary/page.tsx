@@ -1,6 +1,8 @@
 import { ClientButton } from './ClientButton';
 import { CodeBlock } from '../_components/CodeBlock';
 import { DiagnosticBox } from '../_components/DiagnosticBox';
+import { CodeMirrorEditor } from '../_components/CodeMirrorEditor';
+import { findTextDiagnostic } from '../_components/diagnosticUtils';
 
 /**
  * Demonstrates serialization boundary violation (T5.4)
@@ -60,6 +62,24 @@ export default function SerializationBoundaryPage() {
 
   const timestamp = new Date();
 
+  // Create mock diagnostics for the interactive editor
+  const mockDiagnostics = [
+    findTextDiagnostic(
+      FAULTY_CODE,
+      'onClick={handleClick}',
+      'error',
+      'Function props cannot be passed to client components. Functions are not JSON-serializable and will become undefined on the client.',
+      'rsc-xray'
+    ),
+    findTextDiagnostic(
+      FAULTY_CODE,
+      'timestamp={timestamp}',
+      'error',
+      'Date instances lose their prototype methods during serialization. Use ISO string format instead: timestamp.toISOString()',
+      'rsc-xray'
+    ),
+  ].filter((d) => d !== null);
+
   return (
     <div className="space-y-6 p-8 max-w-4xl mx-auto">
       <div>
@@ -81,7 +101,16 @@ export default function SerializationBoundaryPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Faulty Code</h2>
+        <h2 className="text-xl font-semibold mb-3">Interactive Code Editor</h2>
+        <p className="text-sm text-gray-600 mb-3">
+          Edit the code below and see diagnostics update in real-time. Hover over the red underlines
+          to see error messages. Try fixing the violations!
+        </p>
+        <CodeMirrorEditor initialValue={FAULTY_CODE} mockDiagnostics={mockDiagnostics} />
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Static View (Reference)</h2>
         <CodeBlock code={FAULTY_CODE} title="page.tsx" highlightLines={[8, 9]} />
       </div>
 
