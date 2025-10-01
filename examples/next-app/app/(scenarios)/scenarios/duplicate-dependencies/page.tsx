@@ -22,7 +22,7 @@ import { LineChart } from 'recharts';        // 15 KB
 import { format } from 'date-fns';           // 5 KB
 import { calculateStats } from './utils';    // 3 KB
 
-export function ChartWidget() {
+export function ChartWidget(): JSX.Element {
   const data = calculateStats(rawData);
   return <LineChart data={data} />;
 }
@@ -32,7 +32,7 @@ import { DataGrid } from '@mui/x-data-grid';  // 18 KB
 import { format } from 'date-fns';            // 5 KB (duplicate!)
 import { calculateStats } from './utils';     // 3 KB (duplicate!)
 
-export function TableWidget() {
+export function TableWidget(): JSX.Element {
   const data = calculateStats(rawData);
   return <DataGrid rows={data} />;
 }
@@ -52,7 +52,7 @@ export { format, calculateStats };
 import { LineChart } from 'recharts';
 import { format, calculateStats } from './utils/shared';
 
-export function ChartWidget() {
+export function ChartWidget(): JSX.Element {
   const data = calculateStats(rawData);
   return <LineChart data={data} />;
 }
@@ -62,7 +62,7 @@ export function ChartWidget() {
 import { DataGrid } from '@mui/x-data-grid';
 import { format, calculateStats } from './utils/shared';
 
-export function TableWidget() {
+export function TableWidget(): JSX.Element {
   const data = calculateStats(rawData);
   return <DataGrid rows={data} />;
 }
@@ -86,7 +86,7 @@ const TableWidget = dynamic(() => import('./TableWidget'), {
   ssr: false,
 });
 
-export function Dashboard() {
+export function Dashboard(): JSX.Element {
   return (
     <div>
       <ChartWidget />
@@ -97,7 +97,7 @@ export function Dashboard() {
 
 // Next.js automatically extracts shared dependencies into common chunks`;
 
-export default function DuplicateDependenciesPage() {
+export default function DuplicateDependenciesPage(): JSX.Element {
   // Create mock diagnostics for the interactive editor
   const mockDiagnostics = [
     findTextDiagnostic(

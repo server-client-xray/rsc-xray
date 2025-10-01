@@ -8,7 +8,7 @@ interface ClientButtonProps {
   timestamp: Date;
 }
 
-export function ClientButton({ onClick, label, timestamp }: ClientButtonProps) {
+export function ClientButton({ onClick, label, timestamp }: ClientButtonProps): JSX.Element {
   const [clickResult, setClickResult] = useState<string>('');
   const [timestampInfo, setTimestampInfo] = useState<string>('');
 

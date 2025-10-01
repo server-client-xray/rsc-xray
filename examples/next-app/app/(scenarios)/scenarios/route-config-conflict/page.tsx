@@ -23,7 +23,7 @@ export const dynamic = 'force-static';
 const FAULTY_CODE = `// ❌ Configuration conflict
 export const dynamic = 'force-static';
 
-export default async function Page() {
+export default async function Page(): Promise<JSX.Element> {
   const cookies = await cookies();  // Error: Can't use cookies() with force-static!
   const theme = cookies.get('theme');
   
@@ -31,7 +31,7 @@ export default async function Page() {
 }`;
 
 const FIXED_CODE = `// ✅ Option 1: Remove force-static (allow dynamic)
-export default async function Page() {
+export default async function Page(): Promise<JSX.Element> {
   const cookies = await cookies();
   const theme = cookies.get('theme');
   
@@ -41,7 +41,7 @@ export default async function Page() {
 // ✅ Option 2: Keep force-static, remove dynamic APIs
 export const dynamic = 'force-static';
 
-export default function Page() {
+export default function Page(): JSX.Element {
   // No cookies(), headers(), or searchParams
   return <div>Theme: default</div>;
 }
@@ -49,14 +49,14 @@ export default function Page() {
 // ✅ Option 3: Explicit dynamic config
 export const dynamic = 'force-dynamic';
 
-export default async function Page() {
+export default async function Page(): Promise<JSX.Element> {
   const cookies = await cookies();
   const theme = cookies.get('theme');
   
   return <div>Theme: {theme?.value}</div>;
 }`;
 
-export default async function RouteConfigConflictPage() {
+export default async function RouteConfigConflictPage(): Promise<JSX.Element> {
   // This conflicts with dynamic = 'force-static'!
   const cookieStore = await cookies();
   const theme = cookieStore.get('theme');

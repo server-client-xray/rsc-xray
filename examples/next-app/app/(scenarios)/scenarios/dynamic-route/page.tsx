@@ -18,7 +18,7 @@ import { findTextDiagnostic } from '../_components/diagnosticUtils';
 
 const DYNAMIC_CODE = `import { headers } from 'next/headers';
 
-export default async function Page() {
+export default async function Page(): Promise<JSX.Element> {
   // Using headers() makes this route dynamic
   const headersList = await headers();
   const userAgent = headersList.get('user-agent');
@@ -31,7 +31,7 @@ export default async function Page() {
 // Rendering: On-demand (per request)`;
 
 const STATIC_CODE = `// ✅ Static route (no dynamic APIs)
-export default function Page() {
+export default function Page(): JSX.Element {
   return <div>Welcome to our site!</div>;
 }
 
@@ -42,14 +42,14 @@ export default function Page() {
 const ISR_CODE = `// ✅ ISR route (Incremental Static Regeneration)
 export const revalidate = 60; // Regenerate every 60 seconds
 
-export default async function Page() {
+export default async function Page(): Promise<JSX.Element> {
   const data = await fetch('https://api.example.com/data');
   return <div>{data.title}</div>;
 }
 
 // Result: Static with periodic regeneration`;
 
-export default async function DynamicRoutePage() {
+export default async function DynamicRoutePage(): Promise<JSX.Element> {
   // Using headers() makes this route dynamic
   const headersList = await headers();
   const userAgent = headersList.get('user-agent') || 'unknown';

@@ -35,7 +35,7 @@ export function CodeMirrorEditor({
   readOnly = false,
   height = '400px',
   proFeature = false,
-}: CodeMirrorEditorProps) {
+}: CodeMirrorEditorProps): JSX.Element {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isClient, setIsClient] = useState(false);

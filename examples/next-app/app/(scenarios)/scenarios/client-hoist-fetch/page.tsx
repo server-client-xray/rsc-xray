@@ -15,7 +15,7 @@ const FAULTY_CODE = `"use client";
 
 import { useEffect, useState } from 'react';
 
-export function UserProfile({ userId }: { userId: string }) {
+export function UserProfile({ userId }: { userId: string }): JSX.Element {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
@@ -81,7 +81,7 @@ async function getUser(formData: FormData) {
   return fetch(\`/api/users/\${userId}\`).then(r => r.json());
 }
 
-export function UserProfile() {
+export function UserProfile(): JSX.Element {
   const [user, dispatch] = useActionState(getUser, null);
 
   return (
@@ -93,7 +93,7 @@ export function UserProfile() {
   );
 }`;
 
-export default function ClientFetchHoistPage() {
+export default function ClientFetchHoistPage(): JSX.Element {
   // Create mock diagnostic for useEffect fetch
   const mockDiagnostics = [
     findTextDiagnostic(

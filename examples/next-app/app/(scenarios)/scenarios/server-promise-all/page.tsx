@@ -9,7 +9,7 @@ export const metadata = {
   description: 'Demonstrates the Promise.all suggestion triggered by serial awaits.',
 };
 
-const FAULTY_CODE = `export default async function Page() {
+const FAULTY_CODE = `export default async function Page(): Promise<JSX.Element> {
   // Sequential awaits - creates a waterfall!
   const product = await getProduct('analyzer');  // Wait 200ms
   const related = await getProduct('overlay');    // Wait another 200ms
@@ -19,7 +19,7 @@ const FAULTY_CODE = `export default async function Page() {
   return <div>{product.name} + {related.name}</div>;
 }`;
 
-const FIXED_CODE = `export default async function Page() {
+const FIXED_CODE = `export default async function Page(): Promise<JSX.Element> {
   // Parallel fetches - much faster!
   const [product, related] = await Promise.all([
     getProduct('analyzer'),  // All run in parallel

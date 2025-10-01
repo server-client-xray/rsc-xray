@@ -63,7 +63,7 @@ const TRANSLATIONS = {
   es: Object.fromEntries(Array.from({ length: 200 }, (_, i) => [`key${i}`, `Texto español ${i}`])),
 };
 
-export function LargeComponent() {
+export function LargeComponent(): JSX.Element {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 

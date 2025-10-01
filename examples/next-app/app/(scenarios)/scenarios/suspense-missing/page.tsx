@@ -22,7 +22,7 @@ async function SlowData() {
   return <div>{data}</div>;
 }
 
-export default function Page() {
+export default function Page(): JSX.Element {
   return (
     <div>
       <h1>My Page</h1>
@@ -38,7 +38,7 @@ async function SlowData() {
   return <div>{data}</div>;
 }
 
-export default function Page() {
+export default function Page(): JSX.Element {
   return (
     <div>
       <h1>My Page</h1>
@@ -64,7 +64,7 @@ async function SlowData() {
   );
 }
 
-export default function SuspenseMissingPage() {
+export default function SuspenseMissingPage(): JSX.Element {
   // Create mock diagnostics for the interactive editor
   const mockDiagnostics = [
     findTextDiagnostic(

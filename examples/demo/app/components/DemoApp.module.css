@@ -1,0 +1,44 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.editorPlaceholder {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: var(--spacing-xl);
+  overflow-y: auto;
+}
+
+.editorPlaceholder h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-fg);
+}
+
+.editorPlaceholder p {
+  color: var(--color-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.codePreview {
+  flex: 1;
+  padding: var(--spacing-lg);
+  background: #1e1e1e;
+  color: #d4d4d4;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  border-radius: 8px;
+  overflow-x: auto;
+  white-space: pre;
+}

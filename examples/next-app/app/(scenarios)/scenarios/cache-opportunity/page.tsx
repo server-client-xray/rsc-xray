@@ -117,7 +117,7 @@ async function UserStats({ userId }: { userId: string }) {
 
 // Result: Only 1 network request, shared across all 3 components`;
 
-export default async function CacheOpportunityPage() {
+export default async function CacheOpportunityPage(): Promise<JSX.Element> {
   // Create mock diagnostics for duplicate fetchUser calls
   const mockDiagnostics = findAllTextDiagnostics(
     FAULTY_CODE,
