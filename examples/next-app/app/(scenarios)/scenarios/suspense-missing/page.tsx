@@ -1,5 +1,7 @@
 import { CodeBlock } from '../_components/CodeBlock';
 import { DiagnosticBox } from '../_components/DiagnosticBox';
+import { CodeMirrorEditor } from '../_components/CodeMirrorEditor';
+import { findTextDiagnostic } from '../_components/diagnosticUtils';
 
 /**
  * Suspense Boundary Missing - Performance Demo
@@ -63,6 +65,17 @@ async function SlowData() {
 }
 
 export default function SuspenseMissingPage() {
+  // Create mock diagnostics for the interactive editor
+  const mockDiagnostics = [
+    findTextDiagnostic(
+      FAULTY_CODE,
+      '<SlowData />',
+      'warning',
+      'Async server component should be wrapped in a Suspense boundary to enable streaming and prevent blocking the entire page render.',
+      'rsc-xray'
+    ),
+  ].filter((d) => d !== null);
+
   return (
     <div className="space-y-6 p-8 max-w-4xl mx-auto">
       <div>
@@ -82,7 +95,16 @@ export default function SuspenseMissingPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Faulty Code</h2>
+        <h2 className="text-xl font-semibold mb-3">Interactive Code Editor</h2>
+        <p className="text-sm text-gray-600 mb-3">
+          Edit the code below and see the diagnostic. Hover over the yellow underline to see the
+          suggestion. Try wrapping <code>&lt;SlowData /&gt;</code> in a Suspense boundary!
+        </p>
+        <CodeMirrorEditor initialValue={FAULTY_CODE} mockDiagnostics={mockDiagnostics} />
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Static View (Reference)</h2>
         <CodeBlock code={FAULTY_CODE} title="page.tsx" highlightLines={[9]} />
       </div>
 

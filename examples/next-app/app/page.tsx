@@ -46,9 +46,24 @@ const SCENARIOS: ScenarioCard[] = [
     badge: 'Issue',
   },
   {
+    title: 'Suspense boundary opportunity',
+    description:
+      'Shows sequential data fetches that could benefit from parallel Suspense boundaries.',
+    href: '/scenarios/suspense-opportunity',
+    kind: 'issue',
+    badge: 'Issue',
+  },
+  {
     title: 'Oversized client component',
     description: 'Shows client bundle exceeding 50KB size threshold.',
     href: '/scenarios/client-oversized',
+    kind: 'issue',
+    badge: 'Issue',
+  },
+  {
+    title: 'Duplicate dependencies',
+    description: 'Detects shared dependencies bundled multiple times across client components.',
+    href: '/scenarios/duplicate-dependencies',
     kind: 'issue',
     badge: 'Issue',
   },

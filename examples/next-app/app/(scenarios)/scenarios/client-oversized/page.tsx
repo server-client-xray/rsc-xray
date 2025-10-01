@@ -1,6 +1,8 @@
 import { LargeComponent } from './LargeComponent';
 import { CodeBlock } from '../_components/CodeBlock';
 import { DiagnosticBox } from '../_components/DiagnosticBox';
+import { CodeMirrorEditor } from '../_components/CodeMirrorEditor';
+import { findTextDiagnostic } from '../_components/diagnosticUtils';
 
 /**
  * Oversized Client Component - Demo
@@ -49,6 +51,17 @@ export default async function Page() {
 }`;
 
 export default function ClientOversizedPage() {
+  // Create mock diagnostics for the interactive editor
+  const mockDiagnostics = [
+    findTextDiagnostic(
+      FAULTY_CODE,
+      "'use client';",
+      'warning',
+      'Client component exceeds 50KB bundle size threshold. Consider code splitting with dynamic imports or moving data fetching to the server.',
+      'rsc-xray'
+    ),
+  ].filter((d) => d !== null);
+
   return (
     <div className="space-y-6 p-8 max-w-4xl mx-auto">
       <div>
@@ -68,7 +81,16 @@ export default function ClientOversizedPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Faulty Code</h2>
+        <h2 className="text-xl font-semibold mb-3">Interactive Code Editor</h2>
+        <p className="text-sm text-gray-600 mb-3">
+          Edit the code below to see the diagnostic. This client component is too large and should
+          be code-split or moved to the server.
+        </p>
+        <CodeMirrorEditor initialValue={FAULTY_CODE} mockDiagnostics={mockDiagnostics} />
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Static View (Reference)</h2>
         <CodeBlock code={FAULTY_CODE} title="LargeComponent.tsx" highlightLines={[4, 5, 6, 7, 8]} />
       </div>
 
