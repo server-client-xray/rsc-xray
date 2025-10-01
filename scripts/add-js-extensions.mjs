@@ -12,11 +12,11 @@ const PACKAGES_DIR = 'packages/analyzer/src';
 // Recursively find all .ts files, excluding tests
 function findTsFiles(dir, files = []) {
   const entries = readdirSync(dir);
-  
+
   for (const entry of entries) {
     const fullPath = join(dir, entry);
     const stat = statSync(fullPath);
-    
+
     if (stat.isDirectory()) {
       if (entry !== '__tests__' && entry !== 'node_modules') {
         findTsFiles(fullPath, files);
@@ -25,7 +25,7 @@ function findTsFiles(dir, files = []) {
       files.push(fullPath);
     }
   }
-  
+
   return files;
 }
 
@@ -81,8 +81,8 @@ files.forEach((filePath) => {
 
   if (content !== originalContent) {
     writeFileSync(filePath, content, 'utf8');
-    const changes = (originalContent.match(/from/g) || []).length -
-      (content.match(/from/g) || []).length;
+    const changes =
+      (originalContent.match(/from/g) || []).length - (content.match(/from/g) || []).length;
     console.log(`✅ ${filePath} (${Math.abs(changes)} imports fixed)`);
     totalChanges++;
   }
@@ -96,4 +96,3 @@ if (totalChanges === 0) {
 }
 
 console.log('\n🧪 Run tests to verify the changes...');
-
