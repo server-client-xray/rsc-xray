@@ -1,7 +1,7 @@
 # RSC X‑Ray — Next.js RSC analyzer & report
 
 [![npm](https://img.shields.io/npm/v/@rsc-xray/cli.svg)](https://www.npmjs.com/package/@rsc-xray/cli)
-[![CI](https://img.shields.io/github/actions/workflow/status/rsc-xray/rsc-xray/ci.yml?branch=main)](https://github.com/rsc-xray/rsc-xray/actions)
+[![CI](https://img.shields.io/github/actions/workflow/status/rsc-xray/rsc-xray/ci-release.yml?branch=main)](https://github.com/rsc-xray/rsc-xray/actions)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, and suggestions — export a shareable offline HTML report.
@@ -9,10 +9,12 @@ Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, 
 ## Features (Free/OSS)
 
 - Detect server/client boundaries (`'use client'`)
-- Suspense discovery
-- Bundle bytes per island
-- Forbidden import rules
-- Suggestions (hoist fetch, parallelize)
+- Suspense discovery & boundary placement analysis
+- Bundle bytes per island with size thresholds
+- Client component size warnings & duplicate dependency detection
+- Forbidden import rules (Node.js APIs in client components)
+- React 19 cache() API migration opportunities
+- Suggestions (hoist fetch, parallelize, add Suspense)
 - Export JSON/HTML report
 - Compatibility banner (Next 13.4–15.x)
 
@@ -49,8 +51,15 @@ The static HTML report shows:
 - **Bundle Analysis** - Total bytes, client/server split, per-route breakdown
 - **Component Tree** - Server/client boundaries with `'use client'` markers
 - **Suspense Boundaries** - Where streaming happens, boundary placement
-- **Diagnostics** - Rule violations with specific file/line numbers
-- **Suggestions** - Actionable fixes (hoist fetch, parallelize, add Suspense)
+- **Diagnostics** - Rule violations with specific file/line numbers:
+  - Forbidden Node.js imports in client components
+  - Oversized client components (>50KB threshold)
+  - Duplicate dependencies across client islands
+- **Suggestions** - Actionable fixes with file/line locations:
+  - Hoist fetch calls from client to server
+  - Parallelize sequential awaits with Promise.all
+  - Add Suspense boundaries around async components
+  - Migrate to React 19 cache() API for deduplication
 - **Build Info** - Next.js version, build timestamp, route count
 
 **Perfect for:** Sharing with teammates, uploading to CI artifacts, offline review
