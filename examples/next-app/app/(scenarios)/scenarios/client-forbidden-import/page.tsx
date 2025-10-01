@@ -15,12 +15,12 @@ export function FileReader(): JSX.Element {
 const FIXED_CODE = `// Move to server component
 import fs from 'fs';
 
-export async function FileReader() {
+export async function FileReader(): Promise<JSX.Element> {
   const files = fs.readdirSync('/tmp');
   return <div>Files: {files.length}</div>;
 }`;
 
-export default function ClientForbiddenImportPage() {
+export default function ClientForbiddenImportPage(): JSX.Element {
   const mockDiagnostics = [
     findTextDiagnostic(
       FAULTY_CODE,

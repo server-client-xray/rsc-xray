@@ -97,7 +97,7 @@ export function Dashboard(): JSX.Element {
 
 // Next.js automatically extracts shared dependencies into common chunks`;
 
-export default function DuplicateDependenciesPage() {
+export default function DuplicateDependenciesPage(): JSX.Element {
   // Create mock diagnostics for the interactive editor
   const mockDiagnostics = [
     findTextDiagnostic(

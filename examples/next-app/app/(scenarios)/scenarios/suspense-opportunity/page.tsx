@@ -153,7 +153,7 @@ async function CommentsSection() {
   return <CommentsList data={comments} />;
 }`;
 
-export default function SuspenseBoundaryOpportunityPage() {
+export default function SuspenseBoundaryOpportunityPage(): JSX.Element {
   // Create mock diagnostics for the interactive editor
   const mockDiagnostics = [
     findTextDiagnostic(

@@ -21,7 +21,7 @@ import { findTextDiagnostic } from '../_components/diagnosticUtils';
 export const dynamic = 'force-dynamic';
 
 const FAULTY_CODE = `// Server Component
-export default function Page() {
+export default function Page(): JSX.Element {
   const handleClick = () => {
     console.log('This function will be undefined on the client!');
   };
@@ -43,7 +43,7 @@ async function handleClick() {
   console.log('This runs on the server!');
 }
 
-export default function Page() {
+export default function Page(): JSX.Element {
   const timestamp = new Date().toISOString(); // ✅ Serialized
 
   return (
@@ -55,7 +55,7 @@ export default function Page() {
   );
 }`;
 
-export default function SerializationBoundaryPage() {
+export default function SerializationBoundaryPage(): JSX.Element {
   const handleClick = () => {
     console.log('This function will be undefined on the client!');
   };

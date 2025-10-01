@@ -30,7 +30,7 @@ const FIXED_CODE_LAZY = `import { lazy, Suspense } from 'react';
 // Option 1: Lazy load component
 const LargeComponent = lazy(() => import('./LargeComponent'));
 
-export default function Page() {
+export default function Page(): JSX.Element {
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <LargeComponent />
@@ -45,12 +45,12 @@ async function getData() {
   return items;
 }
 
-export default async function Page() {
+export default async function Page(): Promise<JSX.Element> {
   const data = await getData();
   return <ClientComponent data={data} />;
 }`;
 
-export default function ClientOversizedPage() {
+export default function ClientOversizedPage(): JSX.Element {
   // Create mock diagnostics for the interactive editor
   const mockDiagnostics = [
     findTextDiagnostic(

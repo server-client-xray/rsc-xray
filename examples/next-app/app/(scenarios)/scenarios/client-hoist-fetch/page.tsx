@@ -93,7 +93,7 @@ export function UserProfile(): JSX.Element {
   );
 }`;
 
-export default function ClientFetchHoistPage() {
+export default function ClientFetchHoistPage(): JSX.Element {
   // Create mock diagnostic for useEffect fetch
   const mockDiagnostics = [
     findTextDiagnostic(
