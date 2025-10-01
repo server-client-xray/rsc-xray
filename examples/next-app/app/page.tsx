@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-type ScenarioKind = 'valid' | 'violation' | 'coming-soon' | 'pro' | 'm4';
+type ScenarioKind = 'valid' | 'violation' | 'coming-soon' | 'pro' | 'm4' | 'm5';
 
 interface ScenarioCard {
   title: string;
@@ -74,6 +74,15 @@ const SCENARIOS: ScenarioCard[] = [
     kind: 'm4',
     badge: 'M4',
   },
+  // M5 Analyzer Scenarios
+  {
+    title: 'Serialization boundary violation (M5)',
+    description:
+      'Detects non-serializable props (functions, Date, Map, etc.) passed from server to client.',
+    href: '/scenarios/serialization-boundary',
+    kind: 'm5',
+    badge: 'M5',
+  },
   {
     title: 'Cache lens scenario',
     description: 'Coming soon: data-tagged pages to exercise cache invalidation flows.',
@@ -96,6 +105,7 @@ const KIND_COLORS: Record<ScenarioKind, string> = {
   'coming-soon': 'rgba(251,191,36,0.25)',
   pro: 'rgba(14,165,233,0.25)',
   m4: 'rgba(168,85,247,0.25)', // Purple for M4 features
+  m5: 'rgba(236,72,153,0.25)', // Pink for M5 features
 };
 
 export default function HomePage(): JSX.Element {

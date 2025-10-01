@@ -21,6 +21,7 @@ import { collectSuggestionsForSource } from './suggestions';
 import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata';
 import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports';
 import { detectClientSizeIssues } from '../rules/clientSizeThreshold.js';
+import { analyzeSerializationBoundary } from '../rules/serializationBoundary.js';
 import { readFlightSnapshot, readHydrationSnapshot } from './snapshots';
 
 interface AnalyzeProjectOptions {
@@ -442,6 +443,8 @@ export async function analyzeProject({
   );
 
   const diagnosticsByFile: Record<string, Diagnostic[]> = {};
+
+  // Analyze client components for forbidden imports
   for (const entry of sources) {
     if (entry.kind !== 'client') {
       continue;
@@ -452,6 +455,34 @@ export async function analyzeProject({
     });
     if (diagnostics.length > 0) {
       diagnosticsByFile[entry.filePath] = diagnostics;
+    }
+  }
+
+  // Build set of known client component names for serialization boundary analysis
+  const clientComponentNames = new Set<string>();
+  for (const entry of sources) {
+    if (entry.kind === 'client') {
+      // Extract component name from file path (e.g., Button from Button.tsx)
+      const fileName = entry.filePath.split('/').pop() || '';
+      const componentName = fileName.replace(/\.(tsx?|jsx?)$/, '');
+      clientComponentNames.add(componentName);
+    }
+  }
+
+  // Analyze server components for serialization boundary violations
+  for (const entry of sources) {
+    if (entry.kind !== 'server') {
+      continue;
+    }
+    const diagnostics = analyzeSerializationBoundary({
+      fileName: entry.filePath,
+      sourceText: entry.sourceText,
+      clientComponents: clientComponentNames,
+    });
+    if (diagnostics.length > 0) {
+      const existing = diagnosticsByFile[entry.filePath] ?? [];
+      existing.push(...diagnostics);
+      diagnosticsByFile[entry.filePath] = existing;
     }
   }
 

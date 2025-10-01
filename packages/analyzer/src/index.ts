@@ -8,3 +8,4 @@ export * from './lib/suggestions';
 export * from './lib/analyzeProject';
 export * from './types/next-manifest';
 export * from './rules/clientForbiddenImports';
+export * from './rules/serializationBoundary';
