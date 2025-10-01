@@ -27,11 +27,11 @@ export interface Scenario {
 export const scenarios: Scenario[] = [
   // Fundamentals Category
   {
-    id: 'serialization-boundary',
+    id: 'serialization-boundary', // Matches LSP scenario
     title: 'Serialization Boundary Violation',
     category: 'fundamentals',
     isPro: false,
-    rule: 'server-client-serialization-violation',
+    rule: 'serialization-boundary-violation',
     description: 'Passing non-serializable props from Server to Client components',
     code: `// app/page.tsx (Server Component)
 export default function Page() {
@@ -53,7 +53,7 @@ export function ClientButton({ onClick }) {
   },
 
   {
-    id: 'client-forbidden-import',
+    id: 'client-forbidden-imports', // Matches LSP scenario (note the 's')
     title: 'Client Component with Node.js Import',
     category: 'fundamentals',
     isPro: false,
@@ -75,7 +75,7 @@ export function FileReader() {
   },
 
   {
-    id: 'suspense-boundary-missing',
+    id: 'suspense-boundary', // Matches LSP scenario
     title: 'Missing Suspense Boundary',
     category: 'fundamentals',
     isPro: false,
@@ -97,7 +97,7 @@ export default async function Page() {
 
   // Performance Category
   {
-    id: 'client-oversized',
+    id: 'client-size', // Matches LSP scenario
     title: 'Oversized Client Bundle',
     category: 'performance',
     isPro: false,
