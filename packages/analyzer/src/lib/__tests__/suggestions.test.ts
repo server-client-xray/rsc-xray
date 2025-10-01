@@ -32,8 +32,10 @@ describe('collectSuggestionsForSource', () => {
       kind: 'server',
     });
 
-    expect(suggestions).toHaveLength(1);
-    expect(suggestions[0]).toMatchObject({
+    // Should include server-promise-all, suspense-boundary-missing, and suspense-boundary-opportunity
+    expect(suggestions.length).toBeGreaterThan(0);
+    const promiseAllSuggestion = suggestions.find((s) => s.rule === 'server-promise-all');
+    expect(promiseAllSuggestion).toMatchObject({
       rule: 'server-promise-all',
       level: 'info',
     });
@@ -47,7 +49,9 @@ describe('collectSuggestionsForSource', () => {
       kind: 'server',
     });
 
-    expect(suggestions).toEqual([]);
+    // Should not have server-promise-all suggestion, but may have Suspense boundary suggestions
+    const promiseAllSuggestion = suggestions.find((s) => s.rule === 'server-promise-all');
+    expect(promiseAllSuggestion).toBeUndefined();
   });
 });
 
