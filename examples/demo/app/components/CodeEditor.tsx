@@ -71,42 +71,39 @@ export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): 
           console.log('Analysis result:', result);
 
           // Convert RSC X-Ray diagnostics to CodeMirror format
-          // Filter to only Diagnostic items (which have line/column, not Suggestions)
-          const diagnosticsOnly = (result.diagnostics || []).filter(
-            (d) => 'line' in d && 'column' in d
-          );
+          // RSC X-Ray diagnostics have structure: { rule, level, message, loc: { file, line, col } }
+          // Suggestions don't have 'loc', so filter by that
+          const diagnosticsOnly = (result.diagnostics || []).filter((d) => 'loc' in d);
 
           console.log('Diagnostics to display:', diagnosticsOnly);
 
           const cmDiagnostics: CMDiagnostic[] = diagnosticsOnly.map((d) => {
-            const diag = d as unknown as {
-              line: number;
-              column: number;
-              endLine?: number;
-              endColumn?: number;
-              severity: string;
-              message: string;
+            const diag = d as {
               rule: string;
+              level: string;
+              message: string;
+              loc: {
+                file: string;
+                line: number;
+                col: number;
+              };
             };
 
-            // RSC X-Ray uses 1-indexed lines, CodeMirror uses 1-indexed too
-            // but we need to be careful with the offset calculation
-            const from = getOffset(view.state.doc, diag.line, diag.column);
-            const to = getOffset(
-              view.state.doc,
-              diag.endLine || diag.line,
-              (diag.endColumn || diag.column) + 1
-            );
+            // RSC X-Ray uses 1-indexed lines/cols
+            // CodeMirror doc.line() uses 1-indexed lines, but positions are 0-indexed
+            const from = getOffset(view.state.doc, diag.loc.line, diag.loc.col - 1);
+            // Highlight a few characters (or to end of line if short)
+            const to = getOffset(view.state.doc, diag.loc.line, diag.loc.col + 9);
 
             console.log(
-              `Diagnostic: line ${diag.line}, col ${diag.column} -> offset ${from}-${to}`,
+              `Diagnostic: line ${diag.loc.line}, col ${diag.loc.col} -> offset ${from}-${to}`,
               diag.message
             );
 
             return {
               from,
               to,
-              severity: diag.severity as 'error' | 'warning' | 'info',
+              severity: diag.level as 'error' | 'warning' | 'info',
               message: diag.message,
               source: diag.rule,
             };
@@ -188,6 +185,8 @@ export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): 
 
 /**
  * Convert line/column to document offset
+ * @param line - 1-indexed line number (CodeMirror's doc.line() expects 1-indexed)
+ * @param column - 0-indexed column position within the line
  */
 function getOffset(
   doc: { line: (n: number) => { from: number; to: number } },
