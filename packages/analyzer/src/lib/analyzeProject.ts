@@ -20,6 +20,7 @@ import { readManifests } from './readManifests';
 import { collectSuggestionsForSource } from './suggestions';
 import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata';
 import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports';
+import { detectClientSizeIssues } from '../rules/clientSizeThreshold.js';
 import { readFlightSnapshot, readHydrationSnapshot } from './snapshots';
 
 interface AnalyzeProjectOptions {
@@ -418,6 +419,15 @@ export async function analyzeProject({
 
   const clientBundles = await collectClientComponentBundles({ projectRoot, distDir });
   const manifest = await readManifests({ projectRoot, distDir });
+
+  // Check for client component size issues
+  const sizeIssues = detectClientSizeIssues(clientBundles);
+  for (const diagnostic of sizeIssues) {
+    if (!diagnostic.loc) continue;
+    const existing = diagnosticsByFile[diagnostic.loc.file] ?? [];
+    existing.push(diagnostic);
+    diagnosticsByFile[diagnostic.loc.file] = existing;
+  }
 
   const cacheMetadataByFile: Record<string, FileCacheMetadata> = {};
   for (const entry of sources) {
