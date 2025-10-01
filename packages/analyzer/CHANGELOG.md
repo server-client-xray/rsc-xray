@@ -1,5 +1,38 @@
 # @rsc-xray/analyzer
 
+## 0.3.0
+
+### Minor Changes
+
+- M4 Analyzer Features: Suspense boundary analysis, client size thresholds, React 19 cache() detection
+
+  ## New Analyzer Rules (T4.5, T4.6, T4.7)
+
+  ### Suspense Boundary Analysis (T4.5)
+  - `suspense-boundary-missing`: Detect async server components without Suspense boundaries
+  - `suspense-boundary-opportunity`: Suggest parallel streaming for multiple awaits
+
+  ### Client Component Size Warnings (T4.6)
+  - `client-component-oversized`: Warn when components exceed 50KB threshold (configurable)
+  - `duplicate-dependencies`: Identify shared chunks across client islands
+
+  ### React 19 cache() API Detector (T4.7)
+  - `react19-cache-opportunity`: Suggest migration from Map/WeakMap caching and duplicate fetch calls to React 19 cache() API
+  - Version-aware: only suggests for React 19+ projects
+
+  ## Test Coverage
+  - 56 new tests added (92 total analyzer tests)
+  - 100% coverage for all new rules
+
+  ## Documentation
+  - Updated VIOLATIONS.md with 5 new rules
+  - Enhanced README with feature descriptions and diagnostics details
+  - Fixed CI badge (ci-release.yml)
+
+### Patch Changes
+
+- @rsc-xray/schemas@0.3.0
+
 ## 0.2.5
 
 ### Patch Changes
