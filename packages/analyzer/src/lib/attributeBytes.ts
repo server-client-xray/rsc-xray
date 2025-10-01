@@ -1,4 +1,4 @@
-import type { ClientComponentBundle } from './clientBundles';
+import type { ClientComponentBundle } from './clientBundles.js';
 
 export interface NodeBundleBytes {
   totalBytes: number;

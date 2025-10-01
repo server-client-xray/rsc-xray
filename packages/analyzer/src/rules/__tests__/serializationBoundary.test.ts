@@ -569,7 +569,7 @@ describe('Serialization Boundary Analyzer', () => {
 
     it('handles imported functions', () => {
       const source = `
-        import { helperFunction } from './utils';
+        import { helperFunction } from './utils.js';
         
         export default function ServerComponent() {
           return <ClientButton onClick={helperFunction} />;

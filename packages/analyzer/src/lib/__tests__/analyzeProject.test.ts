@@ -242,7 +242,7 @@ describe('analyzeProject', () => {
 
       await writeFile(
         join(projectRoot, 'app/page.tsx'),
-        `import { ClientIsland } from './components/ClientIsland';\n\nexport default function Page() {\n  return <ClientIsland />;\n}\n`,
+        `import { ClientIsland } from './components/ClientIsland.js';\n\nexport default function Page() {\n  return <ClientIsland />;\n}\n`,
         'utf8'
       );
 

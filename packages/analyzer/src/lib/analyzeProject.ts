@@ -13,16 +13,16 @@ import {
   type XNode,
 } from '@rsc-xray/schemas';
 
-import { collectClientComponentBundles } from './clientBundles';
-import { buildGraph } from './graph';
-import { classifyFiles } from './classifyFiles';
-import { readManifests } from './readManifests';
-import { collectSuggestionsForSource } from './suggestions';
-import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata';
+import { collectClientComponentBundles } from './clientBundles.js';
+import { buildGraph } from './graph.js';
+import { classifyFiles } from './classifyFiles.js';
+import { readManifests } from './readManifests.js';
+import { collectSuggestionsForSource } from './suggestions.js';
+import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata.js';
 import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports';
 import { detectClientSizeIssues } from '../rules/clientSizeThreshold.js';
 import { analyzeSerializationBoundary } from '../rules/serializationBoundary.js';
-import { readFlightSnapshot, readHydrationSnapshot } from './snapshots';
+import { readFlightSnapshot, readHydrationSnapshot } from './snapshots.js';
 
 interface AnalyzeProjectOptions {
   projectRoot: string;
