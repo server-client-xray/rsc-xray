@@ -8,11 +8,13 @@ import type { Suggestion } from '@rsc-xray/schemas';
 import type { ClassifiedFile } from './classifyFiles';
 import type { ComponentKind } from './classify';
 import { detectSuspenseBoundaryIssues } from '../rules/suspenseBoundary.js';
+import { detectReact19CacheOpportunities } from '../rules/react19Cache.js';
 
 interface CollectSuggestionsForSourceOptions {
   filePath: string;
   sourceText: string;
   kind: ComponentKind;
+  reactVersion?: string;
 }
 
 const FETCH_RULE = 'client-hoist-fetch';
@@ -159,6 +161,7 @@ function collectSuggestionsForSource({
   filePath,
   sourceText,
   kind,
+  reactVersion,
 }: CollectSuggestionsForSourceOptions): Suggestion[] {
   const sourceFile = createSourceFile(filePath, sourceText);
   const suggestions: Suggestion[] = [];
@@ -169,6 +172,7 @@ function collectSuggestionsForSource({
     // Server component suggestions
     suggestions.push(...collectParallelSuggestions(sourceFile, filePath));
     suggestions.push(...detectSuspenseBoundaryIssues(sourceFile, filePath));
+    suggestions.push(...detectReact19CacheOpportunities(sourceFile, filePath, { reactVersion }));
   }
 
   return suggestions;
@@ -177,11 +181,13 @@ function collectSuggestionsForSource({
 export interface CollectSuggestionsOptions {
   projectRoot: string;
   classifiedFiles: ClassifiedFile[];
+  reactVersion?: string;
 }
 
 export async function collectSuggestions({
   projectRoot,
   classifiedFiles,
+  reactVersion,
 }: CollectSuggestionsOptions): Promise<Record<string, Suggestion[]>> {
   const entries = await Promise.all(
     classifiedFiles.map(async (entry) => {
@@ -191,6 +197,7 @@ export async function collectSuggestions({
         filePath: entry.filePath.replace(/\\/g, '/'),
         sourceText,
         kind: entry.kind,
+        reactVersion,
       });
       return [entry.filePath.replace(/\\/g, '/'), suggestions] as const;
     })

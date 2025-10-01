@@ -405,12 +405,15 @@ export async function analyzeProject({
     }
   }
 
+  const nextVersion = await readNextVersion(projectRoot);
+
   const suggestionsByFile: Record<string, Suggestion[]> = {};
   for (const entry of sources) {
     const suggestions = collectSuggestionsForSource({
       filePath: entry.filePath,
       sourceText: entry.sourceText,
       kind: entry.kind,
+      reactVersion: nextVersion, // Pass React/Next version for React 19 cache detection
     });
     if (suggestions.length > 0) {
       suggestionsByFile[entry.filePath] = suggestions;
@@ -493,7 +496,7 @@ export async function analyzeProject({
   });
 
   const buildInfo = {
-    nextVersion: await readNextVersion(projectRoot),
+    nextVersion,
     timestamp: new Date().toISOString(),
   };
 
