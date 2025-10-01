@@ -1,6 +1,6 @@
 {
   "name": "@rsc-xray/report-html",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Generate offline HTML reports for RSC X-Ray analysis: visualize boundaries, Suspense, bundle sizes, and optimization suggestions",
   "type": "module",
   "main": "dist/index.js",
