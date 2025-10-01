@@ -22,6 +22,8 @@ export interface Scenario {
     how: string;
   };
   proFeatures?: string[];
+  /** Human-readable description of what the analyzer is checking */
+  contextDescription?: string;
   /** Context to pass to LSP analyzer (for rules that need it) */
   context?: {
     clientComponentPaths?: string[];
@@ -63,6 +65,8 @@ export default function Page() {
       why: 'Server Components run on the server, Client Components run in the browser. Functions cannot be serialized and sent over the network.',
       how: 'Move the function to the Client Component, or use a serializable prop like a URL for server actions',
     },
+    contextDescription:
+      "Analyzer knows 'ClientButton' is a Client Component, so it checks props passed to it",
     context: {
       clientComponentPaths: ['./ClientButton', 'ClientButton'],
     },
@@ -135,6 +139,7 @@ export function HeavyComponent() {
       why: 'Large bundles slow down page load and hurt mobile users on slow connections',
       how: 'Use lightweight alternatives, tree-shake imports, or move heavy logic to Server Components',
     },
+    contextDescription: 'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold)',
     context: {
       clientBundles: [
         {
@@ -190,6 +195,8 @@ export default function Page() {
       why: 'ISR (Incremental Static Regeneration) with revalidate requires static or auto mode, not force-dynamic',
       how: "Remove 'force-dynamic' to enable ISR, or remove revalidate for fully dynamic rendering",
     },
+    contextDescription:
+      "Analyzer checks: dynamic = 'force-dynamic' + revalidate = 60 (conflicting options)",
     context: {
       routeConfig: {
         dynamic: 'force-dynamic',
