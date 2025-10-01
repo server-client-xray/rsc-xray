@@ -82,11 +82,11 @@ const SCENARIOS: ScenarioCard[] = [
     badge: 'Issue',
   },
   {
-    title: 'Cache lens scenario',
-    description: 'Coming soon: data-tagged pages to exercise cache invalidation flows.',
+    title: 'Cache Lens',
+    description: 'Visualize revalidation relationships, ISR policies, and cache dependencies.',
     href: '/scenarios/cache-lens-coming-soon',
-    kind: 'coming-soon',
-    badge: 'Coming Soon',
+    kind: 'pro',
+    badge: 'Pro',
   },
   {
     title: 'CI budget regression (Pro)',
