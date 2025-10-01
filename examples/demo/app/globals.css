@@ -1,5 +1,5 @@
 :root {
-  /* Colors */
+  /* Light mode colors */
   --color-bg: #ffffff;
   --color-fg: #1a1a1a;
   --color-border: #e5e7eb;
@@ -16,6 +16,14 @@
 
   --color-pro-badge: #8b5cf6;
   --color-pro-hover: #7c3aed;
+
+  /* CodeMirror theme colors (light) */
+  --cm-bg: #ffffff;
+  --cm-fg: #24292e;
+  --cm-gutter-bg: #f6f8fa;
+  --cm-gutter-fg: #6e7781;
+  --cm-selection-bg: #0969da33;
+  --cm-cursor: #24292e;
 
   /* Spacing */
   --spacing-xs: 0.25rem;
@@ -34,6 +42,36 @@
   /* Layout */
   --header-height: 60px;
   --status-bar-height: 32px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode colors */
+    --color-bg: #0d1117;
+    --color-fg: #e6edf3;
+    --color-border: #30363d;
+    --color-panel-bg: #161b22;
+
+    --color-primary: #58a6ff;
+    --color-primary-hover: #79c0ff;
+    --color-secondary: #8b949e;
+
+    --color-error: #f85149;
+    --color-warning: #d29922;
+    --color-success: #3fb950;
+    --color-info: #58a6ff;
+
+    --color-pro-badge: #a371f7;
+    --color-pro-hover: #b392f0;
+
+    /* CodeMirror theme colors (dark) */
+    --cm-bg: #0d1117;
+    --cm-fg: #e6edf3;
+    --cm-gutter-bg: #161b22;
+    --cm-gutter-fg: #6e7681;
+    --cm-selection-bg: #1f6feb33;
+    --cm-cursor: #e6edf3;
+  }
 }
 
 * {

@@ -65,16 +65,21 @@ export function CodeEditor({
           });
 
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Analysis API error:', response.status, errorText);
             throw new Error(`Analysis failed: ${response.statusText}`);
           }
 
           const result: LspAnalysisResponse = await response.json();
+          console.log('Analysis result:', result);
 
           // Convert RSC X-Ray diagnostics to CodeMirror format
           // Filter to only Diagnostic items (which have line/column, not Suggestions)
           const diagnosticsOnly = (result.diagnostics || []).filter(
             (d) => 'line' in d && 'column' in d
           );
+
+          console.log('Diagnostics to display:', diagnosticsOnly);
 
           const cmDiagnostics: CMDiagnostic[] = diagnosticsOnly.map((d) => {
             const diag = d as unknown as {
@@ -87,18 +92,30 @@ export function CodeEditor({
               rule: string;
             };
 
+            // RSC X-Ray uses 1-indexed lines, CodeMirror uses 1-indexed too
+            // but we need to be careful with the offset calculation
+            const from = getOffset(view.state.doc, diag.line, diag.column);
+            const to = getOffset(
+              view.state.doc,
+              diag.endLine || diag.line,
+              (diag.endColumn || diag.column) + 1
+            );
+
+            console.log(
+              `Diagnostic: line ${diag.line}, col ${diag.column} -> offset ${from}-${to}`,
+              diag.message
+            );
+
             return {
-              from: getOffset(view.state.doc, diag.line, diag.column),
-              to: getOffset(
-                view.state.doc,
-                diag.endLine || diag.line,
-                diag.endColumn || diag.column + 1
-              ),
+              from,
+              to,
               severity: diag.severity as 'error' | 'warning' | 'info',
               message: diag.message,
               source: diag.rule,
             };
           });
+
+          console.log('CodeMirror diagnostics:', cmDiagnostics);
 
           onAnalysisComplete({
             diagnostics: diagnosticsOnly as unknown as RscXrayDiagnostic[],
@@ -117,8 +134,8 @@ export function CodeEditor({
           return [];
         }
       },
-      { delay: 500 }
-    ); // 500ms debounce
+      { delay: 300 }
+    ); // Reduced to 300ms for faster feedback
 
     // Initialize CodeMirror
     const startState = EditorState.create({
