@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist",
+    "declarationDir": "dist"
+  },
+  "include": ["src/**/*"],
+  "references": [{ "path": "../analyzer" }, { "path": "../schemas" }]
+}
