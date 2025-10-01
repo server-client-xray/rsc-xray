@@ -5,6 +5,17 @@ export type NodeKind = 'server' | 'client' | 'suspense' | 'route';
 
 export type CacheDynamicMode = 'auto' | 'force-dynamic' | 'force-static' | 'error';
 
+export type RouteSegmentFetchCache =
+  | 'auto'
+  | 'default-cache'
+  | 'only-cache'
+  | 'force-cache'
+  | 'force-no-store'
+  | 'default-no-store'
+  | 'only-no-store';
+
+export type RouteSegmentRuntime = 'nodejs' | 'edge';
+
 export interface DiagnosticLocation {
   file: string;
   line: number;
@@ -47,6 +58,7 @@ export interface RouteEntry {
   chunks?: string[];
   totalBytes?: number;
   cache?: RouteCacheMetadata;
+  segmentConfig?: RouteSegmentConfig;
 }
 
 export interface BuildInfo {
@@ -86,9 +98,22 @@ export interface NodeMutationMetadata {
   paths?: string[];
 }
 
+export interface RouteSegmentConfig {
+  dynamic?: CacheDynamicMode;
+  revalidate?: number | false;
+  fetchCache?: RouteSegmentFetchCache;
+  runtime?: RouteSegmentRuntime;
+  preferredRegion?: string | string[];
+}
+
 export interface RouteCacheMetadata {
   revalidateSeconds?: number | false;
   tags?: string[];
   dynamic?: CacheDynamicMode;
   experimentalPpr?: boolean;
+}
+
+export interface RouteConfigDiagnostic {
+  config?: RouteSegmentConfig;
+  conflicts?: string[];
 }

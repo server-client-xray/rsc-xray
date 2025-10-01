@@ -9,6 +9,7 @@ import type {
   NodeMutationMetadata,
   RouteCacheMetadata,
   RouteEntry,
+  RouteSegmentConfig,
   Suggestion,
   XNode,
 } from '@rsc-xray/schemas';
@@ -17,6 +18,11 @@ import type { ClassifiedFile } from './classifyFiles';
 import type { ClientComponentBundle } from './clientBundles';
 import { attributeBytes } from './attributeBytes';
 import type { FileCacheMetadata } from './cacheMetadata';
+import {
+  parseRouteSegmentConfig,
+  detectConfigConflicts,
+  isRouteFile,
+} from '../rules/routeSegmentConfig.js';
 
 export interface BuildGraphOptions {
   projectRoot: string;
@@ -364,19 +370,65 @@ export async function buildGraph({
 
     const routeId = createNodeId('route', route);
     const routeCache = createRouteCacheMetadata(cacheMetadataLookup.get(meta.filePath));
-    const routeNode: XNode = {
-      id: routeId,
-      kind: 'route',
-      name: route,
-      children: [meta.id],
-      ...(routeCache?.tags?.length ? { tags: routeCache.tags } : {}),
-    };
 
-    nodes[routeId] = routeNode;
+    // Parse route segment config if this is a route file
+    let segmentConfig: RouteSegmentConfig | undefined;
+    const conflictDiagnostics: Diagnostic[] = [];
+
+    if (isRouteFile(meta.filePath)) {
+      try {
+        const sourceText = await readFile(meta.absPath, 'utf8');
+        const sourceFile = ts.createSourceFile(
+          meta.filePath,
+          sourceText,
+          ts.ScriptTarget.Latest,
+          true
+        );
+
+        segmentConfig = parseRouteSegmentConfig(sourceFile);
+
+        if (segmentConfig) {
+          const conflicts = detectConfigConflicts(sourceFile, segmentConfig, meta.filePath);
+          conflictDiagnostics.push(...conflicts);
+        }
+      } catch {
+        // Silently skip if file can't be read or parsed
+      }
+    }
+
+    // Merge config diagnostics into route node
+    if (conflictDiagnostics.length > 0) {
+      const existing = diagnosticsLookup.get(meta.filePath) ?? [];
+      diagnosticsLookup.set(meta.filePath, [...existing, ...conflictDiagnostics]);
+
+      // Also add to the route node
+      const existingRouteDiagnostics = nodes[routeId]?.diagnostics ?? [];
+      nodes[routeId] = {
+        ...(nodes[routeId] ?? {}),
+        id: routeId,
+        kind: 'route',
+        name: route,
+        children: [meta.id],
+        ...(routeCache?.tags?.length ? { tags: routeCache.tags } : {}),
+        diagnostics: [...existingRouteDiagnostics, ...conflictDiagnostics],
+      } as XNode;
+    } else {
+      const routeNode: XNode = {
+        id: routeId,
+        kind: 'route',
+        name: route,
+        children: [meta.id],
+        ...(routeCache?.tags?.length ? { tags: routeCache.tags } : {}),
+      };
+
+      nodes[routeId] = routeNode;
+    }
+
     routes.push({
       route,
       rootNodeId: routeId,
       ...(routeCache ? { cache: routeCache } : {}),
+      ...(segmentConfig ? { segmentConfig } : {}),
     });
   }
 
