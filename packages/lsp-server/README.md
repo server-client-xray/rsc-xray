@@ -1,10 +1,12 @@
 # @rsc-xray/lsp-server
 
-**Browser-side LSP wrapper for React Server Components analysis**
+**Universal LSP wrapper for React Server Components analysis**
 
-This package provides a thin wrapper around the OSS `@rsc-xray/analyzer` for browser-side Language Server Protocol (LSP) usage. It's designed for interactive demos and client-side code analysis with 8 essential correctness rules.
+This package provides a thin wrapper around the OSS `@rsc-xray/analyzer` for Language Server Protocol (LSP) usage. It works in **browser, Node.js, VS Code extensions, and GitHub Actions** with 8 essential correctness rules.
 
-For server-side deployment with advanced features and Pro rules, see [`@rsc-xray/pro-lsp-server`](https://rsc-xray.dev/pro).
+**Used by**: OSS Demo, Pro Overlay, Pro VS Code, Pro CI
+
+For Pro features (overlay visualization, VS Code integration, CI automation), see [rsc-xray.dev/pro](https://rsc-xray.dev/pro).
 
 ---
 
@@ -233,32 +235,39 @@ monaco.languages.registerCodeLensProvider('typescript', {
 
 ## Architecture
 
-This package is a **thin wrapper** around `@rsc-xray/analyzer`:
+This package is a **thin orchestration layer** (DRY principle):
 
 ```
-┌─────────────────────────────────────┐
-│  @rsc-xray/lsp-server               │
-│  - Error handling                   │
-│  - Version metadata                 │
-│  - Type re-exports                  │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│  @rsc-xray/lsp-server                       │
+│  - Error handling wrapper                   │
+│  - Version metadata                         │
+│  - Consistent API shape                     │
+│  - Type safety                              │
+└─────────────────────────────────────────────┘
               ↓
-┌─────────────────────────────────────┐
-│  @rsc-xray/analyzer                 │
-│  - 8 OSS analysis rules             │
-│  - AST parsing                      │
-│  - Diagnostic generation            │
-└─────────────────────────────────────┘
+┌─────────────────────────────────────────────┐
+│  @rsc-xray/analyzer                         │
+│  - 8 OSS analysis rules                     │
+│  - AST parsing                              │
+│  - Diagnostic generation                    │
+└─────────────────────────────────────────────┘
 ```
 
-**No server-side features:**
+**Design Principles:**
 
-- ❌ No rate limiting (browser-side usage)
-- ❌ No caching (unnecessary for interactive demos)
-- ❌ No authentication (free OSS rules)
-- ✅ Pure client-side JavaScript
-- ✅ Works in any browser environment
-- ✅ Perfect for demos and education
+- ✅ **Universal**: Works in browser, Node.js, VS Code, GitHub Actions
+- ✅ **DRY**: Single orchestration layer for all consumers
+- ✅ **Simple**: Pure JavaScript, no server/auth/caching (keep it simple!)
+- ✅ **Consistent**: All consumers get same response format
+- ✅ **Tested**: 11 comprehensive tests ensure reliability
+
+**Used By:**
+
+1. **OSS Demo**: Browser-side interactive tutorial
+2. **Pro Overlay**: Node.js-based development server visualization
+3. **Pro VS Code**: Extension host analysis
+4. **Pro CI**: GitHub Actions budget enforcement
 
 ---
 
