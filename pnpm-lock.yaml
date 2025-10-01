@@ -57,7 +57,7 @@ importers:
   examples/next-app:
     dependencies:
       '@rsc-xray/hydration':
-        specifier: workspace:^0.3.0
+        specifier: workspace:^0.4.0
         version: link:../../packages/hydration
       next:
         specifier: 14.2.5
