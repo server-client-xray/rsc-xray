@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-type ScenarioKind = 'valid' | 'violation' | 'coming-soon' | 'pro' | 'm4' | 'm5';
+type ScenarioKind = 'valid' | 'issue' | 'coming-soon' | 'pro';
 
 interface ScenarioCard {
   title: string;
@@ -21,67 +21,65 @@ const SCENARIOS: ScenarioCard[] = [
     title: 'Sequential server awaits',
     description: 'Triggers the Promise.all suggestion by awaiting fetches in series.',
     href: '/scenarios/server-promise-all',
-    kind: 'violation',
-    badge: 'Violation',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
     title: 'Client fetch on hydration',
     description: 'Shows the hoist-to-server warning by calling fetch inside a client component.',
     href: '/scenarios/client-hoist-fetch',
-    kind: 'violation',
-    badge: 'Violation',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
     title: 'Client forbidden import',
     description: 'Documents the client-forbidden-import diagnostic with a bundled example.',
     href: '/scenarios/client-forbidden-import',
-    kind: 'violation',
-    badge: 'Violation',
+    kind: 'issue',
+    badge: 'Issue',
   },
-  // M4 Analyzer Scenarios
   {
-    title: 'Suspense boundary missing (M4)',
+    title: 'Suspense boundary missing',
     description: 'Demonstrates missing Suspense around async server components.',
     href: '/scenarios/suspense-missing',
-    kind: 'm4',
-    badge: 'M4',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
-    title: 'Oversized client component (M4)',
+    title: 'Oversized client component',
     description: 'Shows client bundle exceeding 50KB size threshold.',
     href: '/scenarios/client-oversized',
-    kind: 'm4',
-    badge: 'M4',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
-    title: 'React 19 cache() opportunity (M4)',
+    title: 'React 19 cache() opportunity',
     description: 'Detects duplicate function calls that could use cache() deduplication.',
     href: '/scenarios/cache-opportunity',
-    kind: 'm4',
-    badge: 'M4',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
-    title: 'Route config conflict (M4)',
+    title: 'Route config conflict',
     description: 'Shows conflict between route segment config and dynamic API usage.',
     href: '/scenarios/route-config-conflict',
-    kind: 'm4',
-    badge: 'M4',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
-    title: 'Dynamic route detection (M4)',
+    title: 'Dynamic route detection',
     description: 'Demonstrates analyzer detecting dynamic routes via headers() usage.',
     href: '/scenarios/dynamic-route',
-    kind: 'm4',
-    badge: 'M4',
+    kind: 'issue',
+    badge: 'Issue',
   },
-  // M5 Analyzer Scenarios
   {
-    title: 'Serialization boundary violation (M5)',
+    title: 'Serialization boundary violation',
     description:
       'Detects non-serializable props (functions, Date, Map, etc.) passed from server to client.',
     href: '/scenarios/serialization-boundary',
-    kind: 'm5',
-    badge: 'M5',
+    kind: 'issue',
+    badge: 'Issue',
   },
   {
     title: 'Cache lens scenario',
@@ -100,12 +98,10 @@ const SCENARIOS: ScenarioCard[] = [
 ];
 
 const KIND_COLORS: Record<ScenarioKind, string> = {
-  valid: 'rgba(34,197,94,0.25)',
-  violation: 'rgba(248,113,113,0.25)',
-  'coming-soon': 'rgba(251,191,36,0.25)',
-  pro: 'rgba(14,165,233,0.25)',
-  m4: 'rgba(168,85,247,0.25)', // Purple for M4 features
-  m5: 'rgba(236,72,153,0.25)', // Pink for M5 features
+  valid: 'rgba(34,197,94,0.25)', // Green - baseline example
+  issue: 'rgba(248,113,113,0.25)', // Red - problems to fix
+  'coming-soon': 'rgba(251,191,36,0.25)', // Yellow - future features
+  pro: 'rgba(59,130,246,0.25)', // Blue - Pro plan features
 };
 
 export default function HomePage(): JSX.Element {
