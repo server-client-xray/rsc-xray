@@ -233,8 +233,7 @@ describe('analyzeProject', () => {
     }
   });
 
-  // TODO: Fix this test - hydrationMs not being applied to route node
-  it.skip('applies hydration snapshot data to nodes and route totals', async () => {
+  it('applies hydration snapshot data to nodes and route totals', async () => {
     const projectRoot = await mkdtemp(join(tmpdir(), 'scx-hydration-'));
     try {
       await mkdir(join(projectRoot, 'app/components'), { recursive: true });
@@ -243,7 +242,7 @@ describe('analyzeProject', () => {
 
       await writeFile(
         join(projectRoot, 'app/page.tsx'),
-        `import { ClientIsland } from './components/ClientIsland.js';\n\nexport default function Page() {\n  return <ClientIsland />;\n}\n`,
+        `import { ClientIsland } from './components/ClientIsland';\n\nexport default function Page() {\n  return <ClientIsland />;\n}\n`,
         'utf8'
       );
 
