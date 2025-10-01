@@ -1,6 +1,8 @@
 import { getProduct, getProductReviews } from '../../../../data/products';
 import { CodeBlock } from '../_components/CodeBlock';
 import { DiagnosticBox } from '../_components/DiagnosticBox';
+import { CodeMirrorEditor } from '../_components/CodeMirrorEditor';
+import { findAllTextDiagnostics } from '../_components/diagnosticUtils';
 
 export const metadata = {
   title: 'Sequential awaits – Server Promise.all',
@@ -36,6 +38,15 @@ export default async function ServerPromiseAllScenario(): Promise<JSX.Element> {
   const related = await getProduct('overlay');
   const reviews = await getProductReviews(product?.id ?? 'analyzer');
 
+  // Create mock diagnostics for the interactive editor
+  const mockDiagnostics = findAllTextDiagnostics(
+    FAULTY_CODE,
+    'await getProduct',
+    'warning',
+    'Sequential await detected. These independent requests could run in parallel using Promise.all.',
+    'rsc-xray'
+  );
+
   return (
     <div className="space-y-6 p-8 max-w-4xl mx-auto">
       <div>
@@ -55,7 +66,16 @@ export default async function ServerPromiseAllScenario(): Promise<JSX.Element> {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-3">Faulty Code</h2>
+        <h2 className="text-xl font-semibold mb-3">Interactive Code Editor</h2>
+        <p className="text-sm text-gray-600 mb-3">
+          Edit the code below to see diagnostics on sequential awaits. Hover over the yellow
+          underlines to see optimization suggestions.
+        </p>
+        <CodeMirrorEditor initialValue={FAULTY_CODE} mockDiagnostics={mockDiagnostics} />
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Static View (Reference)</h2>
         <CodeBlock code={FAULTY_CODE} title="page.tsx" highlightLines={[3, 4]} />
       </div>
 

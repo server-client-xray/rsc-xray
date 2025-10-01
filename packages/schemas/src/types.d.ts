@@ -1,10 +1,7 @@
-export const SERVER_PARALLEL_SUGGESTION_RULE = 'server-promise-all' as const;
-export const ROUTE_WATERFALL_SUGGESTION_RULE = 'route-waterfall' as const;
-
+export declare const SERVER_PARALLEL_SUGGESTION_RULE: 'server-promise-all';
+export declare const ROUTE_WATERFALL_SUGGESTION_RULE: 'route-waterfall';
 export type NodeKind = 'server' | 'client' | 'suspense' | 'route';
-
 export type CacheDynamicMode = 'auto' | 'force-dynamic' | 'force-static' | 'error';
-
 export type RouteSegmentFetchCache =
   | 'auto'
   | 'default-cache'
@@ -13,29 +10,24 @@ export type RouteSegmentFetchCache =
   | 'force-no-store'
   | 'default-no-store'
   | 'only-no-store';
-
 export type RouteSegmentRuntime = 'nodejs' | 'edge';
-
 export interface DiagnosticLocation {
   file: string;
   line: number;
   col: number;
 }
-
 export interface Diagnostic {
   rule: string;
   level: 'warn' | 'error';
   message: string;
   loc?: DiagnosticLocation;
 }
-
 export interface Suggestion {
   rule: string;
   level: 'info' | 'warn';
   message: string;
   loc?: DiagnosticLocation;
 }
-
 /**
  * Unified LSP Diagnostic Schema
  *
@@ -44,35 +36,24 @@ export interface Suggestion {
  * can be adapted to different consumer needs (VS Code, CLI, overlay, etc.)
  */
 export interface RscXrayDiagnostic {
-  // Location
   file: string;
   line: number;
   column: number;
   endLine?: number;
   endColumn?: number;
-
-  // Classification
   severity: 'error' | 'warning' | 'info' | 'hint';
   rule: string;
   category: 'performance' | 'correctness' | 'best-practice' | 'security';
-
-  // Content
   message: string;
   suggestion?: string;
-
-  // Metadata
   source: 'rsc-xray' | 'rsc-xray-pro';
   timestamp?: number;
-
-  // Context
   codeFrame?: string;
   relatedInformation?: Array<{
     file: string;
     line: number;
     message: string;
   }>;
-
-  // Actions
   fixes?: Array<{
     title: string;
     kind: 'quickfix' | 'refactor' | 'source';
@@ -85,65 +66,47 @@ export interface RscXrayDiagnostic {
       newText: string;
     }>;
   }>;
-
-  // Analytics
   impact?: {
     severity: 'low' | 'medium' | 'high' | 'critical';
-    estimatedTimeSaving?: number; // ms
-    estimatedByteSaving?: number; // bytes
+    estimatedTimeSaving?: number;
+    estimatedByteSaving?: number;
   };
 }
-
 /**
  * LSP Analysis Request
  */
 export interface LspAnalysisRequest {
-  // What to analyze
   files?: Array<{
     path: string;
     content: string;
   }>;
-
-  // Or single file for quick analysis
   code?: string;
   fileName?: string;
-
-  // Configuration
-  scenario?: string; // For demo scenarios
-  rules?: string[]; // Specific rules to run
-  clientComponents?: string[]; // Known client components
-
-  // Options
+  scenario?: string;
+  rules?: string[];
+  clientComponents?: string[];
   timeout?: number;
   cacheKey?: string;
 }
-
 /**
  * LSP Analysis Response
  */
 export interface LspAnalysisResponse {
   diagnostics: RscXrayDiagnostic[];
-
-  // Metadata
-  duration: number; // ms
+  duration: number;
   cached: boolean;
   version: string;
-
-  // Rate limiting (for HTTP API)
   rateLimit?: {
     limit: number;
     remaining: number;
-    reset: number; // Unix timestamp
+    reset: number;
   };
-
-  // Errors
   error?: {
     code: string;
     message: string;
     details?: unknown;
   };
 }
-
 export interface XNode {
   id: string;
   file?: string;
@@ -158,7 +121,6 @@ export interface XNode {
   cache?: NodeCacheMetadata;
   mutations?: NodeMutationMetadata;
 }
-
 export interface RouteEntry {
   route: string;
   rootNodeId: string;
@@ -168,23 +130,19 @@ export interface RouteEntry {
   cache?: RouteCacheMetadata;
   segmentConfig?: RouteSegmentConfig;
 }
-
 export interface BuildInfo {
   nextVersion: string;
   timestamp: string;
 }
-
 export interface FlightSample {
   route: string;
   ts: number;
   chunkIndex: number;
   label?: string;
 }
-
 export interface FlightData {
   samples: FlightSample[];
 }
-
 export interface Model {
   version: '0.1';
   routes: RouteEntry[];
@@ -192,7 +150,6 @@ export interface Model {
   build: BuildInfo;
   flight?: FlightData;
 }
-
 export interface NodeCacheMetadata {
   modes?: Array<'force-cache' | 'no-store'>;
   revalidateSeconds?: number[];
@@ -200,12 +157,10 @@ export interface NodeCacheMetadata {
   dynamic?: CacheDynamicMode;
   experimentalPpr?: boolean;
 }
-
 export interface NodeMutationMetadata {
   tags?: string[];
   paths?: string[];
 }
-
 export interface RouteSegmentConfig {
   dynamic?: CacheDynamicMode;
   revalidate?: number | false;
@@ -213,14 +168,12 @@ export interface RouteSegmentConfig {
   runtime?: RouteSegmentRuntime;
   preferredRegion?: string | string[];
 }
-
 export interface RouteCacheMetadata {
   revalidateSeconds?: number | false;
   tags?: string[];
   dynamic?: CacheDynamicMode;
   experimentalPpr?: boolean;
 }
-
 export interface RouteConfigDiagnostic {
   config?: RouteSegmentConfig;
   conflicts?: string[];
