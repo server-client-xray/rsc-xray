@@ -22,6 +22,23 @@ export interface Scenario {
     how: string;
   };
   proFeatures?: string[];
+  /** Context to pass to LSP analyzer (for rules that need it) */
+  context?: {
+    clientComponentPaths?: string[];
+    clientBundles?: Array<{
+      filePath: string;
+      chunks: string[];
+      totalBytes: number;
+    }>;
+    routeConfig?: {
+      dynamic?: string;
+      revalidate?: number | false;
+      fetchCache?: string;
+      runtime?: string;
+      preferredRegion?: string;
+    };
+    reactVersion?: string;
+  };
 }
 
 export const scenarios: Scenario[] = [
@@ -34,21 +51,20 @@ export const scenarios: Scenario[] = [
     rule: 'serialization-boundary-violation',
     description: 'Passing non-serializable props from Server to Client components',
     code: `// app/page.tsx (Server Component)
+import { ClientButton } from './ClientButton';
+
 export default function Page() {
   const handleClick = () => console.log('clicked');
   
   return <ClientButton onClick={handleClick} />;
-}
-
-// components/ClientButton.tsx
-'use client';
-export function ClientButton({ onClick }) {
-  return <button onClick={onClick}>Click me</button>;
 }`,
     explanation: {
       what: 'This code tries to pass a function from a Server Component to a Client Component',
       why: 'Server Components run on the server, Client Components run in the browser. Functions cannot be serialized and sent over the network.',
       how: 'Move the function to the Client Component, or use a serializable prop like a URL for server actions',
+    },
+    context: {
+      clientComponentPaths: ['./ClientButton', 'ClientButton'],
     },
   },
 
@@ -119,6 +135,15 @@ export function HeavyComponent() {
       why: 'Large bundles slow down page load and hurt mobile users on slow connections',
       how: 'Use lightweight alternatives, tree-shake imports, or move heavy logic to Server Components',
     },
+    context: {
+      clientBundles: [
+        {
+          filePath: 'demo.tsx',
+          chunks: ['chunk-1.js', 'chunk-2.js', 'chunk-3.js'],
+          totalBytes: 320000, // 320 KB - exceeds threshold
+        },
+      ],
+    },
   },
 
   {
@@ -161,6 +186,12 @@ export default function Page() {
       what: 'This route has conflicting configuration: force-static with revalidate',
       why: "Static pages don't revalidate - these options are mutually exclusive",
       how: "Choose either 'force-static' for full static or 'force-dynamic' with revalidate",
+    },
+    context: {
+      routeConfig: {
+        dynamic: 'force-static',
+        revalidate: 60,
+      },
     },
   },
 

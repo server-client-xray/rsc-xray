@@ -1,0 +1,283 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { POST } from '../route';
+import { NextRequest } from 'next/server';
+import type { LspAnalysisRequest } from '@rsc-xray/lsp-server';
+
+describe('POST /api/analyze', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('should analyze serialization-boundary scenario and return diagnostics', async () => {
+    const code = `// app/page.tsx (Server Component)
+import { ClientButton } from './ClientButton';
+
+export default function Page() {
+  const handleClick = () => console.log('clicked');
+  
+  return <ClientButton onClick={handleClick} />;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'demo.tsx',
+        scenario: 'serialization-boundary',
+        context: {
+          clientComponentPaths: ['./ClientButton', 'ClientButton'],
+        },
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Serialization boundary result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toBeDefined();
+    expect(result.version).toBeDefined();
+
+    // Should have at least 1 diagnostic for the function prop
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.rulesExecuted.length).toBeGreaterThan(0);
+    expect(result.rulesExecuted).toContain('serialization-boundary-violation');
+  });
+
+  it('should analyze client-forbidden-imports scenario and return diagnostics', async () => {
+    const code = `'use client';
+import fs from 'fs';
+import path from 'path';
+
+export function FileReader() {
+  const files = fs.readdirSync('/tmp');
+  return <div>Files: {files.length}</div>;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'demo.tsx',
+        scenario: 'client-forbidden-imports',
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Client forbidden imports result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+
+    // Should have diagnostics for fs and path imports
+    expect(result.diagnostics.length).toBeGreaterThanOrEqual(2);
+    expect(result.rulesExecuted).toContain('client-forbidden-import');
+  });
+
+  it('should analyze suspense-boundary scenario and return diagnostics', async () => {
+    const code = `// app/page.tsx
+export default async function Page() {
+  const data = await fetch('https://api.example.com/data');
+  const json = await data.json();
+  
+  return <div>Data: {json.value}</div>;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'page.tsx',
+        scenario: 'suspense-boundary',
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Suspense boundary result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toContain('suspense-boundary-missing');
+  });
+
+  it('should analyze client-size scenario and return diagnostics', async () => {
+    const code = `'use client';
+import _ from 'lodash'; // 71KB!
+import moment from 'moment'; // 67KB!
+import * as icons from 'react-icons/all'; // 200KB+!
+
+export default function LargeClientComponent() {
+  return (
+    <div>
+      <p>This client component imports large libraries.</p>
+      <p>Lodash version: {_.VERSION}</p>
+      <p>Current month: {moment().format('MMMM')}</p>
+      <p>Total icons: {Object.keys(icons).length}</p>
+    </div>
+  );
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'demo.tsx',
+        scenario: 'client-size',
+        context: {
+          clientBundles: [
+            {
+              filePath: 'demo.tsx',
+              chunks: ['chunk-1.js', 'chunk-2.js', 'chunk-3.js'],
+              totalBytes: 320000, // 320 KB - exceeds threshold
+            },
+          ],
+        },
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Client size result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toContain('client-component-oversized');
+  });
+
+  it('should analyze react19-cache scenario and return diagnostics', async () => {
+    const code = `// lib/api.ts
+export async function getUser(id: string) {
+  const res = await fetch(\`/api/users/\${id}\`);
+  return res.json();
+}
+
+// app/page.tsx
+import { getUser } from '../lib/api';
+
+export default async function Page() {
+  const user1 = await getUser('1');
+  const user2 = await getUser('1'); // Duplicate fetch!
+  
+  return <div>{user1.name} - {user2.name}</div>;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'demo.tsx',
+        scenario: 'react19-cache',
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('React19 cache result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toContain('react19-cache-opportunity');
+  });
+
+  it('should analyze route-config scenario and return diagnostics', async () => {
+    const code = `// app/page.tsx
+export const dynamic = 'force-static';
+export const revalidate = 60; // Conflict!
+
+export default function Page() {
+  return <div>Static page with revalidate?</div>;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'page.tsx',
+        scenario: 'route-config',
+        context: {
+          routeConfig: {
+            dynamic: 'force-static',
+            revalidate: 60,
+          },
+        },
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Route config result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toContain('route-segment-config-conflict');
+  });
+
+  it('should return 400 for missing required fields', async () => {
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code: 'const x = 1;',
+        // Missing fileName
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(result.error).toBeDefined();
+    expect(result.error.code).toBe('INVALID_REQUEST');
+  });
+
+  it('should handle analysis errors gracefully', async () => {
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code: 'invalid typescript syntax {{{',
+        fileName: 'demo.tsx',
+        scenario: 'serialization-boundary',
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    // Should still return 200 with empty diagnostics (analysis may handle invalid syntax)
+    // or return 500 with error
+    expect([200, 500]).toContain(response.status);
+    expect(result.diagnostics).toBeDefined();
+  });
+});

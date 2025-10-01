@@ -8,11 +8,11 @@ import { linter, Diagnostic as CMDiagnostic } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
 import type { LspAnalysisResponse } from '@rsc-xray/lsp-server';
+import type { Scenario } from '../lib/scenarios';
 import styles from './CodeEditor.module.css';
 
 interface CodeEditorConfig {
-  initialCode: string;
-  scenarioId: string;
+  scenario: Scenario;
   onAnalysisComplete: (config: {
     diagnostics: RscXrayDiagnostic[];
     duration: number;
@@ -33,11 +33,7 @@ interface CodeEditorConfig {
  * Note: Analysis runs server-side because @rsc-xray/analyzer
  * uses Node.js APIs. Still provides real-time UX with debouncing.
  */
-export function CodeEditor({
-  initialCode,
-  scenarioId,
-  onAnalysisComplete,
-}: CodeEditorConfig): ReactElement {
+export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): ReactElement {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -60,7 +56,8 @@ export function CodeEditor({
             body: JSON.stringify({
               code,
               fileName: 'demo.tsx',
-              scenario: scenarioId,
+              scenario: scenario.id,
+              context: scenario.context, // Pass context for rules that need it
             }),
           });
 
@@ -139,7 +136,7 @@ export function CodeEditor({
 
     // Initialize CodeMirror
     const startState = EditorState.create({
-      doc: initialCode,
+      doc: scenario.code,
       extensions: [
         basicSetup,
         javascript({ jsx: true, typescript: true }),
@@ -175,16 +172,16 @@ export function CodeEditor({
     if (!viewRef.current || !isReady) return;
 
     const currentCode = viewRef.current.state.doc.toString();
-    if (currentCode !== initialCode) {
+    if (currentCode !== scenario.code) {
       viewRef.current.dispatch({
         changes: {
           from: 0,
           to: currentCode.length,
-          insert: initialCode,
+          insert: scenario.code,
         },
       });
     }
-  }, [initialCode, scenarioId, isReady]);
+  }, [scenario.code, scenario.id, isReady]);
 
   return <div ref={editorRef} className={styles.editor} />;
 }
