@@ -5,8 +5,8 @@ import * as ts from 'typescript';
 
 import type { Suggestion } from '@rsc-xray/schemas';
 
-import type { ClassifiedFile } from './classifyFiles';
-import type { ComponentKind } from './classify';
+import type { ClassifiedFile } from './classifyFiles.js';
+import type { ComponentKind } from './classify.js';
 import { detectSuspenseBoundaryIssues } from '../rules/suspenseBoundary.js';
 import { detectReact19CacheOpportunities } from '../rules/react19Cache.js';
 

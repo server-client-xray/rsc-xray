@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { relative } from 'node:path';
 
-import { classifyComponent, type ComponentKind } from './classify';
+import { classifyComponent, type ComponentKind } from './classify.js';
 
 export interface ClassifiedFile {
   filePath: string;

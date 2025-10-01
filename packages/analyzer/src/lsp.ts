@@ -7,13 +7,13 @@
 
 import * as ts from 'typescript';
 import type { Diagnostic, Suggestion, RouteSegmentConfig } from '@rsc-xray/schemas';
-import { analyzeSerializationBoundary } from './rules/serializationBoundary';
-import { detectSuspenseBoundaryIssues } from './rules/suspenseBoundary';
-import { detectReact19CacheOpportunities } from './rules/react19Cache';
-import { detectClientSizeIssues } from './rules/clientSizeThreshold';
-import { analyzeClientFileForForbiddenImports } from './rules/clientForbiddenImports';
-import { detectConfigConflicts } from './rules/routeSegmentConfig';
-import type { ClientComponentBundle } from './lib/clientBundles';
+import { analyzeSerializationBoundary } from './rules/serializationBoundary.js';
+import { detectSuspenseBoundaryIssues } from './rules/suspenseBoundary.js';
+import { detectReact19CacheOpportunities } from './rules/react19Cache.js';
+import { detectClientSizeIssues } from './rules/clientSizeThreshold.js';
+import { analyzeClientFileForForbiddenImports } from './rules/clientForbiddenImports.js';
+import { detectConfigConflicts } from './rules/routeSegmentConfig.js';
+import type { ClientComponentBundle } from './lib/clientBundles.js';
 
 /**
  * LSP analysis request configuration

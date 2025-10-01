@@ -14,10 +14,10 @@ import type {
   XNode,
 } from '@rsc-xray/schemas';
 
-import type { ClassifiedFile } from './classifyFiles';
-import type { ClientComponentBundle } from './clientBundles';
-import { attributeBytes } from './attributeBytes';
-import type { FileCacheMetadata } from './cacheMetadata';
+import type { ClassifiedFile } from './classifyFiles.js';
+import type { ClientComponentBundle } from './clientBundles.js';
+import { attributeBytes } from './attributeBytes.js';
+import type { FileCacheMetadata } from './cacheMetadata.js';
 import {
   parseRouteSegmentConfig,
   detectConfigConflicts,

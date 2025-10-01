@@ -45,7 +45,7 @@ describe('LSP API', () => {
     it('should detect non-serializable props', () => {
       const code = `
         'use client';
-        import ClientComp from './ClientComp';
+        import ClientComp from './ClientComp.js';
         
         export default function Page() {
           const handler = () => console.log('click');
@@ -70,7 +70,7 @@ describe('LSP API', () => {
 
     it('should allow serializable props', () => {
       const code = `
-        import ClientComp from './ClientComp';
+        import ClientComp from './ClientComp.js';
         
         export default function Page() {
           return <ClientComp title="Hello" count={42} />;
