@@ -149,6 +149,22 @@ importers:
         specifier: 3.2.4
         version: 3.2.4(@types/node@20.19.18)(jsdom@24.0.0)
 
+  packages/lsp-client:
+    dependencies:
+      '@rsc-xray/schemas':
+        specifier: workspace:*
+        version: link:../schemas
+    devDependencies:
+      '@types/node':
+        specifier: ^20.0.0
+        version: 20.19.18
+      typescript:
+        specifier: ^5.0.0
+        version: 5.6.2
+      vitest:
+        specifier: ^3.0.0
+        version: 3.2.4(@types/node@20.19.18)(jsdom@24.0.0)
+
   packages/report-html:
     dependencies:
       '@rsc-xray/schemas':
