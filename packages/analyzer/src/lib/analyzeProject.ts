@@ -261,6 +261,38 @@ function formatFileList(files: string[]): string {
   return `${head}, and ${last}`;
 }
 
+/**
+ * Collect React 19 cache() opportunities from nodes in the subtree
+ */
+function collectCacheOpportunities(
+  nodeId: string,
+  nodes: Record<string, XNode>,
+  visiting: Set<string>,
+  out: Set<string>
+): void {
+  if (visiting.has(nodeId)) {
+    return;
+  }
+  const node = nodes[nodeId];
+  if (!node) {
+    return;
+  }
+
+  visiting.add(nodeId);
+
+  for (const suggestion of node.suggestions ?? []) {
+    if (suggestion.rule === 'react19-cache-opportunity' && suggestion.loc?.file) {
+      out.add(suggestion.loc.file);
+    }
+  }
+
+  for (const childId of node.children ?? []) {
+    collectCacheOpportunities(childId, nodes, visiting, out);
+  }
+
+  visiting.delete(nodeId);
+}
+
 function applyRouteWaterfallSuggestions(nodes: Record<string, XNode>, routes: RouteEntry[]): void {
   for (const route of routes) {
     const rootId = route.rootNodeId;
@@ -292,10 +324,28 @@ function applyRouteWaterfallSuggestions(nodes: Record<string, XNode>, routes: Ro
       }
     }
 
+    // Check for React 19 cache() opportunities in the same subtree
+    const cacheOpportunityFiles = new Set<string>();
+    collectCacheOpportunities(rootId, nodes, new Set(), cacheOpportunityFiles);
+
+    // Find files that have both waterfall issues and cache opportunities
+    const filesWithCacheOpportunities = Array.from(files).filter((file) =>
+      cacheOpportunityFiles.has(file)
+    );
+
     const fileList = formatFileList(Array.from(files));
     const wherePart = fileList ? ` in ${fileList}` : '';
-    const guidance =
-      'Wrap independent awaits in Promise.all, or use Next.js preload / React 19 cache() to start work earlier.';
+
+    // Enhanced guidance based on cache() opportunities
+    let guidance: string;
+    if (filesWithCacheOpportunities.length > 0) {
+      const cacheFileList = formatFileList(filesWithCacheOpportunities);
+      guidance = `Wrap independent awaits in Promise.all, or use Next.js preload. React 19 cache() opportunities detected in ${cacheFileList} — wrapping duplicate fetch calls in cache() can help deduplicate requests and reduce waterfall impact.`;
+    } else {
+      guidance =
+        'Wrap independent awaits in Promise.all, or use Next.js preload / React 19 cache() to start work earlier.';
+    }
+
     const message = `Waterfall suspected${wherePart}. ${guidance}`;
 
     const aggregated: Suggestion = {
