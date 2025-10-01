@@ -7,7 +7,7 @@ const FAULTY_CODE = `"use client";
 
 import fs from 'fs';
 
-export function FileReader() {
+export function FileReader(): JSX.Element {
   const files = fs.readdirSync('/tmp');
   return <div>Files: {files.length}</div>;
 }`;

@@ -21,7 +21,7 @@ const LARGE_DATA = {
   // Total bundle size: >50KB
 };
 
-export function LargeComponent() {
+export function LargeComponent(): JSX.Element {
   return <div>{LARGE_DATA.items.map(...)}</div>;
 }`;
 

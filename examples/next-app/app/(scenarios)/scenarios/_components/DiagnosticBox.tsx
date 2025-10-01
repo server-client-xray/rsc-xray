@@ -37,7 +37,13 @@ const DIAGNOSTIC_STYLES = {
   },
 };
 
-export function DiagnosticBox({ type, title, message, code, fix }: DiagnosticBoxProps) {
+export function DiagnosticBox({
+  type,
+  title,
+  message,
+  code,
+  fix,
+}: DiagnosticBoxProps): JSX.Element {
   const styles = DIAGNOSTIC_STYLES[type];
 
   return (

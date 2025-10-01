@@ -13,7 +13,7 @@ interface ChartComponentProps {
   color: string;
 }
 
-export function ChartComponent({ title, color }: ChartComponentProps) {
+export function ChartComponent({ title, color }: ChartComponentProps): JSX.Element {
   return (
     <div className="rounded-lg border border-gray-300 p-4">
       <h3 className="font-semibold mb-2">{title}</h3>

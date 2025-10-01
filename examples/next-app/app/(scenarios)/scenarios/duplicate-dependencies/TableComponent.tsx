@@ -13,7 +13,7 @@ interface TableComponentProps {
   title: string;
 }
 
-export function TableComponent({ title }: TableComponentProps) {
+export function TableComponent({ title }: TableComponentProps): JSX.Element {
   return (
     <div className="rounded-lg border border-gray-300 p-4">
       <h3 className="font-semibold mb-2">{title}</h3>
