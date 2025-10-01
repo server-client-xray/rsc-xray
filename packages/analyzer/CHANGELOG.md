@@ -1,5 +1,12 @@
 # @rsc-xray/analyzer
 
+## 0.6.2
+
+### Patch Changes
+
+- 5bf8225: Fix ES module imports by adding .js extensions to all relative imports/exports. This resolves module resolution errors when importing the package in Node.js environments.
+  - @rsc-xray/schemas@0.6.2
+
 ## 0.6.1
 
 ### Patch Changes
