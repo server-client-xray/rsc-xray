@@ -42,6 +42,21 @@ pnpm -F @rsc-xray/cli report --model ./model.json --out ./report.html
 
 `model.json` and `report.html` are written relative to your working directory (the repo root in this example).
 
+### What's in the HTML Report?
+
+The static HTML report shows:
+
+- **Bundle Analysis** - Total bytes, client/server split, per-route breakdown
+- **Component Tree** - Server/client boundaries with `'use client'` markers
+- **Suspense Boundaries** - Where streaming happens, boundary placement
+- **Diagnostics** - Rule violations with specific file/line numbers
+- **Suggestions** - Actionable fixes (hoist fetch, parallelize, add Suspense)
+- **Build Info** - Next.js version, build timestamp, route count
+
+**Perfect for:** Sharing with teammates, uploading to CI artifacts, offline review
+
+**Want live tracking?** See [RSC XRay Pro](#rsc-xray-pro) for interactive overlay, trends dashboard, and CI budgets.
+
 ## Flight Tap
 
 Capture RSC/Flight streaming timings while the demo is running:
