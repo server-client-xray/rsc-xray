@@ -471,3 +471,490 @@ export default async function Page() {
     }
   });
 });
+
+describe('analyzeProject - Static/Dynamic Route Detection (T4.2)', () => {
+  it('classifies pure static route (no dynamic APIs, no revalidate)', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-static-'));
+    try {
+      await mkdir(join(projectRoot, 'app/static'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/static/page.tsx'),
+        `export default function StaticPage() {\n  return <div>Static content</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/static/page': ['static/chunks/app/static/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/static/page': ['static/chunks/app/static/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/static');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBeUndefined();
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies ISR route with revalidate export', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-isr-'));
+    try {
+      await mkdir(join(projectRoot, 'app/isr'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/isr/page.tsx'),
+        `export const revalidate = 60;\n\nexport default async function ISRPage() {\n  const data = await fetch('https://api.example.com/data');\n  return <div>{JSON.stringify(data)}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/isr/page': ['static/chunks/app/isr/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/isr/page': ['static/chunks/app/isr/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/isr');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.revalidateSeconds).toBe(60);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies dynamic route with cookies() usage', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-dynamic-cookies-'));
+    try {
+      await mkdir(join(projectRoot, 'app/dynamic-cookies'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/dynamic-cookies/page.tsx'),
+        `import { cookies } from 'next/headers';\n\nexport default function DynamicPage() {\n  const cookieStore = cookies();\n  const theme = cookieStore.get('theme');\n  return <div>Theme: {theme?.value}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/dynamic-cookies/page': ['static/chunks/app/dynamic-cookies/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/dynamic-cookies/page': ['static/chunks/app/dynamic-cookies/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/dynamic-cookies');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies dynamic route with headers() usage', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-dynamic-headers-'));
+    try {
+      await mkdir(join(projectRoot, 'app/dynamic-headers'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/dynamic-headers/page.tsx'),
+        `import { headers } from 'next/headers';\n\nexport default function DynamicPage() {\n  const headersList = headers();\n  const userAgent = headersList.get('user-agent');\n  return <div>UA: {userAgent}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/dynamic-headers/page': ['static/chunks/app/dynamic-headers/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/dynamic-headers/page': ['static/chunks/app/dynamic-headers/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/dynamic-headers');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies dynamic route with noStore() usage', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-dynamic-nostore-'));
+    try {
+      await mkdir(join(projectRoot, 'app/dynamic-nostore'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/dynamic-nostore/page.tsx'),
+        `import { unstable_noStore as noStore } from 'next/cache';\n\nexport default async function DynamicPage() {\n  noStore();\n  const data = await fetch('https://api.example.com/data');\n  return <div>{JSON.stringify(data)}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/dynamic-nostore/page': ['static/chunks/app/dynamic-nostore/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/dynamic-nostore/page': ['static/chunks/app/dynamic-nostore/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/dynamic-nostore');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies force-static route with export', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-force-static-'));
+    try {
+      await mkdir(join(projectRoot, 'app/force-static'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/force-static/page.tsx'),
+        `export const dynamic = 'force-static';\n\nexport default function ForcedStaticPage() {\n  return <div>Forced static</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/force-static/page': ['static/chunks/app/force-static/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/force-static/page': ['static/chunks/app/force-static/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/force-static');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-static');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies force-dynamic route with export', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-force-dynamic-'));
+    try {
+      await mkdir(join(projectRoot, 'app/force-dynamic'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/force-dynamic/page.tsx'),
+        `export const dynamic = 'force-dynamic';\n\nexport default async function ForcedDynamicPage() {\n  const data = await fetch('https://api.example.com/data');\n  return <div>{JSON.stringify(data)}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/force-dynamic/page': ['static/chunks/app/force-dynamic/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/force-dynamic/page': ['static/chunks/app/force-dynamic/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/force-dynamic');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('classifies route with searchParams as dynamic (when using dynamic APIs)', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-searchparams-'));
+    try {
+      await mkdir(join(projectRoot, 'app/search'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      // Note: searchParams alone doesn't trigger dynamic detection (prop-based, not API call)
+      // But in practice, Next.js makes these routes dynamic. Future enhancement: detect searchParams prop usage.
+      await writeFile(
+        join(projectRoot, 'app/search/page.tsx'),
+        `import { headers } from 'next/headers';\n\nexport default function SearchPage({ searchParams }: { searchParams: { q: string } }) {\n  headers();\n  return <div>Search: {searchParams.q}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/search/page': ['static/chunks/app/search/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/search/page': ['static/chunks/app/search/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/search');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('handles mixed routes (static + dynamic + ISR)', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-mixed-'));
+    try {
+      await mkdir(join(projectRoot, 'app/static'), { recursive: true });
+      await mkdir(join(projectRoot, 'app/dynamic'), { recursive: true });
+      await mkdir(join(projectRoot, 'app/isr'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/static/page.tsx'),
+        `export default function StaticPage() {\n  return <div>Static</div>;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(
+        join(projectRoot, 'app/dynamic/page.tsx'),
+        `import { cookies } from 'next/headers';\n\nexport default function DynamicPage() {\n  cookies();\n  return <div>Dynamic</div>;\n}\n`,
+        'utf8'
+      );
+
+      await writeFile(
+        join(projectRoot, 'app/isr/page.tsx'),
+        `export const revalidate = 30;\n\nexport default function ISRPage() {\n  return <div>ISR</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: {
+          '/static/page': ['static/chunks/app/static/page.js'],
+          '/dynamic/page': ['static/chunks/app/dynamic/page.js'],
+          '/isr/page': ['static/chunks/app/isr/page.js'],
+        },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: {
+          '/static/page': ['static/chunks/app/static/page.js'],
+          '/dynamic/page': ['static/chunks/app/dynamic/page.js'],
+          '/isr/page': ['static/chunks/app/isr/page.js'],
+        },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const staticRoute = model.routes.find((r) => r.route === '/static');
+      const dynamicRoute = model.routes.find((r) => r.route === '/dynamic');
+      const isrRoute = model.routes.find((r) => r.route === '/isr');
+
+      expect(staticRoute?.cache?.dynamic).toBeUndefined();
+      expect(dynamicRoute?.cache?.dynamic).toBe('force-dynamic');
+      expect(isrRoute?.cache?.revalidateSeconds).toBe(30);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('detects dynamic APIs in nested helper functions', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-nested-dynamic-'));
+    try {
+      await mkdir(join(projectRoot, 'app/nested'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/nested/page.tsx'),
+        `import { cookies } from 'next/headers';\n\nfunction getTheme() {\n  const cookieStore = cookies();\n  return cookieStore.get('theme');\n}\n\nexport default function NestedPage() {\n  const theme = getTheme();\n  return <div>Theme: {theme?.value}</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/nested/page': ['static/chunks/app/nested/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/nested/page': ['static/chunks/app/nested/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/nested');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('handles conditional dynamic API calls (still marks dynamic)', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-conditional-dynamic-'));
+    try {
+      await mkdir(join(projectRoot, 'app/conditional'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/conditional/page.tsx'),
+        `import { cookies } from 'next/headers';\n\nexport default function ConditionalPage({ params }: { params: { id?: string } }) {\n  if (params.id) {\n    const cookieStore = cookies();\n    return <div>ID: {cookieStore.get('user')?.value}</div>;\n  }\n  return <div>No ID</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/conditional/page': ['static/chunks/app/conditional/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/conditional/page': ['static/chunks/app/conditional/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/conditional');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('handles route with both ISR and dynamic export (dynamic wins)', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-isr-dynamic-conflict-'));
+    try {
+      await mkdir(join(projectRoot, 'app/conflict'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      await writeFile(
+        join(projectRoot, 'app/conflict/page.tsx'),
+        `export const revalidate = 60;\nexport const dynamic = 'force-dynamic';\n\nexport default function ConflictPage() {\n  return <div>Conflict</div>;\n}\n`,
+        'utf8'
+      );
+
+      const buildManifest = JSON.stringify({
+        pages: {},
+        app: { '/conflict/page': ['static/chunks/app/conflict/page.js'] },
+      });
+      const appBuildManifest = JSON.stringify({
+        pages: { '/conflict/page': ['static/chunks/app/conflict/page.js'] },
+        rootMainFiles: [],
+      });
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), buildManifest, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        appBuildManifest,
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      const route = model.routes.find((r) => r.route === '/conflict');
+      expect(route).toBeTruthy();
+      expect(route?.cache?.dynamic).toBe('force-dynamic');
+      expect(route?.cache?.revalidateSeconds).toBe(60);
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+});
