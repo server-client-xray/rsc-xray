@@ -164,27 +164,22 @@ export default function LargeClientComponent() {
   });
 
   it('should analyze react19-cache scenario and return diagnostics', async () => {
-    const code = `// lib/api.ts
-export async function getUser(id: string) {
-  const res = await fetch(\`/api/users/\${id}\`);
-  return res.json();
-}
-
-// app/page.tsx
-import { getUser } from '../lib/api';
-
+    const code = `// app/page.tsx
 export default async function Page() {
-  const user1 = await getUser('1');
-  const user2 = await getUser('1'); // Duplicate fetch!
+  const user = await fetch('/api/user/1');
+  const userData = await user.json();
   
-  return <div>{user1.name} - {user2.name}</div>;
+  const userAgain = await fetch('/api/user/1'); // Duplicate!
+  const userDataAgain = await userAgain.json();
+  
+  return <div>{userData.name}</div>;
 }`;
 
     const request = new NextRequest('http://localhost:3001/api/analyze', {
       method: 'POST',
       body: JSON.stringify({
         code,
-        fileName: 'demo.tsx',
+        fileName: 'page.tsx',
         scenario: 'react19-cache',
       } as LspAnalysisRequest),
       headers: {
@@ -200,15 +195,19 @@ export default async function Page() {
     expect(response.status).toBe(200);
     expect(result.diagnostics).toBeDefined();
     expect(result.rulesExecuted).toContain('react19-cache-opportunity');
+    // Should detect duplicate fetch
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.diagnostics[0].message).toContain('Duplicate fetch');
+    expect(result.diagnostics[0].message).toContain('/api/user/1');
   });
 
-  it('should analyze route-config scenario and return diagnostics', async () => {
+  it('should analyze route-config scenario with force-dynamic + revalidate conflict', async () => {
     const code = `// app/page.tsx
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Conflict!
 
 export default function Page() {
-  return <div>Static page with revalidate?</div>;
+  return <div>Dynamic page with revalidate?</div>;
 }`;
 
     const request = new NextRequest('http://localhost:3001/api/analyze', {
@@ -219,7 +218,7 @@ export default function Page() {
         scenario: 'route-config',
         context: {
           routeConfig: {
-            dynamic: 'force-static',
+            dynamic: 'force-dynamic',
             revalidate: 60,
           },
         },
@@ -232,11 +231,58 @@ export default function Page() {
     const response = await POST(request);
     const result = await response.json();
 
-    console.log('Route config result:', JSON.stringify(result, null, 2));
+    console.log(
+      'Route config (force-dynamic + revalidate) result:',
+      JSON.stringify(result, null, 2)
+    );
 
     expect(response.status).toBe(200);
     expect(result.diagnostics).toBeDefined();
     expect(result.rulesExecuted).toContain('route-segment-config-conflict');
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.diagnostics[0].message).toContain('force-dynamic');
+    expect(result.diagnostics[0].message).toContain('revalidate');
+  });
+
+  it('should analyze route-config scenario with force-static + dynamic APIs conflict', async () => {
+    const code = `// app/page.tsx
+import { cookies } from 'next/headers';
+
+export const dynamic = 'force-static';
+
+export default function Page() {
+  const cookieStore = cookies(); // Conflict with force-static!
+  return <div>Page</div>;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'page.tsx',
+        scenario: 'route-config',
+        context: {
+          routeConfig: {
+            dynamic: 'force-static',
+          },
+        },
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Route config (force-static + cookies) result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toContain('route-segment-config-conflict');
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.diagnostics[0].message).toContain('force-static');
+    expect(result.diagnostics[0].message).toContain('cookies');
   });
 
   it('should return 400 for missing required fields', async () => {

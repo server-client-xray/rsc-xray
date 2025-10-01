@@ -153,17 +153,20 @@ export function HeavyComponent() {
     isPro: false,
     rule: 'react19-cache-opportunity',
     description: 'Deduplicate fetch calls with React 19 cache()',
-    code: `// lib/api.ts
-export async function getUser(id: string) {
-  const res = await fetch(\`/api/users/\${id}\`);
-  return res.json();
-}
-
-// Multiple components call getUser(1) - fetched multiple times!`,
+    code: `// app/page.tsx
+export default async function Page() {
+  const user = await fetch('/api/user/1');
+  const userData = await user.json();
+  
+  const userAgain = await fetch('/api/user/1'); // Duplicate!
+  const userDataAgain = await userAgain.json();
+  
+  return <div>{userData.name}</div>;
+}`,
     explanation: {
-      what: 'The same data is fetched multiple times across different components',
+      what: 'The same URL is fetched multiple times in this component',
       why: 'Duplicate fetches waste bandwidth and slow down rendering',
-      how: 'Wrap the function with React 19 cache() to deduplicate requests automatically',
+      how: 'Wrap fetch in React 19 cache() to automatically deduplicate requests',
     },
   },
 
@@ -176,20 +179,20 @@ export async function getUser(id: string) {
     rule: 'route-segment-config-conflict',
     description: 'Conflicting route segment configuration options',
     code: `// app/page.tsx
-export const dynamic = 'force-static';
+export const dynamic = 'force-dynamic';
 export const revalidate = 60; // ⚠️ Conflict!
 
 export default function Page() {
-  return <div>Static page with revalidate?</div>;
+  return <div>Dynamic page</div>;
 }`,
     explanation: {
-      what: 'This route has conflicting configuration: force-static with revalidate',
-      why: "Static pages don't revalidate - these options are mutually exclusive",
-      how: "Choose either 'force-static' for full static or 'force-dynamic' with revalidate",
+      what: 'This route has conflicting configuration: force-dynamic with revalidate',
+      why: 'ISR (Incremental Static Regeneration) with revalidate requires static or auto mode, not force-dynamic',
+      how: "Remove 'force-dynamic' to enable ISR, or remove revalidate for fully dynamic rendering",
     },
     context: {
       routeConfig: {
-        dynamic: 'force-static',
+        dynamic: 'force-dynamic',
         revalidate: 60,
       },
     },
