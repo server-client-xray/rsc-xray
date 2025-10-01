@@ -36,6 +36,114 @@ export interface Suggestion {
   loc?: DiagnosticLocation;
 }
 
+/**
+ * Unified LSP Diagnostic Schema
+ *
+ * This is the standard diagnostic format used across all RSC X-Ray packages
+ * for LSP server communication. It provides a rich, extensible format that
+ * can be adapted to different consumer needs (VS Code, CLI, overlay, etc.)
+ */
+export interface RscXrayDiagnostic {
+  // Location
+  file: string;
+  line: number;
+  column: number;
+  endLine?: number;
+  endColumn?: number;
+
+  // Classification
+  severity: 'error' | 'warning' | 'info' | 'hint';
+  rule: string;
+  category: 'performance' | 'correctness' | 'best-practice' | 'security';
+
+  // Content
+  message: string;
+  suggestion?: string;
+
+  // Metadata
+  source: 'rsc-xray' | 'rsc-xray-pro';
+  timestamp?: number;
+
+  // Context
+  codeFrame?: string;
+  relatedInformation?: Array<{
+    file: string;
+    line: number;
+    message: string;
+  }>;
+
+  // Actions
+  fixes?: Array<{
+    title: string;
+    kind: 'quickfix' | 'refactor' | 'source';
+    edits: Array<{
+      file: string;
+      startLine: number;
+      startColumn: number;
+      endLine: number;
+      endColumn: number;
+      newText: string;
+    }>;
+  }>;
+
+  // Analytics
+  impact?: {
+    severity: 'low' | 'medium' | 'high' | 'critical';
+    estimatedTimeSaving?: number; // ms
+    estimatedByteSaving?: number; // bytes
+  };
+}
+
+/**
+ * LSP Analysis Request
+ */
+export interface LspAnalysisRequest {
+  // What to analyze
+  files?: Array<{
+    path: string;
+    content: string;
+  }>;
+
+  // Or single file for quick analysis
+  code?: string;
+  fileName?: string;
+
+  // Configuration
+  scenario?: string; // For demo scenarios
+  rules?: string[]; // Specific rules to run
+  clientComponents?: string[]; // Known client components
+
+  // Options
+  timeout?: number;
+  cacheKey?: string;
+}
+
+/**
+ * LSP Analysis Response
+ */
+export interface LspAnalysisResponse {
+  diagnostics: RscXrayDiagnostic[];
+
+  // Metadata
+  duration: number; // ms
+  cached: boolean;
+  version: string;
+
+  // Rate limiting (for HTTP API)
+  rateLimit?: {
+    limit: number;
+    remaining: number;
+    reset: number; // Unix timestamp
+  };
+
+  // Errors
+  error?: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+}
+
 export interface XNode {
   id: string;
   file?: string;
