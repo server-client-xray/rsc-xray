@@ -10,7 +10,12 @@ import { ClientButton } from './ClientButton';
  * The analyzer should detect these violations and suggest:
  * - Use Server Actions for functions
  * - Serialize Date as ISO string
+ *
+ * Note: We force dynamic rendering to avoid build-time errors from Next.js
+ * detecting the serialization violations. The analyzer will still detect them.
  */
+export const dynamic = 'force-dynamic';
+
 export default function SerializationBoundaryPage() {
   const handleClick = () => {
     console.log('This function will be undefined on the client!');
