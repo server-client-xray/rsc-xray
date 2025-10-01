@@ -1,8 +1,8 @@
 import * as ts from 'typescript';
 import type { Diagnostic } from '@rsc-xray/schemas';
 
-import { classifyComponent } from '../lib/classify';
-import type { ComponentKind } from '../lib/classify';
+import { classifyComponent } from '../lib/classify.js';
+import type { ComponentKind } from '../lib/classify.js';
 
 export interface AnalyzeClientSourceOptions {
   fileName: string;
