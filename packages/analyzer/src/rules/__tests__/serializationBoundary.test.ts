@@ -466,9 +466,9 @@ describe('Serialization Boundary Analyzer', () => {
       });
 
       expect(diagnostics).toHaveLength(1);
-      expect(diagnostics[0].loc.file).toBe('app/page.tsx');
-      expect(diagnostics[0].loc.line).toBeGreaterThan(0);
-      expect(diagnostics[0].loc.col).toBeGreaterThan(0);
+      expect(diagnostics[0]?.loc?.file).toBe('app/page.tsx');
+      expect(diagnostics[0]?.loc?.line).toBeGreaterThan(0);
+      expect(diagnostics[0]?.loc?.col).toBeGreaterThan(0);
     });
   });
 
