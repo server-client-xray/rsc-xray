@@ -7,6 +7,7 @@ import type { Suggestion } from '@rsc-xray/schemas';
 
 import type { ClassifiedFile } from './classifyFiles';
 import type { ComponentKind } from './classify';
+import { detectSuspenseBoundaryIssues } from '../rules/suspenseBoundary.js';
 
 interface CollectSuggestionsForSourceOptions {
   filePath: string;
@@ -165,7 +166,9 @@ function collectSuggestionsForSource({
   if (kind === 'client') {
     suggestions.push(...collectFetchSuggestions(sourceFile, filePath));
   } else {
+    // Server component suggestions
     suggestions.push(...collectParallelSuggestions(sourceFile, filePath));
+    suggestions.push(...detectSuspenseBoundaryIssues(sourceFile, filePath));
   }
 
   return suggestions;
