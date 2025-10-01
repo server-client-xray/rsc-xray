@@ -1,6 +1,6 @@
 {
   "name": "@rsc-xray/lsp-client",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "LSP client with mock and real implementations for RSC X-Ray",
   "type": "module",
   "main": "./dist/index.js",
@@ -21,7 +21,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@rsc-xray/schemas": "^0.5.0"
+    "@rsc-xray/schemas": "^0.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

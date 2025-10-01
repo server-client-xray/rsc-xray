@@ -1,5 +1,12 @@
 # @rsc-xray/report-html
 
+## 0.6.0
+
+### Patch Changes
+
+- Updated dependencies [a6bc3fd]
+  - @rsc-xray/schemas@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes

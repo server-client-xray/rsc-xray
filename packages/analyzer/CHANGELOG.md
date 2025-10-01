@@ -1,5 +1,61 @@
 # @rsc-xray/analyzer
 
+## 0.6.0
+
+### Minor Changes
+
+- cfad577: feat(analyzer): add clean LSP API for real-time single-file analysis
+
+  BREAKING CHANGE: New LSP-friendly API added for editor and LSP server integration
+  - **New exports:**
+    - `analyzeLspRequest()` - Main LSP analysis function
+    - `analyzeScenario()` - Convenience wrapper for single scenario
+    - `createSourceFile()` - Create TypeScript SourceFile from code string
+    - `shouldAnalyzeFile()` - Helper to determine file applicability
+    - `LspAnalysisRequest` and `LspAnalysisResponse` interfaces
+  - **Features:**
+    - Accepts code strings instead of file paths
+    - Works without file system or full project context
+    - Supports all analyzer rules (serialization, suspense, cache, etc.)
+    - Optional scenario and rule filtering
+    - Performance tracking (duration in ms)
+    - Graceful error handling per rule
+  - **Use cases:**
+    - LSP servers for real-time diagnostics
+    - VS Code extension integration
+    - Online code playgrounds
+    - CI/CD single-file checks
+
+  **Example:**
+
+  ```typescript
+  import { analyzeLspRequest } from '@rsc-xray/analyzer';
+
+  const result = analyzeLspRequest({
+    code: 'export default function Page() { ... }',
+    fileName: 'app/page.tsx',
+    scenario: 'serialization-boundary',
+  });
+
+  console.log(result.diagnostics); // Array of diagnostics/suggestions
+  console.log(result.duration); // Analysis time in ms
+  ```
+
+  This enables the Pro LSP server to provide instant feedback without adapters or workarounds.
+
+- a6bc3fd: feat: Export LSP types and all analyzer rules for Pro LSP server integration
+  - Export all analyzer rule functions for Pro LSP server
+  - Add LSP diagnostic schema and types to schemas package
+  - Create lsp-client package with mock and HTTP implementations
+  - Enable real-time LSP analysis for demo and VS Code integration
+
+  This is a breaking change for consumers expecting private APIs, but all new exports are intentional for LSP integration.
+
+### Patch Changes
+
+- Updated dependencies [a6bc3fd]
+  - @rsc-xray/schemas@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
