@@ -19,7 +19,7 @@ import { classifyFiles } from './classifyFiles.js';
 import { readManifests } from './readManifests.js';
 import { collectSuggestionsForSource } from './suggestions.js';
 import { collectCacheMetadata, type FileCacheMetadata } from './cacheMetadata.js';
-import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports';
+import { analyzeClientFileForForbiddenImports } from '../rules/clientForbiddenImports.js';
 import { detectClientSizeIssues } from '../rules/clientSizeThreshold.js';
 import { analyzeSerializationBoundary } from '../rules/serializationBoundary.js';
 import { readFlightSnapshot, readHydrationSnapshot } from './snapshots.js';
