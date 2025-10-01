@@ -18,6 +18,42 @@ Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, 
 - Export JSON/HTML report
 - Compatibility banner (Next 13.4–15.x)
 
+<details>
+<summary><strong>Features (Pro Plan) 🔒</strong></summary>
+
+**Live Development Tools:**
+
+- **Interactive Overlay** — Real-time component tree with hydration timings overlaid on your running app
+- **Hydration Performance Tracking** — Measure time-to-interactive for each client component
+- **Cache Lens** — Visualize revalidateTag/revalidatePath impact, ISR/PPR policies, and route strategies
+- **Flight Timeline** — Capture and analyze React Server Component streaming (chunk order, sizes, timings)
+- **Server Actions Map** — Track which actions affect which routes through tags and paths
+
+**CI/CD & Automation:**
+
+- **Performance Dashboard** — Interactive HTML dashboard with A+ to F scoring, trend charts, and regression detection
+- **Bundle Budgets** — Enforce size limits in CI and fail PRs that exceed thresholds
+- **Automated Trend Collection** — Zero-config GitHub Action for historical performance tracking
+- **PR Comments** — Automatic budget reports and delta comparisons posted to pull requests
+- **Performance Scoring** — Composite scores based on bundle size, hydration, trends, and violations
+
+**Developer Experience:**
+
+- **VS Code Extension** — Inline diagnostics with one-click quick fixes (wrap in Suspense, add cache(), code splitting)
+- **Automated Codemods** — Transform code to fix common patterns (use client, Suspense boundaries, preload hints)
+- **Waterfall Detector** — Identify sequential data fetches with guided fixes
+- **Advanced Diagnostics** — Route config conflicts, cache policy mismatches, static/dynamic classification
+
+**Enterprise:**
+
+- **Offline License Verification** — Air-gapped deployment support with JWT-based licensing
+- **No Telemetry** — 100% local processing, zero network calls during analysis
+- **Privacy Mode** — Full GDPR/HIPAA/SOC 2 compliance for sensitive codebases
+
+Learn more → [https://rsc-xray.dev](https://rsc-xray.dev) • Pricing → [https://rsc-xray.dev/pricing](https://rsc-xray.dev/pricing)
+
+</details>
+
 ## Documentation
 
 - [docs/QUICKSTART.md](./docs/QUICKSTART.md) — one-page setup and checklist.

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 
-type ScenarioKind = 'valid' | 'violation' | 'coming-soon' | 'pro';
+type ScenarioKind = 'valid' | 'violation' | 'coming-soon' | 'pro' | 'm4';
 
 interface ScenarioCard {
   title: string;
@@ -38,6 +38,42 @@ const SCENARIOS: ScenarioCard[] = [
     kind: 'violation',
     badge: 'Violation',
   },
+  // M4 Analyzer Scenarios
+  {
+    title: 'Suspense boundary missing (M4)',
+    description: 'Demonstrates missing Suspense around async server components.',
+    href: '/scenarios/suspense-missing',
+    kind: 'm4',
+    badge: 'M4',
+  },
+  {
+    title: 'Oversized client component (M4)',
+    description: 'Shows client bundle exceeding 50KB size threshold.',
+    href: '/scenarios/client-oversized',
+    kind: 'm4',
+    badge: 'M4',
+  },
+  {
+    title: 'React 19 cache() opportunity (M4)',
+    description: 'Detects duplicate function calls that could use cache() deduplication.',
+    href: '/scenarios/cache-opportunity',
+    kind: 'm4',
+    badge: 'M4',
+  },
+  {
+    title: 'Route config conflict (M4)',
+    description: 'Shows conflict between route segment config and dynamic API usage.',
+    href: '/scenarios/route-config-conflict',
+    kind: 'm4',
+    badge: 'M4',
+  },
+  {
+    title: 'Dynamic route detection (M4)',
+    description: 'Demonstrates analyzer detecting dynamic routes via headers() usage.',
+    href: '/scenarios/dynamic-route',
+    kind: 'm4',
+    badge: 'M4',
+  },
   {
     title: 'Cache lens scenario',
     description: 'Coming soon: data-tagged pages to exercise cache invalidation flows.',
@@ -59,6 +95,7 @@ const KIND_COLORS: Record<ScenarioKind, string> = {
   violation: 'rgba(248,113,113,0.25)',
   'coming-soon': 'rgba(251,191,36,0.25)',
   pro: 'rgba(14,165,233,0.25)',
+  m4: 'rgba(168,85,247,0.25)', // Purple for M4 features
 };
 
 export default function HomePage(): JSX.Element {
