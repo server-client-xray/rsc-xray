@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactElement } from 'react';
 import { scenarios } from '../lib/scenarios';
 import styles from './ScenarioSelector.module.css';
 
@@ -19,7 +20,7 @@ interface ScenarioSelectorConfig {
 export function ScenarioSelector({
   selectedScenarioId,
   onSelectScenario,
-}: ScenarioSelectorConfig): JSX.Element {
+}: ScenarioSelectorConfig): ReactElement {
   const fundamentals = scenarios.filter((s) => s.category === 'fundamentals');
   const performance = scenarios.filter((s) => s.category === 'performance');
   const pro = scenarios.filter((s) => s.category === 'pro');

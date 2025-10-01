@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactElement } from 'react';
 import { useState } from 'react';
 import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
 import { scenarios, getScenario } from '../lib/scenarios';
@@ -19,7 +20,7 @@ import styles from './DemoApp.module.css';
  * - Diagnostics from LSP analysis
  * - Code editor state and real-time analysis
  */
-export function DemoApp(): JSX.Element {
+export function DemoApp(): ReactElement {
   const [selectedScenarioId, setSelectedScenarioId] = useState(scenarios[0].id);
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'error'>('idle');
   const [diagnostics, setDiagnostics] = useState<RscXrayDiagnostic[]>([]);

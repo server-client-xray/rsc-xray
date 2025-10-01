@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactElement } from 'react';
 import { Scenario } from '../lib/scenarios';
 import { ScenarioSelector } from './ScenarioSelector';
 import styles from './ExplanationPanel.module.css';
@@ -23,7 +24,7 @@ export function ExplanationPanel({
   scenario,
   diagnosticsCount,
   onSelectScenario,
-}: ExplanationPanelConfig): JSX.Element {
+}: ExplanationPanelConfig): ReactElement {
   return (
     <div className={styles.panel}>
       <ScenarioSelector selectedScenarioId={scenario.id} onSelectScenario={onSelectScenario} />

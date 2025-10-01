@@ -1,12 +1,13 @@
 'use client';
 
+import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { linter, Diagnostic as CMDiagnostic } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
-import { analyze } from '@rsc-xray/lsp-server';
 import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
+import type { LspAnalysisResponse } from '@rsc-xray/lsp-server';
 import styles from './CodeEditor.module.css';
 
 interface CodeEditorConfig {
@@ -20,20 +21,23 @@ interface CodeEditorConfig {
 }
 
 /**
- * CodeMirror 6 editor with browser-side LSP integration
+ * CodeMirror 6 editor with real-time LSP integration
  *
  * Features:
  * - Real-time analysis with 500ms debounce
  * - Red/yellow squiggles for errors/warnings
  * - Hover tooltips with rule explanations
- * - Uses @rsc-xray/lsp-server (browser-side, no server needed)
+ * - Uses @rsc-xray/lsp-server via Next.js API route
  * - Lightweight (~100KB vs Monaco's 2MB)
+ *
+ * Note: Analysis runs server-side because @rsc-xray/analyzer
+ * uses Node.js APIs. Still provides real-time UX with debouncing.
  */
 export function CodeEditor({
   initialCode,
   scenarioId,
   onAnalysisComplete,
-}: CodeEditorConfig): JSX.Element {
+}: CodeEditorConfig): ReactElement {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -41,7 +45,7 @@ export function CodeEditor({
   useEffect(() => {
     if (!editorRef.current || viewRef.current) return;
 
-    // Create linter function that calls RSC X-Ray analyzer
+    // Create linter function that calls RSC X-Ray analyzer via API
     const rscXrayLinter = linter(
       async (view): Promise<CMDiagnostic[]> => {
         const code = view.state.doc.toString();
@@ -49,24 +53,55 @@ export function CodeEditor({
         try {
           onAnalysisComplete({ diagnostics: [], duration: 0, status: 'analyzing' });
 
-          // Call browser-side LSP server
-          const result = await analyze({
-            code,
-            fileName: 'demo.tsx',
-            scenario: scenarioId as never, // Type assertion for now
+          // Call server-side LSP analysis API
+          const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              code,
+              fileName: 'demo.tsx',
+              scenario: scenarioId,
+            }),
           });
 
+          if (!response.ok) {
+            throw new Error(`Analysis failed: ${response.statusText}`);
+          }
+
+          const result: LspAnalysisResponse = await response.json();
+
           // Convert RSC X-Ray diagnostics to CodeMirror format
-          const cmDiagnostics: CMDiagnostic[] = (result.diagnostics || []).map((d) => ({
-            from: getOffset(view.state.doc, d.line, d.column),
-            to: getOffset(view.state.doc, d.endLine || d.line, d.endColumn || d.column + 1),
-            severity: d.severity as 'error' | 'warning' | 'info',
-            message: d.message,
-            source: d.rule,
-          }));
+          // Filter to only Diagnostic items (which have line/column, not Suggestions)
+          const diagnosticsOnly = (result.diagnostics || []).filter(
+            (d) => 'line' in d && 'column' in d
+          );
+
+          const cmDiagnostics: CMDiagnostic[] = diagnosticsOnly.map((d) => {
+            const diag = d as unknown as {
+              line: number;
+              column: number;
+              endLine?: number;
+              endColumn?: number;
+              severity: string;
+              message: string;
+              rule: string;
+            };
+
+            return {
+              from: getOffset(view.state.doc, diag.line, diag.column),
+              to: getOffset(
+                view.state.doc,
+                diag.endLine || diag.line,
+                diag.endColumn || diag.column + 1
+              ),
+              severity: diag.severity as 'error' | 'warning' | 'info',
+              message: diag.message,
+              source: diag.rule,
+            };
+          });
 
           onAnalysisComplete({
-            diagnostics: result.diagnostics || [],
+            diagnostics: diagnosticsOnly as unknown as RscXrayDiagnostic[],
             duration: result.duration,
             status: 'idle',
           });
