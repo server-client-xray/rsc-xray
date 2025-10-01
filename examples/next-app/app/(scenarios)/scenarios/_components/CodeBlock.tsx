@@ -10,7 +10,7 @@ export function CodeBlock({
   language = 'typescript',
   title,
   highlightLines = [],
-}: CodeBlockProps) {
+}: CodeBlockProps): JSX.Element {
   const lines = code.split('\n');
 
   return (
