@@ -489,5 +489,4 @@ npx @rsc-xray/cli analyze \
 
 ---
 
-**Last Updated:** October 1, 2025  
-**Version:** 1.0
+**Last Updated:** October 1, 2025
