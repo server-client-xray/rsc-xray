@@ -1,5 +1,14 @@
 # @rsc-xray/schemas
 
+## 0.6.1
+
+### Patch Changes
+
+- chore: align versions after incorrect publish
+
+  Fixed version mismatch between repository and npm registry.
+  All packages bumped to 0.6.1 to maintain consistency.
+
 ## 0.6.0
 
 ### Minor Changes
