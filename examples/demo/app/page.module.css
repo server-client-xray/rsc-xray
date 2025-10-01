@@ -1,0 +1,33 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+.placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: var(--spacing-xl);
+  text-align: center;
+}
+
+.placeholder h2 {
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--color-fg);
+}
+
+.placeholder p {
+  color: var(--color-secondary);
+  font-size: 1rem;
+}
