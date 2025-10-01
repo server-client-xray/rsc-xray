@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
+import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
 import { scenarios, getScenario } from '../lib/scenarios';
 import { Header } from './Header';
 import { SplitPanel } from './SplitPanel';
 import { ExplanationPanel } from './ExplanationPanel';
+import { CodeEditor } from './CodeEditor';
 import { StatusBar } from './StatusBar';
 import styles from './DemoApp.module.css';
 
@@ -13,22 +15,33 @@ import styles from './DemoApp.module.css';
  *
  * Manages:
  * - Selected scenario
- * - Analysis status
- * - Diagnostics count
- * - Code editor state (placeholder for now)
+ * - Analysis status (idle/analyzing/error)
+ * - Diagnostics from LSP analysis
+ * - Code editor state and real-time analysis
  */
 export function DemoApp(): JSX.Element {
   const [selectedScenarioId, setSelectedScenarioId] = useState(scenarios[0].id);
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'error'>('idle');
-  const [diagnosticsCount, setDiagnosticsCount] = useState(0);
+  const [diagnostics, setDiagnostics] = useState<RscXrayDiagnostic[]>([]);
+  const [analysisDuration, setAnalysisDuration] = useState<number | undefined>(undefined);
 
   const scenario = getScenario(selectedScenarioId) || scenarios[0];
 
   const handleSelectScenario = (scenarioId: string): void => {
     setSelectedScenarioId(scenarioId);
     setAnalysisStatus('idle');
-    setDiagnosticsCount(0);
-    // TODO: Update code editor and trigger analysis
+    setDiagnostics([]);
+    setAnalysisDuration(undefined);
+  };
+
+  const handleAnalysisComplete = (config: {
+    diagnostics: RscXrayDiagnostic[];
+    duration: number;
+    status: 'idle' | 'analyzing' | 'error';
+  }): void => {
+    setDiagnostics(config.diagnostics);
+    setAnalysisDuration(config.duration);
+    setAnalysisStatus(config.status);
   };
 
   return (
@@ -40,21 +53,26 @@ export function DemoApp(): JSX.Element {
           leftPanel={
             <ExplanationPanel
               scenario={scenario}
-              diagnosticsCount={diagnosticsCount}
+              diagnosticsCount={diagnostics.length}
               onSelectScenario={handleSelectScenario}
             />
           }
           rightPanel={
-            <div className={styles.editorPlaceholder}>
-              <h2>Code Editor</h2>
-              <p>CodeMirror integration coming next...</p>
-              <pre className={styles.codePreview}>{scenario.code}</pre>
-            </div>
+            <CodeEditor
+              key={selectedScenarioId} // Force remount on scenario change
+              initialCode={scenario.code}
+              scenarioId={selectedScenarioId}
+              onAnalysisComplete={handleAnalysisComplete}
+            />
           }
         />
       </main>
 
-      <StatusBar status={analysisStatus} diagnosticsCount={diagnosticsCount} />
+      <StatusBar
+        status={analysisStatus}
+        diagnosticsCount={diagnostics.length}
+        duration={analysisDuration}
+      />
     </div>
   );
 }
