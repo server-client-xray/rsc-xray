@@ -1,66 +1,112 @@
 import { LargeComponent } from './LargeComponent';
+import { CodeBlock } from '../_components/CodeBlock';
+import { DiagnosticBox } from '../_components/DiagnosticBox';
 
 /**
- * Oversized Client Component - M4 Analyzer Demo
+ * Oversized Client Component - Demo
  *
- * This scenario demonstrates the analyzer detecting client components
+ * Demonstrates the analyzer detecting client components
  * that exceed the 50KB bundle size threshold.
- *
- * Issue: LargeComponent contains large data sets that bloat the client bundle.
- *
- * Analyzer should flag: "client-component-oversized"
- * Suggestion: Code split, lazy load, or move data to server
  */
+
+const FAULTY_CODE = `'use client';
+
+// This component includes massive data sets
+const LARGE_DATA = {
+  items: [...], // 1000+ items
+  lookup: {...}, // Large lookup table
+  translations: {...}, // Translation strings
+  // Total bundle size: >50KB
+};
+
+export function LargeComponent() {
+  return <div>{LARGE_DATA.items.map(...)}</div>;
+}`;
+
+const FIXED_CODE_LAZY = `import { lazy, Suspense } from 'react';
+
+// Option 1: Lazy load component
+const LargeComponent = lazy(() => import('./LargeComponent'));
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LargeComponent />
+    </Suspense>
+  );
+}`;
+
+const FIXED_CODE_SERVER = `// Option 2: Move data to server
+async function getData() {
+  'use server';
+  const items = await db.query('SELECT * FROM items');
+  return items;
+}
+
+export default async function Page() {
+  const data = await getData();
+  return <ClientComponent data={data} />;
+}`;
 
 export default function ClientOversizedPage() {
   return (
-    <div className="mx-auto max-w-4xl space-y-6 p-8">
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-6">
-        <h1 className="mb-4 text-2xl font-bold text-blue-900">Oversized Client Component Demo</h1>
-        <p className="mb-4 text-sm text-blue-700">
-          This page demonstrates an oversized client component. The analyzer should detect that{' '}
-          <code className="rounded bg-blue-100 px-1 py-0.5">LargeComponent</code> exceeds the 50KB
-          threshold.
-        </p>
-        <div className="rounded bg-blue-100 p-3">
-          <p className="text-xs font-mono text-blue-800">
-            Violation: <strong>client-component-oversized</strong>
-            <br />
-            File: app/(scenarios)/scenarios/client-oversized/LargeComponent.tsx
-            <br />
-            Fix: Code split, lazy load, or move data to server
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-lg border border-yellow-600 bg-yellow-50 p-4">
-        <p className="text-sm text-yellow-800">
-          ⚠️ Client component below contains ~1000 items + lookup tables + translations (likely{' '}
-          {'>'} 50KB)
+    <div className="space-y-6 p-8 max-w-4xl mx-auto">
+      <div>
+        <h1 className="text-3xl font-bold mb-2">Oversized Client Component</h1>
+        <p className="text-gray-600">
+          Detects client components that exceed the configurable size threshold (default 50KB),
+          which impacts bundle size and initial load performance.
         </p>
       </div>
 
-      <LargeComponent />
+      <div className="rounded-lg bg-blue-50 border border-blue-300 p-4">
+        <h2 className="font-semibold text-blue-900 mb-2">Rule: client-component-oversized</h2>
+        <p className="text-sm text-blue-800">
+          Flags client components whose bundle size exceeds 50KB. Large client bundles increase
+          download time, parse time, and memory usage.
+        </p>
+      </div>
 
-      <div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
-        <h3 className="mb-2 text-sm font-semibold text-gray-700">Recommended Fixes:</h3>
-        <pre className="overflow-x-auto rounded bg-gray-900 p-3 text-xs text-green-400">
-          {`// Option 1: Lazy load component
-const LargeComponent = lazy(() => import('./LargeComponent'));
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Faulty Code</h2>
+        <CodeBlock code={FAULTY_CODE} title="LargeComponent.tsx" highlightLines={[4, 5, 6, 7, 8]} />
+      </div>
 
-<Suspense fallback={<Loading />}>
-  <LargeComponent />
-</Suspense>
+      <DiagnosticBox
+        type="warning"
+        title="Client component exceeds size threshold"
+        message="LargeComponent.tsx is 87.4 KB (exceeds 50 KB threshold by 74%). Large client bundles increase download time, parse time, and hurt performance."
+        code="<LargeComponent />"
+        fix={`${FIXED_CODE_LAZY}\n\n${FIXED_CODE_SERVER}\n\n// Option 3: Paginate data\n// Only load what's visible initially`}
+      />
 
-// Option 2: Move data to server
-async function getData() {
-  'use server';
-  return LARGE_DATA_SET;
-}
+      <div>
+        <h2 className="text-xl font-semibold mb-3">Why This Matters</h2>
+        <ul className="list-disc list-inside space-y-2 text-gray-700">
+          <li>
+            <strong>Download Time:</strong> Every KB sent to the client increases load time,
+            especially on slow networks
+          </li>
+          <li>
+            <strong>Parse/Compile Time:</strong> JavaScript must be parsed and compiled before
+            execution
+          </li>
+          <li>
+            <strong>Memory Usage:</strong> Large bundles consume more browser memory
+          </li>
+          <li>
+            <strong>Hydration Cost:</strong> More JavaScript means longer time-to-interactive
+          </li>
+        </ul>
+      </div>
 
-// Option 3: Paginate and load on demand
-// Only fetch/render what's visible`}
-        </pre>
+      <div className="border-t pt-6">
+        <h2 className="text-xl font-semibold mb-3">Live Example</h2>
+        <p className="text-sm text-gray-600 mb-4">
+          The component below contains ~1000 items + lookup tables. Check DevTools Network tab to
+          see the bundle size.
+        </p>
+        <LargeComponent />
       </div>
     </div>
   );

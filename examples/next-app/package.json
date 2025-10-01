@@ -11,18 +11,23 @@
     "test:lighthouse": "pnpm exec tsx scripts/runLighthouse.ts"
   },
   "dependencies": {
+    "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/lint": "^6.8.5",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.38.4",
     "@rsc-xray/hydration": "workspace:^0.4.0",
+    "codemirror": "^6.0.2",
     "next": "14.2.5",
     "react": "18.3.1",
     "react-dom": "18.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.47.0",
     "@types/node": "20.15.0",
     "@types/react": "18.3.3",
     "@types/react-dom": "18.3.0",
-    "typescript": "5.5.4",
-    "@playwright/test": "^1.47.0",
     "lighthouse": "^12.8.2",
-    "tree-kill": "^1.2.2"
+    "tree-kill": "^1.2.2",
+    "typescript": "5.5.4"
   }
 }
