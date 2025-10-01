@@ -1,5 +1,13 @@
 # @rsc-xray/analyzer
 
+## 0.6.3
+
+### Patch Changes
+
+- 11af651: Fix ES module imports by adding .js extensions to all relative imports/exports. This resolves module resolution errors when importing the package in Node.js environments.
+- 262dc52: Fix final missing .js extension in ES module import (clientForbiddenImports). This completes the ES module migration and resolves all Node.js module resolution errors.
+  - @rsc-xray/schemas@0.6.3
+
 ## 0.6.2
 
 ### Patch Changes
