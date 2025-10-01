@@ -1,5 +1,14 @@
 # @rsc-xray/cli
 
+## 0.5.0
+
+### Patch Changes
+
+- Updated dependencies
+  - @rsc-xray/analyzer@0.5.0
+  - @rsc-xray/schemas@0.5.0
+  - @rsc-xray/report-html@0.5.0
+
 ## 0.4.0
 
 ### Patch Changes
