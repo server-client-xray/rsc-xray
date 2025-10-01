@@ -350,4 +350,124 @@ describe('analyzeProject', () => {
       await rm(projectRoot, { recursive: true, force: true });
     }
   });
+
+  it('enhances waterfall suggestion with cache() hints when React 19 cache opportunities detected', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-waterfall-cache-'));
+    try {
+      await mkdir(join(projectRoot, 'app'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      // Create a page with both waterfall (sequential awaits) and Map-based caching (cache opportunity)
+      // Using Map instead of duplicate fetch to ensure cache suggestion is created
+      await writeFile(
+        join(projectRoot, 'app/page.tsx'),
+        `const cache = new Map();
+
+export default async function Page() {
+  const data1 = await getUsers();
+  const data2 = await getPosts();
+  return <div>{data1.length + data2.length}</div>;
+}`,
+        'utf8'
+      );
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
+        SIZE_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/server/app/page_client-reference-manifest.js'),
+        CLIENT_REFERENCE_MANIFEST(projectRoot),
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      // Check if cache suggestion was created on the module node
+      const pageNode = model.nodes['module:app/page.tsx'];
+      const cacheOpportunity = pageNode?.suggestions?.find(
+        (s) => s.rule === 'react19-cache-opportunity'
+      );
+
+      // Find the waterfall suggestion
+      const routeNode = model.nodes['route:/'];
+      const waterfallSuggestion = routeNode?.suggestions?.find(
+        (item) => item.rule === ROUTE_WATERFALL_SUGGESTION_RULE
+      );
+
+      expect(waterfallSuggestion).toBeTruthy();
+      expect(waterfallSuggestion?.message).toContain('Waterfall suspected');
+
+      // Verify cache hint is included when cache opportunity exists
+      if (cacheOpportunity) {
+        expect(waterfallSuggestion?.message).toContain('React 19 cache() opportunities detected');
+        expect(waterfallSuggestion?.message).toContain('app/page.tsx');
+        expect(waterfallSuggestion?.message).toContain(
+          'wrapping duplicate fetch calls in cache() can help deduplicate requests and reduce waterfall impact'
+        );
+      }
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
+
+  it('uses default waterfall guidance when no cache opportunities detected', async () => {
+    const projectRoot = await mkdtemp(join(tmpdir(), 'scx-waterfall-no-cache-'));
+    try {
+      await mkdir(join(projectRoot, 'app'), { recursive: true });
+      await mkdir(join(projectRoot, '.next/server/app'), { recursive: true });
+
+      // Create a page with waterfall but no cache opportunities
+      await writeFile(
+        join(projectRoot, 'app/page.tsx'),
+        `export default async function Page() {
+  const users = await getUsers();
+  const posts = await getPosts();
+  return <div>{users.length + posts.length}</div>;
+}`,
+        'utf8'
+      );
+
+      await writeFile(join(projectRoot, '.next/build-manifest.json'), BUILD_MANIFEST, 'utf8');
+      await writeFile(
+        join(projectRoot, '.next/server/app-build-manifest.json'),
+        APP_BUILD_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/build-manifest.json.__scx_sizes__'),
+        SIZE_MANIFEST,
+        'utf8'
+      );
+      await writeFile(
+        join(projectRoot, '.next/server/app/page_client-reference-manifest.js'),
+        CLIENT_REFERENCE_MANIFEST(projectRoot),
+        'utf8'
+      );
+
+      const model = await analyzeProject({ projectRoot });
+
+      // Find the waterfall suggestion
+      const routeNode = model.nodes['route:/'];
+      const waterfallSuggestion = routeNode?.suggestions?.find(
+        (item) => item.rule === ROUTE_WATERFALL_SUGGESTION_RULE
+      );
+
+      expect(waterfallSuggestion).toBeTruthy();
+      expect(waterfallSuggestion?.message).toContain('Waterfall suspected');
+      expect(waterfallSuggestion?.message).not.toContain('cache() opportunities detected');
+      expect(waterfallSuggestion?.message).toContain(
+        'Wrap independent awaits in Promise.all, or use Next.js preload / React 19 cache() to start work earlier'
+      );
+    } finally {
+      await rm(projectRoot, { recursive: true, force: true });
+    }
+  });
 });
