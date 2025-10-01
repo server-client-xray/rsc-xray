@@ -10,6 +10,7 @@ Static analyzer that inspects a Next.js App Router build and produces the shared
 - Classifies every node under the App Router as server, client, suspense, or route boundary.
 - Attributes client bundle bytes to the components that load them.
 - Detects forbidden client imports and sequential server awaits so teams can fix waterfalls quickly.
+- Validates serialization boundaries: flags non-serializable props (functions, Date, Map, class instances) passed from server to client components.
 - Folds hydration durations and Flight samples (when available) into the model for richer tooling downstream.
 
 ## Installation
