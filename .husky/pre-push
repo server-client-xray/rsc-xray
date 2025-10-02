@@ -3,8 +3,9 @@
 
 set -e
 
-if [ "$SKIP_DRY" = "1" ]; then
-  echo "Skipping dry Vercel build (SKIP_DRY=1)."
+# Skip dry build in CI environments
+if [ "$CI" = "true" ] || [ "$SKIP_DRY" = "1" ]; then
+  echo "Skipping dry Vercel build (CI or SKIP_DRY=1)."
   exit 0
 fi
 
