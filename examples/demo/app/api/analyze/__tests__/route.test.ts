@@ -244,10 +244,13 @@ export function DateDisplay({ date }: { date: Date }) {
     expect(response.status).toBe(200);
     expect(result.diagnostics).toBeDefined();
     expect(result.rulesExecuted).toContain('react19-cache-opportunity');
-    // Should detect duplicate fetch
+    // Should detect duplicate fetch (may not be first due to suspense diagnostics)
     expect(result.diagnostics.length).toBeGreaterThan(0);
-    expect(result.diagnostics[0].message).toContain('Duplicate fetch');
-    expect(result.diagnostics[0].message).toContain('/api/user/1');
+    const cacheDiagnostics = result.diagnostics.filter((d) =>
+      d.message.includes('Duplicate fetch')
+    );
+    expect(cacheDiagnostics.length).toBeGreaterThan(0);
+    expect(cacheDiagnostics[0].message).toContain('/api/user/1');
   });
 
   it('should analyze route-config scenario with force-dynamic + revalidate conflict', async () => {
