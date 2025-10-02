@@ -1,5 +1,18 @@
 # @rsc-xray/analyzer
 
+## 0.7.2
+
+### Patch Changes
+
+- a0b7039: Add TypeScript as runtime dependency
+
+  TypeScript is now a runtime dependency of @rsc-xray/analyzer since it imports and uses the TypeScript compiler API at runtime. This fixes deployment issues in environments like Vercel where workspace dependencies aren't available.
+
+- 734d89e: fix(analyzer): Use AST positions for client-size diagnostics
+
+  Fixed duplicate-dependencies and client-component-oversized diagnostics to use actual AST positions instead of hardcoded line 1, col 1. Now correctly points to the first import statement regardless of 'use client' directives or comments above.
+  - @rsc-xray/schemas@0.7.2
+
 ## 0.7.1
 
 ### Patch Changes
