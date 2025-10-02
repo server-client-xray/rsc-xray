@@ -11,6 +11,26 @@
   overflow: hidden;
 }
 
+.rightPanelContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mainEditor {
+  flex: 1;
+  min-height: 0; /* Allow flex shrinking */
+  overflow: hidden;
+}
+
+.contextPanel {
+  height: 250px;
+  min-height: 150px;
+  max-height: 50%;
+  border-top: 2px solid var(--color-border);
+  overflow: hidden;
+}
+
 .editorPlaceholder {
   display: flex;
   flex-direction: column;

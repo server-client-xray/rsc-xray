@@ -10,6 +10,7 @@ import { ExplanationPanel } from './ExplanationPanel';
 import { CodeEditor } from './CodeEditor';
 import { StatusBar } from './StatusBar';
 import { ProModal, type ProFeature } from './ProPreview';
+import { ContextTabs } from './ContextTabs';
 import styles from './DemoApp.module.css';
 
 /**
@@ -95,12 +96,21 @@ export function DemoApp() {
             />
           }
           rightPanel={
-            <CodeEditor
-              key={selectedScenarioId} // Force remount on scenario change
-              scenario={scenario}
-              highlightLine={initialParams.line}
-              onAnalysisComplete={handleAnalysisComplete}
-            />
+            <div className={styles.rightPanelContainer}>
+              <div className={styles.mainEditor}>
+                <CodeEditor
+                  key={selectedScenarioId} // Force remount on scenario change
+                  scenario={scenario}
+                  highlightLine={initialParams.line}
+                  onAnalysisComplete={handleAnalysisComplete}
+                />
+              </div>
+              {scenario.contextFiles && scenario.contextFiles.length > 0 && (
+                <div className={styles.contextPanel}>
+                  <ContextTabs files={scenario.contextFiles} />
+                </div>
+              )}
+            </div>
           }
         />
       </main>

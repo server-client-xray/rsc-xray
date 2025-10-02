@@ -41,6 +41,12 @@ export interface Scenario {
     };
     reactVersion?: string;
   };
+  /** Additional context files to show in tabs (read-only) */
+  contextFiles?: Array<{
+    fileName: string;
+    code: string;
+    description: string;
+  }>;
 }
 
 export const scenarios: Scenario[] = [
@@ -179,9 +185,13 @@ export function HeavyComponent() {
     description: 'Multiple client components bundling the same heavy library',
     code: `'use client';
 import { format } from 'date-fns'; // Shared with Header.tsx and Footer.tsx
+import _ from 'lodash'; // Shared
+import moment from 'moment'; // Shared
 
 export function DateDisplay({ date }: { date: Date }) {
-  return <div>{format(date, 'PPP')}</div>;
+  const formatted = format(date, 'PPP');
+  const sorted = _.sortBy([formatted]);
+  return <div>{moment(date).fromNow()}: {sorted[0]}</div>;
 }`,
     explanation: {
       what: 'This component (DateDisplay.tsx) shares 3 dependencies (date-fns, lodash, moment) with Header.tsx and Footer.tsx',
@@ -198,7 +208,7 @@ export function DateDisplay({ date }: { date: Date }) {
     context: {
       clientBundles: [
         {
-          filePath: 'components/DateDisplay.tsx',
+          filePath: 'demo.tsx', // Use demo.tsx for main file
           chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
           totalBytes: 45000,
         },
@@ -214,6 +224,33 @@ export function DateDisplay({ date }: { date: Date }) {
         },
       ],
     },
+    contextFiles: [
+      {
+        fileName: 'Header.tsx',
+        code: `'use client';
+import { format } from 'date-fns'; // Same as DateDisplay
+import _ from 'lodash'; // Same as DateDisplay
+import moment from 'moment'; // Same as DateDisplay
+
+export function Header() {
+  const now = moment().format('MMM D, YYYY');
+  return <header>{now}</header>;
+}`,
+        description: 'Header component also imports date-fns, lodash, and moment',
+      },
+      {
+        fileName: 'Footer.tsx',
+        code: `'use client';
+import { format } from 'date-fns'; // Same as DateDisplay
+import { sortBy } from 'lodash'; // Same as DateDisplay
+import moment from 'moment'; // Same as DateDisplay
+
+export function Footer() {
+  return <footer>© {moment().year()}</footer>;
+}`,
+        description: 'Footer component also imports date-fns, lodash, and moment',
+      },
+    ],
   },
 
   {
