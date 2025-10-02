@@ -162,8 +162,7 @@ export default function LargeClientComponent() {
   });
 
   it('should analyze duplicate-dependencies scenario and return diagnostics', async () => {
-    const code = `'use client';
-import { format } from 'date-fns';
+    const code = `import { format } from 'date-fns';
 
 export function DateDisplay({ date }: { date: Date }) {
   return <div>{format(date, 'PPP')}</div>;

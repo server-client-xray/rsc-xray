@@ -4,12 +4,17 @@ Interactive tutorial for learning React Server Components analysis with a split-
 
 ## Architecture
 
-- **Browser-side LSP analysis** using `@rsc-xray/lsp-server` (no server needed!)
-- **CodeMirror 6** for lightweight, fast editing experience
+- **Server-side LSP analysis** via Next.js API route (`/api/analyze`)
+  - Uses `@rsc-xray/lsp-server` and `@rsc-xray/analyzer`
+  - Required due to Node.js API dependencies (fs, vm, path)
+  - Still provides real-time UX with 300ms debounce
+- **CodeMirror 6** for lightweight, fast editing experience (~100KB vs Monaco's 2MB)
 - Split-panel layout: explanation (left) + code editor (right)
-- Real-time diagnostics with 500ms debounce
-- Scenario selector with categorized violations
-- Pro feature teasers and upgrade CTAs
+- Real-time diagnostics with red/yellow squiggles
+- Scenario selector with categorized violations (8 scenarios: 7 OSS + 1 Pro teaser)
+- Pro feature teasers with visual replicas (safe for OSS)
+- Deep linking support (`?scenario=...&line=...`)
+- Light/dark mode adaptive theming
 
 ## Development
 
@@ -26,18 +31,14 @@ Visit http://localhost:3001
 
 ## Dependencies
 
-This demo requires published versions of:
+This demo uses workspace dependencies (no npm publishing required for deployment):
 
-- `@rsc-xray/lsp-server@^0.2.0`
-- `@rsc-xray/schemas@^0.6.5`
+- `@rsc-xray/lsp-server@workspace:*` - LSP orchestration layer
+- `@rsc-xray/schemas@workspace:*` - Type definitions
+- `@rsc-xray/analyzer` (transitive) - Core analysis engine
 
-**Before deployment:**
-
-1. Ensure PR #132 (vitest fix) is merged ✅
-2. Ensure PR #131 (changeset release) is merged to publish packages
-3. Verify packages are available on npm
-
-During local development, `workspace:` protocol uses local packages automatically.
+Vercel resolves workspace packages via `pnpm-workspace.yaml` and `pnpm-lock.yaml`.
+During local development, workspace packages are linked automatically.
 
 ## Editor Choice: CodeMirror 6
 
@@ -49,7 +50,12 @@ During local development, `workspace:` protocol uses local packages automaticall
 
 ## Deployment
 
-Deploys to **demo.rsc-xray.dev** from OSS repo via Vercel.
+**Live Demo**: [demo.rsc-xray.dev](https://demo.rsc-xray.dev) (or rsc-xray-demo.vercel.app)
+
+Deployed via Vercel with automatic deployments:
+
+- **Production**: Merges to `main` branch
+- **Preview**: Every PR
 
 ```bash
 # Build for production
@@ -57,35 +63,45 @@ pnpm build
 
 # Preview locally
 pnpm start
+
+# Deploy via Vercel CLI
+vercel          # Preview
+vercel --prod   # Production
 ```
+
+**See [DEPLOYMENT.md](./DEPLOYMENT.md) for full deployment guide.**
 
 ## Testing
 
 ```bash
-# Run unit tests
+# Run unit tests (28 tests)
 pnpm test
 
-# Run E2E tests
+# Run E2E tests (5 smoke tests with Playwright)
 pnpm test:e2e
+
+# Run E2E with UI
+pnpm test:e2e:ui
 ```
 
 ## Features
 
-### Current
+### Implemented (T1.15.1-8)
 
-- Split-panel layout with responsive design
-- Scenario selector dropdown
-- Browser-side LSP analysis (real-time)
-- CodeMirror editor with diagnostics
-- Status bar with analysis metrics
-- Deep linking support
+- ✅ Split-panel layout (40% explanation / 60% code)
+- ✅ Scenario selector with 8 scenarios (7 OSS + 1 Pro)
+- ✅ Server-side LSP analysis via API route
+- ✅ CodeMirror 6 editor with real-time diagnostics
+- ✅ Status bar with analysis metrics (duration, count)
+- ✅ Deep linking (`?scenario=...&line=...`)
+- ✅ Pro feature teasers (4 visual replicas: Boundary Tree, Cache Lens, Flight Timeline, Hydration)
+- ✅ Light/dark mode theming
+- ✅ E2E test setup (Playwright)
+- ✅ Vercel deployment
 
-### Pro Teasers
+### Pending (T1.15.9)
 
-- Advanced performance rules (Pro badge)
-- VS Code extension promo
-- Pro overlay visualization
-- Upgrade CTAs throughout
+- ⏳ Responsive mobile layout (stacked panels, tabs)
 
 ## References
 
