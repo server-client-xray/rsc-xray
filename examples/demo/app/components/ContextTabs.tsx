@@ -65,7 +65,7 @@ export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
 
         // Smart highlight length based on diagnostic type
         let highlightLength: number;
-        const lineText = viewRef.current.state.doc.sliceString(lineObj.from, lineObj.to);
+        const lineText = viewRef.current!.state.doc.sliceString(lineObj.from, lineObj.to);
 
         // For import-related diagnostics, find and highlight the package name (string literal)
         if (diag.rule === 'duplicate-dependencies' || diag.rule === 'client-forbidden-import') {
