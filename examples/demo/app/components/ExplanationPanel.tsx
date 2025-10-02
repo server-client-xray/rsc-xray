@@ -3,12 +3,14 @@
 import type { ReactElement } from 'react';
 import { Scenario } from '../lib/scenarios';
 import { ScenarioSelector } from './ScenarioSelector';
+import type { ProFeature } from './ProPreview';
 import styles from './ExplanationPanel.module.css';
 
 interface ExplanationPanelConfig {
   scenario: Scenario;
   diagnosticsCount: number;
   onSelectScenario: (scenarioId: string) => void;
+  onOpenProModal: (feature: ProFeature) => void;
 }
 
 /**
@@ -18,12 +20,13 @@ interface ExplanationPanelConfig {
  * - Scenario selector dropdown
  * - Rule explanation (What/Why/How)
  * - Current diagnostics count
- * - Pro feature teaser (if applicable)
+ * - Pro feature teaser with interactive preview buttons
  */
 export function ExplanationPanel({
   scenario,
   diagnosticsCount,
   onSelectScenario,
+  onOpenProModal,
 }: ExplanationPanelConfig): ReactElement {
   return (
     <div className={styles.panel}>
@@ -84,6 +87,38 @@ export function ExplanationPanel({
                 <li key={i}>{feature}</li>
               ))}
             </ul>
+
+            <div className={styles.proPreviewButtons}>
+              <button
+                type="button"
+                className={styles.previewButton}
+                onClick={() => onOpenProModal('overlay')}
+              >
+                👁️ Preview Boundary Tree
+              </button>
+              <button
+                type="button"
+                className={styles.previewButton}
+                onClick={() => onOpenProModal('cache-lens')}
+              >
+                🔍 Preview Cache Lens
+              </button>
+              <button
+                type="button"
+                className={styles.previewButton}
+                onClick={() => onOpenProModal('flight-timeline')}
+              >
+                📊 Preview Flight Timeline
+              </button>
+              <button
+                type="button"
+                className={styles.previewButton}
+                onClick={() => onOpenProModal('hydration')}
+              >
+                ⚡ Preview Hydration
+              </button>
+            </div>
+
             <a href="https://rsc-xray.dev/pricing" className={styles.upgradeButton}>
               {scenario.isPro ? 'Get Pro Access' : 'Learn More'}
             </a>
