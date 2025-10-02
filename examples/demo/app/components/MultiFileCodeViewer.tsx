@@ -34,6 +34,12 @@ interface MultiFileCodeViewerConfig {
   onFileChange?: (fileName: string) => void;
   /** Callback when editable file content changes */
   onCodeChange?: (fileName: string, code: string) => void;
+  /** Enable real-time analysis for editable files (triggers onAnalyze callback) */
+  enableRealTimeAnalysis?: boolean;
+  /** Callback to perform analysis (return diagnostics for all files) */
+  onAnalyze?: (fileName: string, code: string) => Promise<Array<Diagnostic | Suggestion>>;
+  /** Debounce delay for real-time analysis in ms (default: 300) */
+  analysisDebounceMs?: number;
 }
 
 /**
@@ -64,6 +70,9 @@ export function MultiFileCodeViewer({
   initialFile,
   onFileChange,
   onCodeChange,
+  enableRealTimeAnalysis = false,
+  onAnalyze,
+  analysisDebounceMs = 300,
 }: MultiFileCodeViewerConfig) {
   const [activeFileName, setActiveFileName] = useState<string>(
     initialFile || files[0]?.fileName || ''
@@ -71,8 +80,40 @@ export function MultiFileCodeViewer({
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [liveDiagnostics, setLiveDiagnostics] =
+    useState<Array<Diagnostic | Suggestion>>(diagnostics);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const activeFile = files.find((f) => f.fileName === activeFileName);
+
+  // Use live diagnostics if real-time analysis is enabled, otherwise use passed diagnostics
+  const activeDiagnostics = enableRealTimeAnalysis ? liveDiagnostics : diagnostics;
+
+  // Trigger analysis with debounce
+  const triggerAnalysis = (fileName: string, code: string) => {
+    if (!enableRealTimeAnalysis || !onAnalyze) return;
+
+    // Clear existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    // Set analyzing state immediately
+    setIsAnalyzing(true);
+
+    // Debounce the actual analysis
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const newDiagnostics = await onAnalyze(fileName, code);
+        setLiveDiagnostics(newDiagnostics);
+        setIsAnalyzing(false);
+      } catch (error) {
+        console.error('[MultiFileCodeViewer] Analysis error:', error);
+        setIsAnalyzing(false);
+      }
+    }, analysisDebounceMs);
+  };
 
   // Convert RSC X-Ray diagnostics to CodeMirror diagnostics for the active file
   const convertDiagnostics = (
@@ -151,10 +192,18 @@ export function MultiFileCodeViewer({
         basicSetup,
         javascript({ jsx: true, typescript: activeFile.language !== 'javascript' }),
         EditorView.editable.of(activeFile.editable || false),
-        linter(() => convertDiagnostics(diagnostics, activeFile.fileName)),
+        linter(() => convertDiagnostics(activeDiagnostics, activeFile.fileName)),
         EditorView.updateListener.of((update) => {
-          if (update.docChanged && activeFile.editable && onCodeChange) {
-            onCodeChange(activeFile.fileName, update.state.doc.toString());
+          if (update.docChanged && activeFile.editable) {
+            const newCode = update.state.doc.toString();
+
+            // Trigger user callback
+            if (onCodeChange) {
+              onCodeChange(activeFile.fileName, newCode);
+            }
+
+            // Trigger real-time analysis if enabled
+            triggerAnalysis(activeFile.fileName, newCode);
           }
         }),
         EditorView.theme({
@@ -199,7 +248,7 @@ export function MultiFileCodeViewer({
         forceLinting(viewRef.current);
       }
     });
-  }, [diagnostics, isReady]);
+  }, [activeDiagnostics, isReady]);
 
   const handleTabChange = (fileName: string) => {
     setActiveFileName(fileName);
@@ -230,6 +279,11 @@ export function MultiFileCodeViewer({
       {/* File description (optional) */}
       {activeFile?.description && (
         <div className={styles.description}>{activeFile.description}</div>
+      )}
+
+      {/* Analyzing indicator */}
+      {isAnalyzing && enableRealTimeAnalysis && (
+        <div className={styles.analyzingIndicator}>⚡ Analyzing...</div>
       )}
 
       {/* CodeMirror editor */}
