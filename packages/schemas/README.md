@@ -1,3 +1,6 @@
+[![npm](https://img.shields.io/npm/v/@rsc-xray/schemas.svg)](https://www.npmjs.com/package/@rsc-xray/schemas)
+[![Downloads](https://img.shields.io/npm/dm/@rsc-xray/schemas.svg)](https://www.npmjs.com/package/@rsc-xray/schemas)
+
 # @rsc-xray/schemas
 
 [![npm](https://img.shields.io/npm/v/@rsc-xray/schemas.svg)](https://www.npmjs.com/package/@rsc-xray/schemas)

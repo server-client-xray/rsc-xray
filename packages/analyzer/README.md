@@ -13,6 +13,36 @@ Static analyzer that inspects a Next.js App Router build and produces the shared
 - Validates serialization boundaries: flags non-serializable props (functions, Date, Map, class instances) passed from server to client components.
 - Folds hydration durations and Flight samples (when available) into the model for richer tooling downstream.
 
+## Detection Rules
+
+The analyzer includes these built-in rules (all FREE/OSS):
+
+**Component Boundaries:**
+
+- `server-client-serialization-violation` — Non-serializable props (functions, Dates, class instances, Symbols, Promises)
+- `client-forbidden-import` — Node.js APIs (`fs`, `os`, `child_process`, etc.) in client components
+
+**Suspense & Streaming:**
+
+- `suspense-boundary-missing` — Async server components without Suspense wrapper
+- `suspense-boundary-opportunity` — Potential for parallel streaming with multiple Suspense boundaries
+
+**Bundle Size & Performance:**
+
+- `client-component-oversized` — Client islands exceeding 50KB threshold
+- `duplicate-dependencies` — Shared dependencies across multiple client islands
+
+**Data Fetching:**
+
+- `server-promise-all` — Sequential awaits that could be parallelized
+- `client-hoist-fetch` — Client-side fetches that should move to server
+- `react19-cache-opportunity` — Manual deduplication that could use React 19 `cache()`
+
+**Route Configuration:**
+
+- `route-segment-config-conflict` — Conflicts between route config and actual behavior
+- `route-waterfall` — Route-level sequential data fetching patterns
+
 ## Installation
 
 ```bash
