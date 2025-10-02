@@ -256,9 +256,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       };
     }
 
+    // 🎯 IMPORTANT: Don't pass scenario parameter to analyzer!
+    // The 'scenario' field in LspAnalysisRequest acts as a FILTER - it only runs that scenario's rules.
+    // For the demo, we want to run ALL applicable OSS rules so users can play and experiment.
+    // We'll use body.scenario only for demo-specific logic (context, expansions, etc.)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { scenario, ...analysisRequest } = analysisBody;
+
     // For duplicate-dependencies scenario, we pass 3 bundles to detect duplication
     // The analyzer will return 3 diagnostics (one per file), which will be shown in their respective tabs
-    const result = await analyze(analysisBody);
+    const result = await analyze(analysisRequest);
 
     // Expand duplicate-dependencies diagnostics to show one per import (instead of one per file)
     // This also handles positioning for context files, so we don't need fixContextFileDiagnostics
