@@ -251,10 +251,18 @@ export function MultiFileCodeViewer({
       activeFile?.editable &&
       !hasRunInitialAnalysis.current
     ) {
+      console.log('[MultiFileCodeViewer] Running initial analysis for', activeFile.fileName);
       hasRunInitialAnalysis.current = true;
       triggerAnalysis(activeFile.fileName, activeFile.code);
     }
   }, [enableRealTimeAnalysis, onAnalyze, activeFile, triggerAnalysis]);
+
+  // Reset the flag when component unmounts (for proper remounting)
+  useEffect(() => {
+    return () => {
+      hasRunInitialAnalysis.current = false;
+    };
+  }, []);
 
   // Update diagnostics when they change
   useEffect(() => {
