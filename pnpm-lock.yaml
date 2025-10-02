@@ -69,10 +69,10 @@ importers:
         specifier: ^6.38.4
         version: 6.38.4
       '@rsc-xray/lsp-server':
-        specifier: workspace:*
+        specifier: ^0.2.1
         version: link:../../packages/lsp-server
       '@rsc-xray/schemas':
-        specifier: workspace:*
+        specifier: ^0.7.1
         version: link:../../packages/schemas
       codemirror:
         specifier: ^6.0.2

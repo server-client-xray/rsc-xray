@@ -12,7 +12,7 @@
     "lint": "pnpm exec eslint \"packages/**/src/**/*.{ts,tsx,js}\" \"examples/next-app/app/**/*.{ts,tsx,js}\"",
     "format": "pnpm exec prettier --write .",
     "format:check": "pnpm exec prettier --check .",
-    "prepare": "husky",
+    "postinstall": "husky || true",
     "changeset": "changeset",
     "version:packages": "changeset version && pnpm install --no-frozen-lockfile",
     "release": "changeset publish"
