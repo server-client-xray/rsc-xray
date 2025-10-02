@@ -17,11 +17,10 @@
 
 'use client';
 
-import type { ReactElement } from 'react';
 import { mockBoundaryTree, type MockNode } from './mockData';
 import styles from './ProPreview.module.css';
 
-export function BoundaryTreePreview(): ReactElement {
+export function BoundaryTreePreview() {
   const { route, nodes } = mockBoundaryTree;
 
   return (
@@ -56,7 +55,7 @@ export function BoundaryTreePreview(): ReactElement {
   );
 }
 
-function NodePreview({ node, level }: { node: MockNode; level: number }): ReactElement {
+function NodePreview({ node, level }: { node: MockNode; level: number }) {
   const icon = getNodeIcon(node.kind);
   const color = getNodeColor(node.kind);
 

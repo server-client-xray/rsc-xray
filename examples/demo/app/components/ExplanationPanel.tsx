@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactElement } from 'react';
 import { Scenario } from '../lib/scenarios';
 import { ScenarioSelector } from './ScenarioSelector';
 import type { ProFeature } from './ProPreview';
@@ -27,7 +26,7 @@ export function ExplanationPanel({
   diagnosticsCount,
   onSelectScenario,
   onOpenProModal,
-}: ExplanationPanelConfig): ReactElement {
+}: ExplanationPanelConfig) {
   return (
     <div className={styles.panel}>
       <ScenarioSelector selectedScenarioId={scenario.id} onSelectScenario={onSelectScenario} />

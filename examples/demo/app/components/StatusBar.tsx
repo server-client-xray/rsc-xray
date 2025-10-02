@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactElement } from 'react';
 import styles from './StatusBar.module.css';
 
 interface StatusBarConfig {
@@ -9,7 +8,7 @@ interface StatusBarConfig {
   duration?: number;
 }
 
-export function StatusBar({ status, diagnosticsCount, duration }: StatusBarConfig): ReactElement {
+export function StatusBar({ status, diagnosticsCount, duration }: StatusBarConfig) {
   const statusText = {
     idle: 'Ready',
     analyzing: 'Analyzing...',

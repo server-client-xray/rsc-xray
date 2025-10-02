@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactElement } from 'react';
 import { useState } from 'react';
 import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
 import { scenarios, getScenario } from '../lib/scenarios';
@@ -27,7 +26,7 @@ import styles from './DemoApp.module.css';
  * - ?scenario=<id> - Load specific scenario
  * - ?line=<number> - Highlight specific line in editor
  */
-export function DemoApp(): ReactElement {
+export function DemoApp() {
   const { initialParams } = useDeepLink();
 
   // Initialize scenario from URL param or default to first scenario

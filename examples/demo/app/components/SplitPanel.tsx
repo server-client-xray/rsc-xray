@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import styles from './SplitPanel.module.css';
 
 interface SplitPanelConfig {
@@ -8,7 +8,7 @@ interface SplitPanelConfig {
   rightPanel: ReactNode;
 }
 
-export function SplitPanel({ leftPanel, rightPanel }: SplitPanelConfig): ReactElement {
+export function SplitPanel({ leftPanel, rightPanel }: SplitPanelConfig) {
   return (
     <div className={styles.container}>
       <div className={styles.leftPanel}>{leftPanel}</div>

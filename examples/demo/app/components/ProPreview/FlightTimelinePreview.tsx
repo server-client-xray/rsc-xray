@@ -16,11 +16,10 @@
 
 'use client';
 
-import type { ReactElement } from 'react';
 import { mockFlightTimeline } from './mockData';
 import styles from './ProPreview.module.css';
 
-export function FlightTimelinePreview(): ReactElement {
+export function FlightTimelinePreview() {
   const { route, chunks } = mockFlightTimeline;
   const maxTime = Math.max(...chunks.map((c) => c.timestamp));
 

@@ -16,11 +16,10 @@
 
 'use client';
 
-import type { ReactElement } from 'react';
 import { mockCacheLens } from './mockData';
 import styles from './ProPreview.module.css';
 
-export function CacheLensPreview(): ReactElement {
+export function CacheLensPreview() {
   const { tags } = mockCacheLens;
 
   return (

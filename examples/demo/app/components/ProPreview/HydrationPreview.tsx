@@ -16,11 +16,10 @@
 
 'use client';
 
-import type { ReactElement } from 'react';
 import { mockHydration } from './mockData';
 import styles from './ProPreview.module.css';
 
-export function HydrationPreview(): ReactElement {
+export function HydrationPreview() {
   const { route, islands, totalMs } = mockHydration;
   const maxMs = Math.max(...islands.map((i) => i.hydrationMs));
 
