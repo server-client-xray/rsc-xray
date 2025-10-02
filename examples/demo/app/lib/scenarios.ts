@@ -143,6 +143,9 @@ export function FileReader() {
     rule: 'client-component-oversized',
     description: 'Client Component bundle exceeds size threshold',
     code: `'use client';
+// ⚠️ WARNING: This demo uses SIMULATED bundle size (312.5KB)
+// Editing imports won't change the size because it requires real build output
+// In production, RSC X-Ray analyzes actual webpack/turbopack bundle sizes
 import _ from 'lodash'; // 71KB!
 import moment from 'moment'; // 67KB!
 import * as icons from 'react-icons/all'; // 200KB+!
@@ -184,6 +187,9 @@ export function HeavyComponent() {
     rule: 'duplicate-dependencies',
     description: 'Multiple client components bundling the same heavy library',
     code: `'use client';
+// ⚠️ WARNING: This demo uses SIMULATED bundle data below
+// Editing imports won't change diagnostics because it requires real build output
+// In production, RSC X-Ray analyzes actual webpack/turbopack bundles
 import { format } from 'date-fns'; // Shared with Header.tsx and Footer.tsx
 import _ from 'lodash'; // Shared
 import moment from 'moment'; // Shared

@@ -251,7 +251,10 @@ export function MultiFileCodeViewer({
           '&': {
             height: '100%',
             fontSize: '14px',
-            backgroundColor: 'var(--color-bg-tertiary)',
+            // Read-only files get a slightly darker/muted background
+            backgroundColor: activeFile.editable
+              ? 'var(--color-bg-primary)'
+              : 'var(--color-bg-tertiary)',
           },
           '.cm-scroller': {
             overflow: 'auto',
@@ -259,9 +262,13 @@ export function MultiFileCodeViewer({
           },
           '.cm-content': {
             caretColor: activeFile.editable ? 'var(--color-text-primary)' : 'transparent',
+            // Slightly muted text for read-only files
+            opacity: activeFile.editable ? 1 : 0.85,
           },
           '.cm-gutters': {
-            backgroundColor: 'var(--color-bg-secondary)',
+            backgroundColor: activeFile.editable
+              ? 'var(--color-bg-secondary)'
+              : 'rgba(var(--color-bg-secondary-rgb, 30, 32, 36), 0.5)',
             color: 'var(--color-text-tertiary)',
             border: 'none',
           },
