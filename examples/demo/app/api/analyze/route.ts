@@ -91,15 +91,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     const result = await analyze(analysisBody);
 
-    // Filter diagnostics for duplicate-dependencies to only show demo.tsx
+    // Filter diagnostics for duplicate-dependencies to only show the first component
     // Note: 'duplicate-dependencies' will be added to LspAnalysisRequest['scenario'] in next analyzer release
     if (body.scenario === ('duplicate-dependencies' as LspAnalysisRequest['scenario'])) {
-      result.diagnostics = result.diagnostics.filter(
-        (diag) =>
-          diag.rule !== 'duplicate-dependencies' ||
-          diag.loc?.file === 'demo.tsx' ||
-          diag.loc?.file === body.fileName
-      );
+      result.diagnostics = result.diagnostics.filter((diag, index) => {
+        // Keep all non-duplicate-dependencies diagnostics
+        if (diag.rule !== 'duplicate-dependencies') return true;
+        // For duplicate-dependencies, only keep the first one (DateDisplay.tsx)
+        const duplicateDiags = result.diagnostics.filter(
+          (d) => d.rule === 'duplicate-dependencies'
+        );
+        return index === result.diagnostics.indexOf(duplicateDiags[0]);
+      });
     }
 
     // Add cache control headers to prevent any caching
