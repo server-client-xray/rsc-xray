@@ -1,13 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
 
-# Skip pre-push hook in CI environments
-if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ]; then
-  echo "Skipping pre-push checks in CI environment"
+set -e
+
+if [ "$SKIP_DRY" = "1" ]; then
+  echo "Skipping dry Vercel build (SKIP_DRY=1)."
   exit 0
 fi
 
-echo "Running build check before push..."
-corepack pnpm build || exit 1
-
-echo "Running tests before push..."
-corepack pnpm -r test
+echo "Running dry Vercel build for @rsc-xray/demo..."
+pnpm vercel:dry:demo

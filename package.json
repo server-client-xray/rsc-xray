@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "build": "pnpm -r build",
+    "vercel:dry:demo": "pnpm --filter @rsc-xray/demo install --link-workspace-packages=false --frozen-lockfile && pnpm --filter @rsc-xray/demo build",
     "test": "pnpm -r test",
     "lint": "pnpm exec eslint \"packages/**/src/**/*.{ts,tsx,js}\" \"examples/next-app/app/**/*.{ts,tsx,js}\"",
     "format": "pnpm exec prettier --write .",
