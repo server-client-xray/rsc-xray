@@ -1,5 +1,25 @@
 # @rsc-xray/analyzer
 
+## 0.7.0
+
+### Minor Changes
+
+- fef3576: Improve route-segment-config diagnostic positioning
+
+  Diagnostics now point to actual export statements instead of hardcoded `line: 1, col: 1`.
+  - Enhanced `parseRouteSegmentConfig` to track AST nodes for each config option
+  - New `getLocation` helper converts AST nodes to accurate line/col positions
+  - Updated `detectConfigConflicts` to use node positions for all diagnostics
+  - All 190 tests passing with no behavior changes
+
+  Result: Users see diagnostics on the exact problematic export statement (e.g., `export const dynamic = 'force-dynamic'`) instead of always pointing to the first line.
+
+### Patch Changes
+
+- 46383c4: Fix ES module imports by adding .js extensions to all relative imports/exports. This resolves module resolution errors when importing the package in Node.js environments.
+- 46383c4: Fix final missing .js extension in ES module import (clientForbiddenImports). This completes the ES module migration and resolves all Node.js module resolution errors.
+  - @rsc-xray/schemas@0.7.0
+
 ## 0.6.4
 
 ### Patch Changes
