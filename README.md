@@ -10,6 +10,7 @@ Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, 
 
 - Detect server/client boundaries (`'use client'`)
 - Suspense discovery & boundary placement analysis
+- **Serialization boundary validation** — Flag non-serializable props (functions, Date, Map, class instances) passed from server to client
 - Bundle bytes per island with size thresholds
 - Client component size warnings & duplicate dependency detection
 - Forbidden import rules (Node.js APIs in client components)
