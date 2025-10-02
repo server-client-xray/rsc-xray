@@ -28,7 +28,7 @@ const featureTitles: Record<ProFeature, string> = {
   hydration: 'Hydration Timings',
 };
 
-export function ProModal({ feature, isOpen, onClose }: ProModalConfig): ReactElement | null {
+export function ProModal({ feature, isOpen, onClose }: ProModalConfig) {
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
