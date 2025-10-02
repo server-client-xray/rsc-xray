@@ -6,7 +6,7 @@ A reusable, generic multi-file code viewer component with tab navigation, syntax
 
 `MultiFileCodeViewer` is a React component built on CodeMirror 6 that displays multiple code files in a tabbed interface. It supports:
 
-- **Tab Navigation**: Switch between multiple files
+- **Tab Navigation**: Switch between multiple files (auto-hides for single files)
 - **Syntax Highlighting**: TypeScript, JavaScript, JSX, TSX
 - **Read-only or Editable**: Configure per file
 - **Diagnostic Overlays**: Display errors/warnings from RSC X-Ray analyzer

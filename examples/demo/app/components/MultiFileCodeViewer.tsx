@@ -259,22 +259,24 @@ export function MultiFileCodeViewer({
 
   return (
     <div className={styles.container}>
-      {/* Tab navigation */}
-      <div className={styles.tabNavigation}>
-        {files.map((file) => (
-          <button
-            key={file.fileName}
-            className={`${styles.tabButton} ${
-              activeFileName === file.fileName ? styles.activeTabButton : ''
-            }`}
-            onClick={() => handleTabChange(file.fileName)}
-            title={file.description}
-          >
-            {file.fileName}
-            {file.editable && <span className={styles.editableIndicator}>✎</span>}
-          </button>
-        ))}
-      </div>
+      {/* Tab navigation (only show if multiple files) */}
+      {files.length > 1 && (
+        <div className={styles.tabNavigation}>
+          {files.map((file) => (
+            <button
+              key={file.fileName}
+              className={`${styles.tabButton} ${
+                activeFileName === file.fileName ? styles.activeTabButton : ''
+              }`}
+              onClick={() => handleTabChange(file.fileName)}
+              title={file.description}
+            >
+              {file.fileName}
+              {file.editable && <span className={styles.editableIndicator}>✎</span>}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* File description (optional) */}
       {activeFile?.description && (
