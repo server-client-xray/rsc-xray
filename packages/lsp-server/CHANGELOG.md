@@ -1,5 +1,17 @@
 # @rsc-xray/lsp-server
 
+## 0.2.1
+
+### Patch Changes
+
+- fix(analyzer): Use AST positions for client-size diagnostics
+
+  Fixed duplicate-dependencies and client-component-oversized diagnostics to use actual AST positions instead of hardcoded line 1, col 1. Now correctly points to the first import statement regardless of 'use client' directives or comments above.
+
+- Updated dependencies
+  - @rsc-xray/analyzer@0.7.1
+  - @rsc-xray/schemas@0.7.1
+
 ## 0.2.0
 
 ### Minor Changes

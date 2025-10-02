@@ -1,5 +1,13 @@
 # @rsc-xray/demo
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies
+  - @rsc-xray/lsp-server@0.2.1
+  - @rsc-xray/schemas@0.7.1
+
 ## 0.1.1
 
 ### Patch Changes
