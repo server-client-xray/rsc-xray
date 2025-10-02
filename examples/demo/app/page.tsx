@@ -1,4 +1,3 @@
-import type { ReactElement } from 'react';
 import { DemoApp } from './components/DemoApp';
 
 /**
@@ -10,6 +9,6 @@ import { DemoApp } from './components/DemoApp';
  * - Categorized scenarios (Fundamentals, Performance, Pro)
  * - Pro feature teasers and upgrade CTAs
  */
-export default function HomePage(): ReactElement {
+export default function HomePage() {
   return <DemoApp />;
 }

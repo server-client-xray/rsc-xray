@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactElement } from 'react';
 import { scenarios } from '../lib/scenarios';
 import styles from './ScenarioSelector.module.css';
 
@@ -17,10 +16,7 @@ interface ScenarioSelectorConfig {
  * - Performance: Optimization rules (free)
  * - Pro: Advanced features (requires upgrade)
  */
-export function ScenarioSelector({
-  selectedScenarioId,
-  onSelectScenario,
-}: ScenarioSelectorConfig): ReactElement {
+export function ScenarioSelector({ selectedScenarioId, onSelectScenario }: ScenarioSelectorConfig) {
   const fundamentals = scenarios.filter((s) => s.category === 'fundamentals');
   const performance = scenarios.filter((s) => s.category === 'performance');
   const pro = scenarios.filter((s) => s.category === 'pro');

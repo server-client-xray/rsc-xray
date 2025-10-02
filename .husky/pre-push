@@ -2,9 +2,12 @@
 
 # Skip pre-push hook in CI environments
 if [ -n "$CI" ] || [ -n "$GITHUB_ACTIONS" ]; then
-  echo "Skipping pre-push tests in CI environment"
+  echo "Skipping pre-push checks in CI environment"
   exit 0
 fi
+
+echo "Running build check before push..."
+corepack pnpm build || exit 1
 
 echo "Running tests before push..."
 corepack pnpm -r test

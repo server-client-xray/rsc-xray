@@ -1,13 +1,12 @@
 'use client';
 
-import type { ReactElement } from 'react';
 import styles from './Header.module.css';
 
 interface HeaderConfig {
   showUpgradeCTA: boolean;
 }
 
-export function Header({ showUpgradeCTA }: HeaderConfig): ReactElement {
+export function Header({ showUpgradeCTA }: HeaderConfig) {
   return (
     <header className={styles.header}>
       <div className={styles.logo}>

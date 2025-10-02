@@ -7,7 +7,6 @@
 
 'use client';
 
-import type { ReactElement } from 'react';
 import { BoundaryTreePreview } from './BoundaryTreePreview';
 import { CacheLensPreview } from './CacheLensPreview';
 import { FlightTimelinePreview } from './FlightTimelinePreview';
@@ -29,7 +28,7 @@ const featureTitles: Record<ProFeature, string> = {
   hydration: 'Hydration Timings',
 };
 
-export function ProModal({ feature, isOpen, onClose }: ProModalConfig): ReactElement | null {
+export function ProModal({ feature, isOpen, onClose }: ProModalConfig) {
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -74,7 +73,7 @@ export function ProModal({ feature, isOpen, onClose }: ProModalConfig): ReactEle
   );
 }
 
-function renderFeature(feature: ProFeature): ReactElement {
+function renderFeature(feature: ProFeature) {
   switch (feature) {
     case 'overlay':
       return <BoundaryTreePreview />;

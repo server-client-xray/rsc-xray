@@ -1,6 +1,5 @@
 'use client';
 
-import type { ReactElement } from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
@@ -35,11 +34,7 @@ interface CodeEditorConfig {
  * Note: Analysis runs server-side because @rsc-xray/analyzer
  * uses Node.js APIs. Still provides real-time UX with debouncing.
  */
-export function CodeEditor({
-  scenario,
-  highlightLine,
-  onAnalysisComplete,
-}: CodeEditorConfig): ReactElement {
+export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: CodeEditorConfig) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
