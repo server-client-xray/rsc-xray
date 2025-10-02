@@ -1,3 +1,6 @@
+[![npm](https://img.shields.io/npm/v/@rsc-xray/hydration.svg)](https://www.npmjs.com/package/@rsc-xray/hydration)
+[![Downloads](https://img.shields.io/npm/dm/@rsc-xray/hydration.svg)](https://www.npmjs.com/package/@rsc-xray/hydration)
+
 # @rsc-xray/hydration
 
 [![npm](https://img.shields.io/npm/v/@rsc-xray/hydration.svg)](https://www.npmjs.com/package/@rsc-xray/hydration)

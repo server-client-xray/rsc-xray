@@ -17,37 +17,194 @@ Command-line wrapper for the rsc-xray analyzer, report generator, and Flight tap
 pnpm add -D @rsc-xray/cli
 ```
 
-## Step-by-step usage
+## Quick Start
 
-1. **Prepare your project**
-   ```bash
-   pnpm next build
-   ```
-2. **Generate the model**
+```bash
+# 1. Build your Next.js app
+npm run build
 
-   ```bash
-   pnpm -F @rsc-xray/cli analyze --project ./examples/next-app --out ./model.json
-   ```
+# 2. Analyze and generate model
+npx @rsc-xray/cli analyze --project . --out model.json
 
-   - Validates the analyzer output against the shared JSON schema.
-   - Overwrites the target file only when validation succeeds.
+# 3. Generate HTML report
+npx @rsc-xray/cli report --model model.json --out report.html
 
-3. **Create the HTML report**
+# 4. Open report
+open report.html
+```
 
-   ```bash
-   pnpm -F @rsc-xray/cli report --model ./model.json --out ./report.html
-   ```
+## Commands
 
-   - Produces a static report you can open locally or upload as a CI artifact.
+### `analyze`
 
-4. **(Optional) Capture Flight streaming data**
+Generate analyzer model from Next.js build artifacts.
 
-   ```bash
-   pnpm -C examples/next-app dev &
-   pnpm -F @rsc-xray/cli flight-tap      --url http://localhost:3000/products/1      --route /products/[id]      --out ./.scx/flight.json      --timeout 30000
-   ```
+```bash
+npx @rsc-xray/cli analyze [options]
+```
 
-   - The timeout guard aborts hung streams; pass `--timeout 0` to disable it when debugging slower routes.
+**Options:**
+
+| Option             | Description                  | Default      |
+| ------------------ | ---------------------------- | ------------ |
+| `--project <path>` | Path to Next.js project root | `.`          |
+| `--dist <dir>`     | Build output directory       | `.next`      |
+| `--app <dir>`      | App directory name           | `app`        |
+| `--out <file>`     | Output file path             | `model.json` |
+| `--pretty`         | Pretty-print JSON output     | `false`      |
+
+**Example:**
+
+```bash
+npx @rsc-xray/cli analyze \
+  --project ./my-app \
+  --dist .next \
+  --app app \
+  --out analysis.json \
+  --pretty
+```
+
+### `report`
+
+Generate static HTML report from model.
+
+```bash
+npx @rsc-xray/cli report [options]
+```
+
+**Options:**
+
+| Option           | Description        | Default       |
+| ---------------- | ------------------ | ------------- |
+| `--model <file>` | Path to model.json | `model.json`  |
+| `--out <file>`   | Output file path   | `report.html` |
+
+**Example:**
+
+```bash
+npx @rsc-xray/cli report \
+  --model ./model.json \
+  --out ./public/rsc-report.html
+```
+
+### `flight-tap`
+
+Capture React Flight streaming chunks.
+
+```bash
+npx @rsc-xray/cli flight-tap [options]
+```
+
+**Options:**
+
+| Option           | Description               | Default            |
+| ---------------- | ------------------------- | ------------------ |
+| `--url <url>`    | URL to capture (required) | -                  |
+| `--route <path>` | Route path for labeling   | Extracted from URL |
+| `--out <file>`   | Output file path          | Prints to stdout   |
+| `--timeout <ms>` | Abort after timeout       | `30000`            |
+
+**Example:**
+
+```bash
+# Start dev server first
+npm run dev &
+
+# Capture Flight data
+npx @rsc-xray/cli flight-tap \
+  --url http://localhost:3000/products/1 \
+  --route /products/[id] \
+  --out flight.json \
+  --timeout 30000
+```
+
+**Tip:** Use `--timeout 0` to disable timeout when debugging slow routes.
+
+## Typical Workflow
+
+### Local Development
+
+```bash
+# Analyze after code changes
+npm run build
+npx @rsc-xray/cli analyze --project . --out model.json
+npx @rsc-xray/cli report --model model.json --out report.html
+open report.html
+```
+
+### CI Integration
+
+```yaml
+# .github/workflows/analyze.yml
+- name: Build Next.js app
+  run: npm run build
+
+- name: Analyze RSC boundaries
+  run: npx @rsc-xray/cli analyze --project . --out model.json
+
+- name: Generate report
+  run: npx @rsc-xray/cli report --model model.json --out report.html
+
+- name: Upload report artifact
+  uses: actions/upload-artifact@v3
+  with:
+    name: rsc-xray-report
+    path: report.html
+```
+
+## Troubleshooting
+
+### "Command not found"
+
+**Solution:** Install the package:
+
+```bash
+npm install -D @rsc-xray/cli
+```
+
+### "No .next directory found"
+
+**Solution:** Build your app first:
+
+```bash
+npm run build
+```
+
+### "Model validation failed"
+
+**Solution:** Ensure you're using Next.js 13.4+ with App Router. Check:
+
+- `app/` directory exists
+- `.next/` contains build artifacts
+- Next.js version is compatible
+
+### "Flight tap times out"
+
+**Solution:** Increase timeout or disable it:
+
+```bash
+npx @rsc-xray/cli flight-tap --url ... --timeout 60000
+# or
+npx @rsc-xray/cli flight-tap --url ... --timeout 0
+```
+
+### Report shows no routes
+
+**Possible causes:**
+
+1. App directory not found (default: `app/`)
+2. Build output not found (default: `.next/`)
+3. Not using Next.js App Router
+
+**Solution:** Specify custom paths:
+
+```bash
+npx @rsc-xray/cli analyze \
+  --project . \
+  --dist .next \
+  --app src/app \
+  --out model.json
+```
 
 ## Tests
 

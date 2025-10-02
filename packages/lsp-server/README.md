@@ -1,5 +1,8 @@
 # @rsc-xray/lsp-server
 
+[![npm](https://img.shields.io/npm/v/@rsc-xray/lsp-server.svg)](https://www.npmjs.com/package/@rsc-xray/lsp-server)
+[![Downloads](https://img.shields.io/npm/dm/@rsc-xray/lsp-server.svg)](https://www.npmjs.com/package/@rsc-xray/lsp-server)
+
 **Universal LSP wrapper for React Server Components analysis**
 
 This package provides a thin wrapper around the OSS `@rsc-xray/analyzer` for Language Server Protocol (LSP) usage. It works in **browser, Node.js, VS Code extensions, and GitHub Actions** with 8 essential correctness rules.
