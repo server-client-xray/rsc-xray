@@ -127,10 +127,13 @@ describe('React 19 cache() detector', () => {
         reactVersion: '19.0.0',
       });
 
-      expect(suggestions).toHaveLength(1);
+      expect(suggestions).toHaveLength(2); // One diagnostic per fetch call
       expect(suggestions[0]?.message).toContain('Duplicate fetch');
       expect(suggestions[0]?.message).toContain('/api/products');
       expect(suggestions[0]?.message).toContain('2 calls');
+      expect(suggestions[1]?.message).toContain('Duplicate fetch');
+      expect(suggestions[1]?.message).toContain('/api/products');
+      expect(suggestions[1]?.message).toContain('2 calls');
     });
 
     it('handles multiple different fetch URLs', () => {
@@ -147,9 +150,10 @@ describe('React 19 cache() detector', () => {
         reactVersion: '19.0.0',
       });
 
-      expect(suggestions.length).toBeGreaterThanOrEqual(2);
-      expect(suggestions.some((s) => s.message.includes('/api/users'))).toBe(true);
-      expect(suggestions.some((s) => s.message.includes('/api/posts'))).toBe(true);
+      // 2 calls to /api/users + 3 calls to /api/posts = 5 total diagnostics
+      expect(suggestions).toHaveLength(5);
+      expect(suggestions.filter((s) => s.message.includes('/api/users'))).toHaveLength(2);
+      expect(suggestions.filter((s) => s.message.includes('/api/posts'))).toHaveLength(3);
     });
 
     it('ignores single fetch calls', () => {
