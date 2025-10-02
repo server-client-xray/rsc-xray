@@ -133,22 +133,80 @@ export function MultiFileCodeViewer({
         const lineObj = viewRef.current!.state.doc.line(line + 1);
         const position = lineObj.from + col;
 
-        // Smart highlight length based on diagnostic type
-        let highlightLength: number;
+        // Smart highlight length based on diagnostic type and code patterns
         const lineText = viewRef.current!.state.doc.sliceString(lineObj.from, lineObj.to);
+        const fromCol = lineText.substring(col);
+        let highlightLength = Math.min(25, lineObj.to - position); // Default fallback
 
-        // For import-related diagnostics, find and highlight the package name (string literal)
-        if (diag.rule === 'duplicate-dependencies' || diag.rule === 'client-forbidden-import') {
-          const fromCol = lineText.substring(col);
+        // 1. Import-related: highlight package name (string literal)
+        if (
+          diag.rule === 'duplicate-dependencies' ||
+          diag.rule === 'client-forbidden-import' ||
+          diag.rule === 'client-component-oversized'
+        ) {
           const stringMatch = fromCol.match(/^['"]([^'"]+)['"]/);
           if (stringMatch) {
             highlightLength = stringMatch[0].length;
           } else {
-            highlightLength = Math.min(20, lineObj.to - position);
+            highlightLength = Math.min(30, lineObj.to - position);
           }
-        } else {
-          highlightLength = Math.min(20, lineObj.to - position);
         }
+        // 2. Route config: highlight config declaration (e.g., export const dynamic = "force-dynamic")
+        else if (diag.rule === 'route-segment-config-conflict') {
+          // Find the end of the statement (semicolon or end of line)
+          const statementMatch = fromCol.match(/^[^;]+/);
+          if (statementMatch) {
+            highlightLength = Math.min(statementMatch[0].length, lineObj.to - position);
+          } else {
+            highlightLength = Math.min(40, lineObj.to - position);
+          }
+        }
+        // 3. Serialization boundary: highlight non-serializable expression
+        else if (diag.rule === 'server-client-serialization-violation') {
+          // Try to find the expression: new Date(), () => {}, etc.
+          const exprPatterns = [
+            /^new\s+\w+\([^)]*\)/, // new Date(), new Map()
+            /^\([^)]*\)\s*=>\s*{[^}]*}/, // () => {}
+            /^\w+\(/, // functionCall(
+          ];
+
+          let matched = false;
+          for (const pattern of exprPatterns) {
+            const match = fromCol.match(pattern);
+            if (match) {
+              highlightLength = match[0].length;
+              matched = true;
+              break;
+            }
+          }
+
+          if (!matched) {
+            highlightLength = Math.min(30, lineObj.to - position);
+          }
+        }
+        // 4. Suspense boundary: highlight JSX element
+        else if (
+          diag.rule === 'suspense-boundary-missing' ||
+          diag.rule === 'suspense-boundary-opportunity'
+        ) {
+          // Find the JSX tag opening: <div>, <Component>, etc.
+          const jsxMatch = fromCol.match(/^<[\w.]+/);
+          if (jsxMatch) {
+            highlightLength = jsxMatch[0].length + 1; // Include closing >
+          } else {
+            highlightLength = Math.min(25, lineObj.to - position);
+          }
+        }
+        // 5. React 19 cache: highlight fetch call
+        else if (diag.rule === 'react19-cache-opportunity') {
+          const fetchMatch = fromCol.match(/^(await\s+)?fetch\s*\([^)]+\)/);
+          if (fetchMatch) {
+            highlightLength = fetchMatch[0].length;
+          } else {
+            highlightLength = Math.min(30, lineObj.to - position);
+          }
+        }
+        // 6. Default: use fallback (already set above)
 
         return {
           from: position,
@@ -235,16 +293,10 @@ export function MultiFileCodeViewer({
         EditorView.editable.of(activeFile.editable || false),
         linterExtension,
         EditorView.updateListener.of((update) => {
-          if (update.docChanged && activeFile.editable) {
+          if (update.docChanged && activeFile.editable && onCodeChange) {
             const newCode = update.state.doc.toString();
-
-            // Trigger user callback
-            if (onCodeChange) {
-              onCodeChange(activeFile.fileName, newCode);
-            }
-
-            // Trigger real-time analysis if enabled
-            triggerAnalysis(activeFile.fileName, newCode);
+            onCodeChange(activeFile.fileName, newCode);
+            // Note: Analysis is handled by the linter extension (see linterExtension above)
           }
         }),
         EditorView.theme({
