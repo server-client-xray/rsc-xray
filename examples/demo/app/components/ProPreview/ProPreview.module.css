@@ -1,0 +1,397 @@
+/* Pro Preview Components Styling */
+
+.preview {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.5rem;
+  background: var(--color-panel-bg);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.disclaimer {
+  padding: 0.75rem;
+  background: rgba(255, 165, 0, 0.1);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  border-radius: 4px;
+  color: var(--color-warning);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-fg);
+  margin: 0;
+}
+
+.subtitle,
+.route {
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+  font-family: var(--font-mono);
+}
+
+/* Boundary Tree Styles */
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.node {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.node:hover {
+  background: var(--color-hover);
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+.nodeName {
+  font-weight: 500;
+  flex: 1;
+}
+
+.server {
+  color: #10b981;
+}
+
+.client {
+  color: #3b82f6;
+}
+
+.route {
+  color: #8b5cf6;
+}
+
+.suspense {
+  color: #f59e0b;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.file {
+  color: var(--color-fg-muted);
+  font-size: 0.75rem;
+}
+
+/* Cache Lens Styles */
+
+.cacheGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.cacheTag {
+  padding: 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.tagHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.tagName {
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.tagCount {
+  padding: 0.25rem 0.5rem;
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-radius: 4px;
+  font-size: 0.75rem;
+}
+
+.tagRoutes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.tagRoutes strong {
+  color: var(--color-fg-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tagRoutes .route {
+  padding: 0.25rem 0.5rem;
+  background: var(--color-panel-bg);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+.simulation {
+  padding: 1rem;
+  background: var(--color-bg);
+  border: 1px dashed var(--color-border);
+  border-radius: 4px;
+}
+
+.simulation h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--color-fg);
+}
+
+.simNote {
+  margin: 0;
+  color: var(--color-fg-muted);
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+/* Flight Timeline Styles */
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 150px 1fr 80px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.chunkLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.chunkIndex {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+}
+
+.chunkName {
+  font-weight: 500;
+  font-size: 0.875rem;
+  color: var(--color-fg);
+}
+
+.chunkBar {
+  position: relative;
+  height: 24px;
+  background: var(--color-panel-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.chunkProgress {
+  height: 100%;
+  background: linear-gradient(to right, var(--color-accent), var(--color-accent-bright));
+  transition: width 0.3s ease;
+}
+
+.chunkTime {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-fg);
+  font-weight: 500;
+}
+
+.chunkSize {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+}
+
+.stats {
+  display: flex;
+  gap: 2rem;
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 4px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.statLabel {
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.statValue {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-fg);
+  font-family: var(--font-mono);
+}
+
+/* Hydration Timing Styles */
+
+.hydrationSummary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--color-bg);
+  border-radius: 4px;
+}
+
+.totalTime {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.totalLabel {
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.totalValue {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  font-family: var(--font-mono);
+}
+
+.islandCount {
+  font-size: 0.875rem;
+  color: var(--color-fg-muted);
+}
+
+.hydrationList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.hydrationItem {
+  padding: 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+}
+
+.islandInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.islandName {
+  font-weight: 600;
+  color: var(--color-fg);
+}
+
+.islandFile {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--color-fg-muted);
+}
+
+.islandMetrics {
+  display: grid;
+  grid-template-columns: 1fr 60px 80px;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.metricBar {
+  height: 8px;
+  background: var(--color-panel-bg);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.metricFill {
+  height: 100%;
+  background: var(--color-accent);
+  transition: width 0.3s ease;
+}
+
+.metricTime,
+.metricSize {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  color: var(--color-fg);
+  text-align: right;
+}
+
+/* Features List */
+
+.features {
+  padding: 1rem;
+  background: var(--color-bg);
+  border: 2px solid var(--color-accent-subtle);
+  border-radius: 4px;
+}
+
+.features h4 {
+  margin: 0 0 0.75rem 0;
+  color: var(--color-fg);
+  font-size: 1rem;
+}
+
+.features ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.features li {
+  color: var(--color-fg);
+  font-size: 0.875rem;
+}

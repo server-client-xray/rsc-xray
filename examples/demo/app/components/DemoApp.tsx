@@ -9,6 +9,7 @@ import { SplitPanel } from './SplitPanel';
 import { ExplanationPanel } from './ExplanationPanel';
 import { CodeEditor } from './CodeEditor';
 import { StatusBar } from './StatusBar';
+import { ProModal, type ProFeature } from './ProPreview';
 import styles from './DemoApp.module.css';
 
 /**
@@ -19,12 +20,20 @@ import styles from './DemoApp.module.css';
  * - Analysis status (idle/analyzing/error)
  * - Diagnostics from LSP analysis
  * - Code editor state and real-time analysis
+ * - Pro feature modal state
  */
 export function DemoApp(): ReactElement {
   const [selectedScenarioId, setSelectedScenarioId] = useState(scenarios[0].id);
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'error'>('idle');
   const [diagnostics, setDiagnostics] = useState<RscXrayDiagnostic[]>([]);
   const [analysisDuration, setAnalysisDuration] = useState<number | undefined>(undefined);
+  const [proModalState, setProModalState] = useState<{
+    isOpen: boolean;
+    feature: ProFeature | null;
+  }>({
+    isOpen: false,
+    feature: null,
+  });
 
   const scenario = getScenario(selectedScenarioId) || scenarios[0];
 
@@ -45,6 +54,14 @@ export function DemoApp(): ReactElement {
     setAnalysisStatus(config.status);
   };
 
+  const handleOpenProModal = (feature: ProFeature): void => {
+    setProModalState({ isOpen: true, feature });
+  };
+
+  const handleCloseProModal = (): void => {
+    setProModalState({ isOpen: false, feature: null });
+  };
+
   return (
     <div className={styles.app}>
       <Header showUpgradeCTA={true} />
@@ -56,6 +73,7 @@ export function DemoApp(): ReactElement {
               scenario={scenario}
               diagnosticsCount={diagnostics.length}
               onSelectScenario={handleSelectScenario}
+              onOpenProModal={handleOpenProModal}
             />
           }
           rightPanel={
@@ -73,6 +91,14 @@ export function DemoApp(): ReactElement {
         diagnosticsCount={diagnostics.length}
         duration={analysisDuration}
       />
+
+      {proModalState.feature && (
+        <ProModal
+          feature={proModalState.feature}
+          isOpen={proModalState.isOpen}
+          onClose={handleCloseProModal}
+        />
+      )}
     </div>
   );
 }
