@@ -73,7 +73,7 @@ describe('printSuggestions', () => {
 
       expect(result).toContain('CLIENT');
       expect(result).toContain('client-hoist-fetch');
-      expect(result).toContain('app/demo/ClientIsland.tsx:5:3');
+      expect(result).toContain('app/demo/ClientIsland.tsx:100-150');
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
