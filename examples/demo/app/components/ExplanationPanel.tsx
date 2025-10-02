@@ -74,16 +74,18 @@ export function ExplanationPanel({
           </div>
         )}
 
-        {scenario.isPro && scenario.proFeatures && (
+        {scenario.proFeatures && scenario.proFeatures.length > 0 && (
           <div className={styles.proTeaser}>
-            <h4 className={styles.proTeaserTitle}>✨ Pro Features</h4>
+            <h4 className={styles.proTeaserTitle}>
+              ✨ Pro Features {scenario.isPro && <span>(Required for this scenario)</span>}
+            </h4>
             <ul className={styles.proFeaturesList}>
               {scenario.proFeatures.map((feature, i) => (
                 <li key={i}>{feature}</li>
               ))}
             </ul>
-            <a href="https://rsc-xray.dev/pro" className={styles.upgradeButton}>
-              Upgrade to Pro
+            <a href="https://rsc-xray.dev/pricing" className={styles.upgradeButton}>
+              {scenario.isPro ? 'Get Pro Access' : 'Learn More'}
             </a>
           </div>
         )}

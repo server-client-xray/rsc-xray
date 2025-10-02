@@ -64,6 +64,11 @@ export default function Page() {
       why: 'Server Components run on the server, Client Components run in the browser. Functions cannot be serialized and sent over the network.',
       how: 'Move the function to the Client Component, or use a serializable prop like a URL for server actions',
     },
+    proFeatures: [
+      'VS Code quick fix: Convert to Server Action',
+      'Overlay visual boundary tree with component-level violations',
+      'Automated refactoring with codemod support',
+    ],
     contextDescription:
       "Analyzer knows 'ClientButton' is a Client Component, so it checks props passed to it",
     context: {
@@ -91,6 +96,11 @@ export function FileReader() {
       why: 'Client Components run in the browser, which does not have access to Node.js APIs like fs or path',
       how: 'Move file operations to Server Components, or fetch data from an API route',
     },
+    proFeatures: [
+      "VS Code diagnostics in Problems panel with 'use client' fix",
+      'Overlay visual tree showing client/server boundaries',
+      'Automatic refactoring to move logic to server components',
+    ],
   },
 
   {
@@ -111,6 +121,11 @@ export function FileReader() {
       why: 'Without Suspense, the entire page waits for data before showing anything to users',
       how: 'Wrap async components with <Suspense fallback={<Loading />}> for better UX',
     },
+    proFeatures: [
+      'VS Code quick fix: Wrap in Suspense with auto-import',
+      'Overlay visual indicators for missing/parallel Suspense opportunities',
+      'Automated codemod to add Suspense boundaries',
+    ],
   },
 
   // Performance Category
@@ -137,6 +152,11 @@ export function HeavyComponent() {
       why: 'Large bundles slow down page load and hurt mobile users on slow connections',
       how: 'Use lightweight alternatives, tree-shake imports, or move heavy logic to Server Components',
     },
+    proFeatures: [
+      'Dashboard with bundle size trends over time',
+      'VS Code quick fix: Convert to dynamic import with guidance',
+      'CI budget enforcement with PR comments',
+    ],
     contextDescription: 'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold)',
     context: {
       clientBundles: [
@@ -167,6 +187,11 @@ export function DateDisplay({ date }: { date: Date }) {
       why: 'Duplicate dependencies waste bandwidth and increase bundle size unnecessarily',
       how: 'Extract shared dependencies into a common chunk, or move to a shared utility Server Component',
     },
+    proFeatures: [
+      'Dashboard showing duplicate dependency analysis across all routes',
+      'Overlay visual map of shared chunks across components',
+      'CI trend tracking for dependency duplication over time',
+    ],
     contextDescription:
       'Analyzer detects 3 shared libraries (date-fns, lodash, moment) duplicated across client bundles',
     context: {
@@ -211,6 +236,11 @@ export function DateDisplay({ date }: { date: Date }) {
       why: 'Duplicate fetches waste bandwidth and slow down rendering',
       how: 'Wrap fetch in React 19 cache() to automatically deduplicate requests',
     },
+    proFeatures: [
+      'VS Code quick fix: Wrap fetch in cache() with auto-import',
+      'Overlay cache lens showing fetch request patterns',
+      'Dashboard tracking cache hit/miss rates over time',
+    ],
   },
 
   // Route Configuration
@@ -232,6 +262,11 @@ export default function Page() {
       why: 'ISR (Incremental Static Regeneration) with revalidate requires static or auto mode, not force-dynamic',
       how: "Remove 'force-dynamic' to enable ISR, or remove revalidate for fully dynamic rendering",
     },
+    proFeatures: [
+      'Overlay cache lens showing ISR/PPR metadata per route',
+      'Dashboard with route strategy (static/dynamic/ISR) visualization',
+      'CI monitoring for route config changes affecting cache behavior',
+    ],
     contextDescription:
       "Analyzer checks: dynamic = 'force-dynamic' + revalidate = 60 (conflicting options)",
     context: {
