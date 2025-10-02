@@ -1,9 +1,9 @@
 ---
-'@rsc-xray/schemas': major
-'@rsc-xray/analyzer': major
-'@rsc-xray/lsp-server': major
-'@rsc-xray/cli': major
-'@rsc-xray/report-html': major
+'@rsc-xray/schemas': minor
+'@rsc-xray/analyzer': minor
+'@rsc-xray/lsp-server': minor
+'@rsc-xray/cli': minor
+'@rsc-xray/report-html': minor
 ---
 
 BREAKING: Refactor diagnostic location schema to use character offset ranges
