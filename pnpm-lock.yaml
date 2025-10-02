@@ -70,10 +70,10 @@ importers:
         version: 6.38.4
       '@rsc-xray/lsp-server':
         specifier: ^0.2.1
-        version: link:../../packages/lsp-server
+        version: 0.2.1
       '@rsc-xray/schemas':
         specifier: ^0.7.1
-        version: link:../../packages/schemas
+        version: 0.7.1
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
@@ -1133,6 +1133,15 @@ packages:
     resolution: {integrity: sha512-APwKy6YUhvZaEoHyM+9xqmTpviEI+9eL7LoCH+aLcvWYHJ663qG5zx7WzWZY+a9qkg5JtzcMyJ9z0WtQBMDmgA==}
     cpu: [x64]
     os: [win32]
+
+  '@rsc-xray/analyzer@0.7.1':
+    resolution: {integrity: sha512-kRGmaFSfOswvZ/Alhk9js70Vk/lmMelYksihBwvvvYZ08jpn5zor12gVuRKP9ERwGS0v2I/2TaU1Sqk9x2KmYA==}
+
+  '@rsc-xray/lsp-server@0.2.1':
+    resolution: {integrity: sha512-Hlc1ss7LLWbFp96aKMpSkxnBD+yqMllYxLs56ExCPMqZ6SWIN8QDHrSswc21N29F24OkzulLaXw4PXo5hlygTg==}
+
+  '@rsc-xray/schemas@0.7.1':
+    resolution: {integrity: sha512-nE8rPOObPbIInYHR2zBU8gMhDlXrFPquVb9Tp1vvTh6oxc6yQOw2HJMBsytH+NKd3uPR1GQN17u7iZwTGK2Rtw==}
 
   '@sentry/core@9.46.0':
     resolution: {integrity: sha512-it7JMFqxVproAgEtbLgCVBYtQ9fIb+Bu0JD+cEplTN/Ukpe6GaolyYib5geZqslVxhp2sQgT+58aGvfd/k0N8Q==}
@@ -4028,6 +4037,17 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.50.2':
     optional: true
+
+  '@rsc-xray/analyzer@0.7.1':
+    dependencies:
+      '@rsc-xray/schemas': 0.7.1
+
+  '@rsc-xray/lsp-server@0.2.1':
+    dependencies:
+      '@rsc-xray/analyzer': 0.7.1
+      '@rsc-xray/schemas': 0.7.1
+
+  '@rsc-xray/schemas@0.7.1': {}
 
   '@sentry/core@9.46.0': {}
 
