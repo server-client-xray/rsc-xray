@@ -23,7 +23,7 @@ export function StatusBar({ status, diagnosticsCount, duration }: StatusBarConfi
   };
 
   return (
-    <footer className={styles.statusBar}>
+    <footer className={styles.statusBar} data-testid="status-bar">
       <div className={styles.statusLeft}>
         <span className={`${styles.statusIndicator} ${styles[status]}`}>
           {statusIcon[status]} {statusText[status]}
