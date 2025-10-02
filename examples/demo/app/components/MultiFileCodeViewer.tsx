@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { linter, type Diagnostic as CMDiagnostic } from '@codemirror/lint';
@@ -34,9 +34,18 @@ interface MultiFileCodeViewerConfig {
   onFileChange?: (fileName: string) => void;
   /** Callback when editable file content changes */
   onCodeChange?: (fileName: string, code: string) => void;
-  /** Enable real-time analysis for editable files (triggers onAnalyze callback) */
+  /** Scenario object for analysis context (enables real-time analysis for editable files) */
+  scenario?: {
+    id: string;
+    context?: Record<string, unknown>;
+  };
+  /** Callback when analysis completes */
+  onAnalysisComplete?: (diagnostics: Array<Diagnostic | Suggestion>, duration: number) => void;
+  /** Callback when analysis starts */
+  onAnalysisStart?: () => void;
+  /** Enable real-time analysis for editable files (triggers onAnalyze callback) - DEPRECATED, use scenario prop */
   enableRealTimeAnalysis?: boolean;
-  /** Callback to perform analysis (return diagnostics for all files) */
+  /** Callback to perform analysis (return diagnostics for all files) - DEPRECATED, use scenario prop */
   onAnalyze?: (fileName: string, code: string) => Promise<Array<Diagnostic | Suggestion>>;
   /** Debounce delay for real-time analysis in ms (default: 300) */
   analysisDebounceMs?: number;
@@ -70,6 +79,9 @@ export function MultiFileCodeViewer({
   initialFile,
   onFileChange,
   onCodeChange,
+  scenario,
+  onAnalysisComplete,
+  onAnalysisStart,
   enableRealTimeAnalysis = false,
   onAnalyze,
   analysisDebounceMs = 300,
@@ -80,44 +92,20 @@ export function MultiFileCodeViewer({
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
-  const [liveDiagnostics, setLiveDiagnostics] =
-    useState<Array<Diagnostic | Suggestion>>(diagnostics);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const hasRunInitialAnalysis = useRef(false);
+  const scenarioRef = useRef(scenario);
+
+  // Keep scenario ref up to date
+  useEffect(() => {
+    scenarioRef.current = scenario;
+  }, [scenario]);
 
   const activeFile = files.find((f) => f.fileName === activeFileName);
 
-  // Use live diagnostics if real-time analysis is enabled, otherwise use passed diagnostics
-  const activeDiagnostics = enableRealTimeAnalysis ? liveDiagnostics : diagnostics;
-
-  // Trigger analysis with debounce (memoized to prevent infinite loops)
-  const triggerAnalysis = useCallback(
-    (fileName: string, code: string) => {
-      if (!enableRealTimeAnalysis || !onAnalyze) return;
-
-      // Clear existing timer
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
-
-      // Set analyzing state immediately
-      setIsAnalyzing(true);
-
-      // Debounce the actual analysis
-      debounceTimerRef.current = setTimeout(async () => {
-        try {
-          const newDiagnostics = await onAnalyze(fileName, code);
-          setLiveDiagnostics(newDiagnostics);
-          setIsAnalyzing(false);
-        } catch (error) {
-          console.error('[MultiFileCodeViewer] Analysis error:', error);
-          setIsAnalyzing(false);
-        }
-      }, analysisDebounceMs);
-    },
-    [enableRealTimeAnalysis, onAnalyze, analysisDebounceMs]
-  );
+  // Suppress unused variable warnings for deprecated props
+  // These are kept for backwards compatibility but not used in scenario mode
+  void enableRealTimeAnalysis;
+  void onAnalyze;
+  void analysisDebounceMs;
 
   // Convert RSC X-Ray diagnostics to CodeMirror diagnostics for the active file
   const convertDiagnostics = (
@@ -190,13 +178,62 @@ export function MultiFileCodeViewer({
       viewRef.current = null;
     }
 
+    // Create linter: async if scenario is provided and file is editable, otherwise sync
+    const linterExtension =
+      scenario && activeFile.editable
+        ? linter(async (view): Promise<CMDiagnostic[]> => {
+            const code = view.state.doc.toString();
+            const currentScenario = scenarioRef.current;
+
+            if (!currentScenario) {
+              return convertDiagnostics(diagnostics, activeFile.fileName);
+            }
+
+            console.log(`[MultiFileCodeViewer] Running analysis for "${currentScenario.id}"`);
+
+            try {
+              if (onAnalysisStart) onAnalysisStart();
+
+              const response = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Cache-Control': 'no-cache',
+                },
+                body: JSON.stringify({
+                  code,
+                  fileName: activeFile.fileName,
+                  scenario: currentScenario.id,
+                  context: currentScenario.context,
+                }),
+              });
+
+              if (!response.ok) {
+                throw new Error(`Analysis failed: ${response.statusText}`);
+              }
+
+              const result = await response.json();
+              console.log('[MultiFileCodeViewer] Analysis result:', result);
+
+              if (onAnalysisComplete) {
+                onAnalysisComplete(result.diagnostics || [], result.duration);
+              }
+
+              return convertDiagnostics(result.diagnostics || [], activeFile.fileName);
+            } catch (error) {
+              console.error('[MultiFileCodeViewer] Analysis error:', error);
+              return [];
+            }
+          })
+        : linter(() => convertDiagnostics(diagnostics, activeFile.fileName));
+
     const view = new EditorView({
       doc: activeFile.code,
       extensions: [
         basicSetup,
         javascript({ jsx: true, typescript: activeFile.language !== 'javascript' }),
         EditorView.editable.of(activeFile.editable || false),
-        linter(() => convertDiagnostics(activeDiagnostics, activeFile.fileName)),
+        linterExtension,
         EditorView.updateListener.of((update) => {
           if (update.docChanged && activeFile.editable) {
             const newCode = update.state.doc.toString();
@@ -243,37 +280,16 @@ export function MultiFileCodeViewer({
     };
   }, [activeFileName, activeFile?.code]);
 
-  // Trigger initial analysis when component mounts (if real-time analysis is enabled)
+  // Update diagnostics when they change (for non-scenario mode)
   useEffect(() => {
-    if (
-      enableRealTimeAnalysis &&
-      onAnalyze &&
-      activeFile?.editable &&
-      !hasRunInitialAnalysis.current
-    ) {
-      console.log('[MultiFileCodeViewer] Running initial analysis for', activeFile.fileName);
-      hasRunInitialAnalysis.current = true;
-      triggerAnalysis(activeFile.fileName, activeFile.code);
-    }
-  }, [enableRealTimeAnalysis, onAnalyze, activeFile, triggerAnalysis]);
-
-  // Reset the flag when component unmounts (for proper remounting)
-  useEffect(() => {
-    return () => {
-      hasRunInitialAnalysis.current = false;
-    };
-  }, []);
-
-  // Update diagnostics when they change
-  useEffect(() => {
-    if (!viewRef.current || !isReady) return;
+    if (!viewRef.current || !isReady || scenario) return; // Skip if scenario mode (linter handles it)
 
     import('@codemirror/lint').then(({ forceLinting }) => {
       if (viewRef.current) {
         forceLinting(viewRef.current);
       }
     });
-  }, [activeDiagnostics, isReady]);
+  }, [diagnostics, isReady, scenario]);
 
   const handleTabChange = (fileName: string) => {
     setActiveFileName(fileName);

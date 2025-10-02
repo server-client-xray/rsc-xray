@@ -62,45 +62,6 @@ export function DemoApp() {
     setAnalysisDuration(undefined);
   };
 
-  // Create analysis callback for MultiFileCodeViewer
-  const handleAnalyze = async (
-    fileName: string,
-    code: string
-  ): Promise<Array<Diagnostic | Suggestion>> => {
-    setAnalysisStatus('analyzing');
-
-    try {
-      const response = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-        body: JSON.stringify({
-          code,
-          fileName,
-          scenario: scenario.id,
-          context: scenario.context,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Analysis failed: ${response.statusText}`);
-      }
-
-      const result = await response.json();
-      setAnalysisStatus('idle');
-      setDiagnostics(result.diagnostics || []);
-      setAnalysisDuration(result.duration);
-
-      return result.diagnostics || [];
-    } catch (error) {
-      console.error('[DemoApp] Analysis error:', error);
-      setAnalysisStatus('error');
-      return [];
-    }
-  };
-
   // Prepare files for MultiFileCodeViewer
   const allFiles: CodeFile[] = [
     {
@@ -143,9 +104,13 @@ export function DemoApp() {
               files={allFiles}
               diagnostics={diagnostics}
               initialFile="demo.tsx"
-              enableRealTimeAnalysis={true}
-              onAnalyze={handleAnalyze}
-              analysisDebounceMs={300}
+              scenario={scenario} // Pass scenario for analysis context
+              onAnalysisComplete={(diags, duration) => {
+                setDiagnostics(diags);
+                setAnalysisDuration(duration);
+                setAnalysisStatus('idle');
+              }}
+              onAnalysisStart={() => setAnalysisStatus('analyzing')}
             />
           }
         />
