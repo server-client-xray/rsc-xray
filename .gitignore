@@ -8,3 +8,4 @@ coverage
 *.log
 .env*
 *.tsbuildinfo
+examples/demo/next-env.d.ts

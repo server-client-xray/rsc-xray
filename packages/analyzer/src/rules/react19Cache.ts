@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 
 import type { Suggestion } from '@rsc-xray/schemas';
+import { createSuggestionFromNode } from '../lib/diagnosticHelpers.js';
 
 const REACT19_CACHE_OPPORTUNITY_RULE = 'react19-cache-opportunity';
 
@@ -12,17 +13,7 @@ function toSuggestion(
   level: 'info' | 'warn',
   filePath: string
 ): Suggestion {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-  return {
-    rule,
-    level,
-    message,
-    loc: {
-      file: filePath,
-      line: line + 1,
-      col: character + 1,
-    },
-  };
+  return createSuggestionFromNode(sourceFile, node, filePath, rule, message, level);
 }
 
 /**
@@ -184,12 +175,12 @@ function detectDuplicateFetches(sourceFile: ts.SourceFile, filePath: string): Su
   const suggestions: Suggestion[] = [];
   for (const [url, calls] of fetchUrls.entries()) {
     if (calls.length > 1) {
-      const firstCall = calls[0];
-      if (firstCall) {
+      // Return a diagnostic for EACH fetch call (not just the first one)
+      for (const call of calls) {
         suggestions.push(
           toSuggestion(
             sourceFile,
-            firstCall,
+            call,
             REACT19_CACHE_OPPORTUNITY_RULE,
             `Duplicate fetch to '${url}' detected (${calls.length} calls). In React 19+, wrap fetch in cache() to automatically deduplicate requests.`,
             'info',

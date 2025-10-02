@@ -251,8 +251,9 @@ describe('Suspense Boundary Analyzer', () => {
 
       expect(suggestions[0]?.loc).toBeDefined();
       expect(suggestions[0]?.loc?.file).toBe('test.tsx');
-      expect(suggestions[0]?.loc?.line).toBeGreaterThan(0);
-      expect(suggestions[0]?.loc?.col).toBeGreaterThan(0);
+      expect(suggestions[0]?.loc?.range).toBeDefined();
+      expect(suggestions[0]?.loc?.range?.from).toBeGreaterThanOrEqual(0);
+      expect(suggestions[0]?.loc?.range?.to).toBeGreaterThan(suggestions[0]?.loc?.range?.from || 0);
     });
 
     it('handles components with both async keyword and await', () => {

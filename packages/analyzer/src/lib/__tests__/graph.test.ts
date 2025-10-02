@@ -40,7 +40,7 @@ describe('buildGraph', () => {
           rule: 'client-forbidden-import',
           level: 'error',
           message: 'Client modules must not use fs',
-          loc: { file: 'app/components/Button.tsx', line: 1, col: 1 },
+          loc: { file: 'app/components/Button.tsx', range: { from: 0, to: 10 } },
         },
       ],
     };
@@ -51,7 +51,7 @@ describe('buildGraph', () => {
           rule: 'client-hoist-fetch',
           level: 'warn',
           message: 'Move fetch to server',
-          loc: { file: 'app/components/Button.tsx', line: 5, col: 3 },
+          loc: { file: 'app/components/Button.tsx', range: { from: 100, to: 120 } },
         },
       ],
     };

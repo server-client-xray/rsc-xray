@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import * as ts from 'typescript';
 
 import type { Suggestion } from '@rsc-xray/schemas';
+import { createSuggestionFromNode } from './diagnosticHelpers.js';
 
 import type { ClassifiedFile } from './classifyFiles.js';
 import type { ComponentKind } from './classify.js';
@@ -39,17 +40,7 @@ function toSuggestion(
   level: 'info' | 'warn',
   filePath: string
 ): Suggestion {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-  return {
-    rule,
-    level,
-    message,
-    loc: {
-      file: filePath,
-      line: line + 1,
-      col: character + 1,
-    },
-  };
+  return createSuggestionFromNode(sourceFile, node, filePath, rule, message, level);
 }
 
 function isFetchCall(expr: ts.Expression): boolean {

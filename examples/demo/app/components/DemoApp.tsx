@@ -1,15 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
+import type { Diagnostic, Suggestion } from '@rsc-xray/schemas';
 import { scenarios, getScenario } from '../lib/scenarios';
 import { useDeepLink, useSyncUrlOnScenarioChange } from '../lib/useDeepLink';
 import { Header } from './Header';
 import { SplitPanel } from './SplitPanel';
 import { ExplanationPanel } from './ExplanationPanel';
-import { CodeEditor } from './CodeEditor';
 import { StatusBar } from './StatusBar';
 import { ProModal, type ProFeature } from './ProPreview';
+import { MultiFileCodeViewer, type CodeFile } from './MultiFileCodeViewer';
 import styles from './DemoApp.module.css';
 
 /**
@@ -40,7 +40,7 @@ export function DemoApp() {
 
   const [selectedScenarioId, setSelectedScenarioId] = useState(getInitialScenario());
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'error'>('idle');
-  const [diagnostics, setDiagnostics] = useState<RscXrayDiagnostic[]>([]);
+  const [diagnostics, setDiagnostics] = useState<Array<Diagnostic | Suggestion>>([]);
   const [analysisDuration, setAnalysisDuration] = useState<number | undefined>(undefined);
   const [proModalState, setProModalState] = useState<{
     isOpen: boolean;
@@ -62,15 +62,19 @@ export function DemoApp() {
     setAnalysisDuration(undefined);
   };
 
-  const handleAnalysisComplete = (config: {
-    diagnostics: RscXrayDiagnostic[];
-    duration: number;
-    status: 'idle' | 'analyzing' | 'error';
-  }): void => {
-    setDiagnostics(config.diagnostics);
-    setAnalysisDuration(config.duration);
-    setAnalysisStatus(config.status);
-  };
+  // Prepare files for MultiFileCodeViewer
+  const allFiles: CodeFile[] = [
+    {
+      fileName: 'demo.tsx',
+      code: scenario.code,
+      description: scenario.description,
+      editable: true, // Main file is editable
+    },
+    ...(scenario.contextFiles || []).map((file) => ({
+      ...file,
+      editable: false, // Context files are read-only
+    })),
+  ];
 
   const handleOpenProModal = (feature: ProFeature): void => {
     setProModalState({ isOpen: true, feature });
@@ -95,11 +99,18 @@ export function DemoApp() {
             />
           }
           rightPanel={
-            <CodeEditor
+            <MultiFileCodeViewer
               key={selectedScenarioId} // Force remount on scenario change
-              scenario={scenario}
-              highlightLine={initialParams.line}
-              onAnalysisComplete={handleAnalysisComplete}
+              files={allFiles}
+              diagnostics={diagnostics}
+              initialFile="demo.tsx"
+              scenario={scenario} // Pass scenario for analysis context
+              onAnalysisComplete={(diags, duration) => {
+                setDiagnostics(diags);
+                setAnalysisDuration(duration);
+                setAnalysisStatus('idle');
+              }}
+              onAnalysisStart={() => setAnalysisStatus('analyzing')}
             />
           }
         />

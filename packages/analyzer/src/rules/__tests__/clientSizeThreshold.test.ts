@@ -298,8 +298,9 @@ describe('Client Size Threshold Analyzer', () => {
 
       expect(diagnostics[0]?.loc).toBeDefined();
       expect(diagnostics[0]?.loc?.file).toBe('app/components/Large.tsx');
-      expect(diagnostics[0]?.loc?.line).toBe(1);
-      expect(diagnostics[0]?.loc?.col).toBe(1);
+      expect(diagnostics[0]?.loc?.range).toBeDefined();
+      expect(diagnostics[0]?.loc?.range?.from).toBe(0);
+      expect(diagnostics[0]?.loc?.range?.to).toBe(0); // No source file provided, fallback to 0,0
     });
   });
 });

@@ -19,7 +19,7 @@ function formatLocation(suggestion: Suggestion): string {
   if (!suggestion.loc) {
     return '-';
   }
-  return `${suggestion.loc.file}:${suggestion.loc.line}:${suggestion.loc.col}`;
+  return `${suggestion.loc.file}:${suggestion.loc.range.from}-${suggestion.loc.range.to}`;
 }
 
 export async function printSuggestions({

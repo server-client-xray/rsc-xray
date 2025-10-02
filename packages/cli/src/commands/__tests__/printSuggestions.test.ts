@@ -37,7 +37,7 @@ describe('printSuggestions', () => {
               rule: 'server-promise-all',
               level: 'info',
               message: 'Consider Promise.all for parallel awaits.',
-              loc: { file: 'app/demo/page.tsx', line: 8, col: 5 },
+              loc: { file: 'app/demo/page.tsx', range: { from: 200, to: 250 } },
             },
           ],
         },
@@ -50,7 +50,7 @@ describe('printSuggestions', () => {
               rule: 'client-hoist-fetch',
               level: 'warn',
               message: 'Move fetch logic to a server component.',
-              loc: { file: 'app/demo/ClientIsland.tsx', line: 5, col: 3 },
+              loc: { file: 'app/demo/ClientIsland.tsx', range: { from: 100, to: 150 } },
             },
           ],
           children: [],
@@ -73,7 +73,7 @@ describe('printSuggestions', () => {
 
       expect(result).toContain('CLIENT');
       expect(result).toContain('client-hoist-fetch');
-      expect(result).toContain('app/demo/ClientIsland.tsx:5:3');
+      expect(result).toContain('app/demo/ClientIsland.tsx:100-150');
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

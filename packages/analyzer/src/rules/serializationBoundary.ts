@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import type { Diagnostic } from '@rsc-xray/schemas';
+import { createDiagnosticFromNode } from '../lib/diagnosticHelpers.js';
 
 export interface SerializationBoundaryOptions {
   fileName: string;
@@ -38,20 +39,16 @@ function createDiagnostic(
   nonSerializableType: string,
   componentName: string
 ): Diagnostic {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-
   const suggestions = getSuggestions(nonSerializableType);
 
-  return {
-    rule: 'server-client-serialization-violation',
-    level: 'error',
-    message: `Non-serializable prop '${propName}' (${nonSerializableType}) passed to client component '${componentName}'. Props must be JSON-serializable.${suggestions ? ` ${suggestions}` : ''}`,
-    loc: {
-      file: sourceFile.fileName,
-      line: line + 1,
-      col: character + 1,
-    },
-  };
+  return createDiagnosticFromNode(
+    sourceFile,
+    node,
+    sourceFile.fileName,
+    'server-client-serialization-violation',
+    `Non-serializable prop '${propName}' (${nonSerializableType}) passed to client component '${componentName}'. Props must be JSON-serializable.${suggestions ? ` ${suggestions}` : ''}`,
+    'error'
+  );
 }
 
 function getSuggestions(nonSerializableType: string): string | undefined {

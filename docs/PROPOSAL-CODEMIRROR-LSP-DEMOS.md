@@ -134,11 +134,11 @@ export class RscXrayLSP {
       clientComponents: new Set(['ClientButton']),
     });
 
-    // Convert to LSP format
+    // Convert to LSP format (using new range-based schema)
     return diagnostics.map((d) => ({
       range: {
-        start: { line: d.loc.line - 1, character: d.loc.col - 1 },
-        end: { line: d.loc.line - 1, character: d.loc.col + 10 },
+        start: doc.positionAt(d.loc.range.from),
+        end: doc.positionAt(d.loc.range.to),
       },
       severity: d.severity === 'error' ? 1 : 2,
       code: d.rule,

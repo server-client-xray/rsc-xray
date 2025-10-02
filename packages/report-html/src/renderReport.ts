@@ -285,7 +285,7 @@ export function renderHtmlReport(model: Model): string {
               ${collectedSuggestions
                 .map(({ nodeLabel, suggestion }) => {
                   const loc = suggestion.loc
-                    ? `${suggestion.loc.file}:${suggestion.loc.line}:${suggestion.loc.col}`
+                    ? `${suggestion.loc.file}:${suggestion.loc.range.from}-${suggestion.loc.range.to}`
                     : 'n/a';
                   const levelClass = `suggestion-level-${suggestion.level}`;
                   return `<tr>

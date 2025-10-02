@@ -41,6 +41,12 @@ export interface Scenario {
     };
     reactVersion?: string;
   };
+  /** Additional context files to show in tabs (read-only) */
+  contextFiles?: Array<{
+    fileName: string;
+    code: string;
+    description: string;
+  }>;
 }
 
 export const scenarios: Scenario[] = [
@@ -137,6 +143,9 @@ export function FileReader() {
     rule: 'client-component-oversized',
     description: 'Client Component bundle exceeds size threshold',
     code: `'use client';
+// ⚠️ WARNING: This demo uses SIMULATED bundle size (312.5KB)
+// Editing imports won't change the size because it requires real build output
+// In production, RSC X-Ray analyzes actual webpack/turbopack bundle sizes
 import _ from 'lodash'; // 71KB!
 import moment from 'moment'; // 67KB!
 import * as icons from 'react-icons/all'; // 200KB+!
@@ -150,14 +159,15 @@ export function HeavyComponent() {
     explanation: {
       what: 'This Client Component imports large libraries, creating a 300KB+ bundle',
       why: 'Large bundles slow down page load and hurt mobile users on slow connections',
-      how: 'Use lightweight alternatives, tree-shake imports, or move heavy logic to Server Components',
+      how: 'Use lightweight alternatives (date-fns instead of moment), tree-shake imports (import { sortBy } from lodash), or move heavy logic to Server Components',
     },
     proFeatures: [
       'Dashboard with bundle size trends over time',
       'VS Code quick fix: Convert to dynamic import with guidance',
       'CI budget enforcement with PR comments',
     ],
-    contextDescription: 'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold)',
+    contextDescription:
+      'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold). Note: Bundle size is simulated and does not update when editing imports.',
     context: {
       clientBundles: [
         {
@@ -177,13 +187,20 @@ export function HeavyComponent() {
     rule: 'duplicate-dependencies',
     description: 'Multiple client components bundling the same heavy library',
     code: `'use client';
+// ⚠️ WARNING: This demo uses SIMULATED bundle data below
+// Editing imports won't change diagnostics because it requires real build output
+// In production, RSC X-Ray analyzes actual webpack/turbopack bundles
 import { format } from 'date-fns'; // Shared with Header.tsx and Footer.tsx
+import _ from 'lodash'; // Shared
+import moment from 'moment'; // Shared
 
 export function DateDisplay({ date }: { date: Date }) {
-  return <div>{format(date, 'PPP')}</div>;
+  const formatted = format(date, 'PPP');
+  const sorted = _.sortBy([formatted]);
+  return <div>{moment(date).fromNow()}: {sorted[0]}</div>;
 }`,
     explanation: {
-      what: 'Multiple client components import the same library (date-fns), causing it to be bundled multiple times',
+      what: 'This component (DateDisplay.tsx) shares 3 dependencies (date-fns, lodash, moment) with Header.tsx and Footer.tsx',
       why: 'Duplicate dependencies waste bandwidth and increase bundle size unnecessarily',
       how: 'Extract shared dependencies into a common chunk, or move to a shared utility Server Component',
     },
@@ -193,11 +210,11 @@ export function DateDisplay({ date }: { date: Date }) {
       'CI trend tracking for dependency duplication over time',
     ],
     contextDescription:
-      'Analyzer detects 3 shared libraries (date-fns, lodash, moment) duplicated across client bundles',
+      '⚠️ NOTE: This scenario uses simulated bundle data (not real-time analysis of your edits). In production, RSC X-Ray analyzes actual Next.js build output to detect shared dependencies.',
     context: {
       clientBundles: [
         {
-          filePath: 'components/DateDisplay.tsx',
+          filePath: 'demo.tsx', // Use demo.tsx for main file
           chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
           totalBytes: 45000,
         },
@@ -213,6 +230,33 @@ export function DateDisplay({ date }: { date: Date }) {
         },
       ],
     },
+    contextFiles: [
+      {
+        fileName: 'Header.tsx',
+        code: `'use client';
+import { format } from 'date-fns'; // Same as DateDisplay
+import _ from 'lodash'; // Same as DateDisplay
+import moment from 'moment'; // Same as DateDisplay
+
+export function Header() {
+  const now = moment().format('MMM D, YYYY');
+  return <header>{now}</header>;
+}`,
+        description: 'Header component also imports date-fns, lodash, and moment',
+      },
+      {
+        fileName: 'Footer.tsx',
+        code: `'use client';
+import { sortBy } from 'lodash'; // Same as DateDisplay
+import { format } from 'date-fns'; // Same as DateDisplay
+import moment from 'moment'; // Same as DateDisplay
+
+export function Footer() {
+  return <footer>© {moment().year()}</footer>;
+}`,
+        description: 'Footer component also imports date-fns, lodash, and moment',
+      },
+    ],
   },
 
   {
