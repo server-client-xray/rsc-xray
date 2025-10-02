@@ -34,7 +34,10 @@ export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
     );
 
     const filtered = diags.filter((d) => {
-      if (!d.loc?.file) return false;
+      if (!d.loc?.file) {
+        console.log('[ContextTabs] Skipping diagnostic without loc.file');
+        return false;
+      }
 
       // Match exact file name or if loc.file contains this file name
       const matches =
@@ -42,9 +45,7 @@ export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
         d.loc.file.endsWith(`/${file.fileName}`) ||
         d.loc.file.includes(file.fileName);
 
-      if (matches) {
-        console.log('[ContextTabs] Matched diagnostic:', d.loc.file, '→', file.fileName);
-      }
+      console.log('[ContextTabs] Testing:', d.loc.file, 'vs', file.fileName, '→', matches);
 
       return matches;
     });
@@ -56,10 +57,30 @@ export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
       const col = (diag.loc?.col || 1) - 1;
 
       try {
-        const offset = viewRef.current?.state.doc.line(line + 1).from || 0;
+        const lineObj = viewRef.current?.state.doc.line(line + 1);
+        if (!lineObj) throw new Error('Line not found');
+
+        const offset = lineObj.from;
         const position = offset + col;
-        const lineLength = viewRef.current?.state.doc.line(line + 1).length || 10;
-        const highlightLength = Math.min(20, lineLength - col);
+
+        // Smart highlight length based on diagnostic type
+        let highlightLength: number;
+        const lineText = viewRef.current.state.doc.sliceString(lineObj.from, lineObj.to);
+
+        // For import-related diagnostics, find and highlight the package name (string literal)
+        if (diag.rule === 'duplicate-dependencies' || diag.rule === 'client-forbidden-import') {
+          // Look for quoted string starting at the diagnostic position
+          const fromCol = lineText.substring(col);
+          const stringMatch = fromCol.match(/^['"]([^'"]+)['"]/);
+          if (stringMatch) {
+            // Highlight the quoted string (including quotes)
+            highlightLength = stringMatch[0].length;
+          } else {
+            highlightLength = Math.min(20, lineObj.to - position);
+          }
+        } else {
+          highlightLength = Math.min(20, lineObj.to - position);
+        }
 
         console.log(
           '[ContextTabs] Diagnostic at line',
@@ -67,7 +88,9 @@ export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
           'col',
           col + 1,
           '→ offset',
-          position
+          position,
+          'length',
+          highlightLength
         );
 
         return {

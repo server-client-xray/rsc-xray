@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyze } from '@rsc-xray/lsp-server';
 import type { LspAnalysisRequest } from '@rsc-xray/lsp-server';
+import * as ts from 'typescript';
+import type { Diagnostic, Suggestion } from '@rsc-xray/schemas';
+import { scenarios, type Scenario } from '../../lib/scenarios';
 
 /**
  * POST /api/analyze
@@ -17,6 +20,176 @@ import type { LspAnalysisRequest } from '@rsc-xray/lsp-server';
 // Disable caching for this API route - we need fresh analysis every time
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+
+/**
+ * Expand duplicate-dependencies diagnostics to show one diagnostic per duplicated import
+ * Instead of "shares 3 dependencies", show 3 separate diagnostics
+ */
+function expandDuplicateDependenciesDiagnostics(
+  diagnostics: Array<Diagnostic | Suggestion>,
+  scenarioId: string
+): Array<Diagnostic | Suggestion> {
+  const scenario = scenarios.find((s: Scenario) => s.id === scenarioId);
+  if (scenarioId !== 'duplicate-dependencies' || !scenario) return diagnostics;
+
+  const expanded: Array<Diagnostic | Suggestion> = [];
+
+  for (const diag of diagnostics) {
+    if (diag.rule !== 'duplicate-dependencies') {
+      expanded.push(diag);
+      continue;
+    }
+
+    console.log('[expandDuplicateDeps] Processing diagnostic for file:', diag.loc?.file);
+
+    // Find the source code for this diagnostic's file
+    let sourceCode: string | undefined;
+    let fileName: string | undefined;
+    let matchedFile: string | undefined;
+
+    if (diag.loc?.file === 'demo.tsx') {
+      sourceCode = scenario.code;
+      fileName = 'demo.tsx';
+      matchedFile = 'demo.tsx';
+    } else {
+      const contextFile = scenario.contextFiles?.find(
+        (cf: { fileName: string; code: string }) =>
+          diag.loc?.file === cf.fileName ||
+          diag.loc?.file.endsWith(`/${cf.fileName}`) ||
+          diag.loc?.file.includes(cf.fileName)
+      );
+      if (contextFile) {
+        sourceCode = contextFile.code;
+        fileName = contextFile.fileName;
+        matchedFile = diag.loc?.file; // Keep original file path for filtering
+        console.log(
+          '[expandDuplicateDeps] Matched context file:',
+          fileName,
+          'for diagnostic:',
+          diag.loc?.file
+        );
+      }
+    }
+
+    if (!sourceCode || !fileName) {
+      console.log('[expandDuplicateDeps] No source code found for:', diag.loc?.file);
+      expanded.push(diag);
+      continue;
+    }
+
+    // Parse the source code and find all imports
+    const sourceFile = ts.createSourceFile(fileName, sourceCode, ts.ScriptTarget.Latest, true);
+
+    const imports = sourceFile.statements.filter((stmt) => ts.isImportDeclaration(stmt));
+
+    console.log('[expandDuplicateDeps] Found', imports.length, 'imports in', fileName);
+
+    // Create one diagnostic per import
+    for (const importStmt of imports) {
+      if (ts.isImportDeclaration(importStmt)) {
+        const moduleSpecifier = importStmt.moduleSpecifier;
+        if (ts.isStringLiteral(moduleSpecifier)) {
+          const packageName = moduleSpecifier.text;
+          const startPos = sourceFile.getLineAndCharacterOfPosition(
+            moduleSpecifier.getStart(sourceFile)
+          );
+
+          console.log(
+            '[expandDuplicateDeps] Creating diagnostic for',
+            packageName,
+            'at line',
+            startPos.line + 1,
+            'col',
+            startPos.character + 1,
+            'in',
+            matchedFile
+          );
+
+          expanded.push({
+            ...diag,
+            message: `'${packageName}' is duplicated across multiple components. Consider extracting to a shared module.`,
+            loc: {
+              file: matchedFile || fileName, // Use the matched file path to preserve original path format
+              line: startPos.line + 1,
+              col: startPos.character + 1,
+            },
+          });
+        }
+      }
+    }
+  }
+
+  console.log(
+    '[expandDuplicateDeps] Expanded',
+    diagnostics.length,
+    'diagnostics to',
+    expanded.length
+  );
+  return expanded;
+}
+
+/**
+ * Fix diagnostic positions for context files by finding first import in their source code
+ */
+function fixContextFileDiagnostics(
+  diagnostics: Array<Diagnostic | Suggestion>,
+  scenarioId: string
+): Array<Diagnostic | Suggestion> {
+  const scenario = scenarios.find((s: Scenario) => s.id === scenarioId);
+  if (!scenario?.contextFiles) return diagnostics;
+
+  return diagnostics.map((diag) => {
+    // Only fix diagnostics that reference context files
+    const contextFile = scenario.contextFiles?.find(
+      (cf: { fileName: string; code: string }) =>
+        diag.loc?.file === cf.fileName ||
+        diag.loc?.file.endsWith(`/${cf.fileName}`) ||
+        diag.loc?.file.includes(cf.fileName)
+    );
+
+    if (!contextFile || !diag.loc) return diag;
+
+    // Parse the context file's code and find the first import
+    const sourceFile = ts.createSourceFile(
+      contextFile.fileName,
+      contextFile.code,
+      ts.ScriptTarget.Latest,
+      true
+    );
+
+    const firstImport = sourceFile.statements.find(
+      (stmt) =>
+        ts.isImportDeclaration(stmt) ||
+        (ts.isVariableStatement(stmt) &&
+          stmt.declarationList.declarations.some((decl) =>
+            decl.initializer && ts.isCallExpression(decl.initializer)
+              ? decl.initializer.expression.getText(sourceFile) === 'require'
+              : false
+          ))
+    );
+
+    if (firstImport && ts.isImportDeclaration(firstImport)) {
+      // Find the module specifier (the string literal part, e.g., 'date-fns')
+      const moduleSpecifier = firstImport.moduleSpecifier;
+      if (ts.isStringLiteral(moduleSpecifier)) {
+        const startPos = sourceFile.getLineAndCharacterOfPosition(
+          moduleSpecifier.getStart(sourceFile)
+        );
+
+        return {
+          ...diag,
+          loc: {
+            ...diag.loc,
+            line: startPos.line + 1, // Convert to 1-indexed
+            col: startPos.character + 1, // Convert to 1-indexed
+          },
+        };
+      }
+    }
+
+    return diag;
+  });
+}
 
 /**
  * Parse route segment config from code
@@ -85,24 +258,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       };
     }
 
-    // For duplicate-dependencies scenario, keep all bundles but filter diagnostics to demo.tsx only
-    // The context has 3 bundles (DateDisplay, Header, Footer) which creates 3 diagnostics
-    // We need all bundles for duplicate detection, but only want diagnostic for demo.tsx
-
+    // For duplicate-dependencies scenario, we pass 3 bundles to detect duplication
+    // The analyzer will return 3 diagnostics (one per file), which will be shown in their respective tabs
     const result = await analyze(analysisBody);
 
-    // Filter diagnostics for duplicate-dependencies to only show the first component
-    // Note: 'duplicate-dependencies' will be added to LspAnalysisRequest['scenario'] in next analyzer release
-    if (body.scenario === ('duplicate-dependencies' as LspAnalysisRequest['scenario'])) {
-      result.diagnostics = result.diagnostics.filter((diag, index) => {
-        // Keep all non-duplicate-dependencies diagnostics
-        if (diag.rule !== 'duplicate-dependencies') return true;
-        // For duplicate-dependencies, only keep the first one (DateDisplay.tsx)
-        const duplicateDiags = result.diagnostics.filter(
-          (d) => d.rule === 'duplicate-dependencies'
-        );
-        return index === result.diagnostics.indexOf(duplicateDiags[0]);
-      });
+    // Expand duplicate-dependencies diagnostics to show one per import (instead of one per file)
+    // This also handles positioning for context files, so we don't need fixContextFileDiagnostics
+    if (body.scenario) {
+      result.diagnostics = expandDuplicateDependenciesDiagnostics(
+        result.diagnostics,
+        body.scenario
+      );
+    }
+
+    // Fix diagnostic positions for OTHER scenarios' context files (not duplicate-dependencies)
+    // duplicate-dependencies is already handled by expandDuplicateDependenciesDiagnostics above
+    if (body.scenario && body.scenario !== 'duplicate-dependencies') {
+      result.diagnostics = fixContextFileDiagnostics(result.diagnostics, body.scenario);
     }
 
     // Add cache control headers to prevent any caching

@@ -90,10 +90,17 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
 
           // Convert RSC X-Ray diagnostics to CodeMirror format
           // RSC X-Ray diagnostics have structure: { rule, level, message, loc: { file, line, col } }
-          // Suggestions don't have 'loc', so filter by that
-          const diagnosticsOnly = (result.diagnostics || []).filter((d) => 'loc' in d);
+          // Filter by: has 'loc' AND is for 'demo.tsx' (not context files)
+          const diagnosticsOnly = (result.diagnostics || []).filter(
+            (d) => 'loc' in d && d.loc?.file === 'demo.tsx'
+          );
 
-          console.log('Diagnostics to display:', diagnosticsOnly);
+          console.log(
+            'Diagnostics to display:',
+            diagnosticsOnly,
+            'filtered from',
+            result.diagnostics?.length
+          );
 
           const cmDiagnostics: CMDiagnostic[] = diagnosticsOnly.map((d) => {
             const diag = d as {
@@ -112,11 +119,30 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
             const lineObj = view.state.doc.line(diag.loc.line);
             const from = lineObj.from + (diag.loc.col - 1); // Convert 1-indexed col to 0-indexed offset
 
-            // Smart highlight length: use more chars for function-level diagnostics
-            // For diagnostics at col 1, highlight the whole line (likely a function/declaration)
-            // For diagnostics mid-line, highlight ~20 characters (likely a specific expression)
-            const highlightLength =
-              diag.loc.col === 1 ? lineObj.to - from : Math.min(20, lineObj.to - from);
+            // Smart highlight length based on diagnostic type
+            let highlightLength: number;
+            const lineText = view.state.doc.sliceString(lineObj.from, lineObj.to);
+            const colOffset = diag.loc.col - 1; // 0-indexed column position
+
+            // For import-related diagnostics, find and highlight the package name (string literal)
+            if (diag.rule === 'duplicate-dependencies' || diag.rule === 'client-forbidden-import') {
+              // Look for quoted string starting at or near the diagnostic position
+              const fromCol = lineText.substring(colOffset);
+              const stringMatch = fromCol.match(/^['"]([^'"]+)['"]/);
+              if (stringMatch) {
+                // Highlight the quoted string (including quotes)
+                highlightLength = stringMatch[0].length;
+              } else {
+                highlightLength = Math.min(20, lineObj.to - from);
+              }
+            } else if (diag.loc.col === 1) {
+              // For diagnostics at col 1, highlight the whole line (likely a function/declaration)
+              highlightLength = lineObj.to - from;
+            } else {
+              // For diagnostics mid-line, highlight ~20 characters (likely a specific expression)
+              highlightLength = Math.min(20, lineObj.to - from);
+            }
+
             const to = from + highlightLength;
 
             console.log(
@@ -135,8 +161,10 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
 
           console.log('CodeMirror diagnostics:', cmDiagnostics);
 
+          // Pass ALL diagnostics (unfiltered) to parent so context tabs can access them
+          // CodeMirror only shows the filtered ones (diagnosticsOnly)
           onAnalysisComplete({
-            diagnostics: diagnosticsOnly,
+            diagnostics: result.diagnostics || [],
             duration: result.duration,
             status: 'idle',
           });

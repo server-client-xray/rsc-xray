@@ -132,6 +132,7 @@ export function DemoApp() {
                 ) : (
                   scenario.contextFiles?.[activeTab as number] && (
                     <ContextTabs
+                      key={`${selectedScenarioId}-${activeTab}`} // Force remount on tab change
                       file={scenario.contextFiles[activeTab as number]}
                       diagnostics={diagnostics}
                     />

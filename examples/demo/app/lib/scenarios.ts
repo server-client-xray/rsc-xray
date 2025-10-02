@@ -241,8 +241,8 @@ export function Header() {
       {
         fileName: 'Footer.tsx',
         code: `'use client';
-import { format } from 'date-fns'; // Same as DateDisplay
 import { sortBy } from 'lodash'; // Same as DateDisplay
+import { format } from 'date-fns'; // Same as DateDisplay
 import moment from 'moment'; // Same as DateDisplay
 
 export function Footer() {

@@ -41,8 +41,16 @@ function toDiagnostic(
     const normalizedSourcePath = sourceFile.fileName.replace(/^\.\//, '');
     const normalizedFilePath = filePath.replace(/^\.\//, '');
 
+    console.log('[clientSizeThreshold] toDiagnostic comparison:', {
+      sourceFileName: sourceFile.fileName,
+      normalizedSourcePath,
+      filePath,
+      normalizedFilePath,
+      matches: normalizedSourcePath === normalizedFilePath,
+    });
+
     if (normalizedSourcePath === normalizedFilePath) {
-      // Find the first import declaration
+      // Find the first import declaration and its module specifier (package name)
       const firstImport = sourceFile.statements.find(
         (stmt) =>
           ts.isImportDeclaration(stmt) ||
@@ -54,10 +62,19 @@ function toDiagnostic(
             ))
       );
 
-      if (firstImport) {
-        const pos = sourceFile.getLineAndCharacterOfPosition(firstImport.getStart(sourceFile));
-        line = pos.line + 1; // Convert to 1-indexed
-        col = pos.character + 1; // Convert to 1-indexed
+      console.log('[clientSizeThreshold] Found first import?', !!firstImport);
+
+      if (firstImport && ts.isImportDeclaration(firstImport)) {
+        // Point to the module specifier (string literal) instead of the import keyword
+        const moduleSpecifier = firstImport.moduleSpecifier;
+        if (ts.isStringLiteral(moduleSpecifier)) {
+          const pos = sourceFile.getLineAndCharacterOfPosition(
+            moduleSpecifier.getStart(sourceFile)
+          );
+          line = pos.line + 1; // Convert to 1-indexed
+          col = pos.character + 1; // Convert to 1-indexed
+          console.log('[clientSizeThreshold] Module specifier position:', { line, col });
+        }
       }
     }
   }
