@@ -40,8 +40,6 @@ function expandDuplicateDependenciesDiagnostics(
       continue;
     }
 
-    console.log('[expandDuplicateDeps] Processing diagnostic for file:', diag.loc?.file);
-
     // Find the source code for this diagnostic's file
     let sourceCode: string | undefined;
     let fileName: string | undefined;
