@@ -35,6 +35,7 @@ export function ScenarioSelector({
 
       <select
         id="scenario-select"
+        aria-label="Select scenario"
         value={selectedScenarioId}
         onChange={(e) => onSelectScenario(e.target.value)}
         className={styles.select}

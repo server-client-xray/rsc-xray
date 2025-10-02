@@ -10,7 +10,8 @@
     "lint": "eslint app",
     "format": "prettier --write app",
     "test": "vitest --run",
-    "test:e2e": "playwright test tests/demo.spec.ts"
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "@codemirror/lang-javascript": "^6.2.4",
