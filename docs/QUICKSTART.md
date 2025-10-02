@@ -1,4 +1,6 @@
-# Quickstart
+# Quickstart — Monorepo Development
+
+> **Note**: This guide is for **contributors** working on the RSC X-Ray monorepo itself. If you want to **use** RSC X-Ray in your Next.js app, see [GETTING-STARTED.md](./GETTING-STARTED.md) instead. For detailed contribution guidelines, see [CONTRIBUTING.md](../CONTRIBUTING.md).
 
 ## Setup
 
@@ -46,13 +48,35 @@ Use the captured timings to correlate overlay observations with Flight delivery 
 - Toggle it with **Control**+Shift+X (macOS uses the Control key) or via `window.__SCX_OVERLAY__?.toggle()`.
 - Install the Pro overlay package to visualize hydration timings, cache lens insights, and CI budgets inline.
 
-## Scenario Playground
+## Interactive Demo
 
-- The home page lists analyzer demos:
-  - `/products` — baseline
-  - `/scenarios/server-promise-all`
-  - `/scenarios/client-hoist-fetch`
-  - `/scenarios/client-forbidden-import`
-  - `/scenarios/cache-lens-coming-soon`
-  - `/scenarios/pro-budget-coming-soon`
-- `docs/VIOLATIONS.md` explains what each rule measures, the corresponding analyzer nodes, and where Pro features add depth.
+Try the live demo at **[demo.rsc-xray.dev](https://demo.rsc-xray.dev)** — Edit code and see diagnostics in real-time!
+
+### Local Demo Development
+
+The demo source is in `examples/demo`:
+
+```bash
+cd examples/demo
+pnpm dev
+```
+
+Features:
+
+- Split-panel layout (explanation + CodeMirror editor)
+- Real-time LSP analysis via API route
+- 8 scenarios showcasing all OSS analyzer rules
+- Pro feature teasers (visual replicas with static data)
+- Deep linking support (`?scenario=...&line=...`)
+
+## Scenario Playground (Next.js Example App)
+
+The `examples/next-app` includes demo routes:
+
+- `/products` — baseline
+- `/scenarios/server-promise-all`
+- `/scenarios/client-hoist-fetch`
+- `/scenarios/client-forbidden-import`
+- `/scenarios/serialization-boundary`
+
+See `docs/VIOLATIONS.md` for what each rule measures and how to trigger it.
