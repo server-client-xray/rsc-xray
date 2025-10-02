@@ -31,6 +31,7 @@ export interface LspAnalysisRequest {
     | 'suspense-boundary'
     | 'react19-cache'
     | 'client-size'
+    | 'duplicate-dependencies'
     | 'client-forbidden-imports'
     | 'route-config';
 

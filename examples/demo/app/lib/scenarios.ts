@@ -150,14 +150,15 @@ export function HeavyComponent() {
     explanation: {
       what: 'This Client Component imports large libraries, creating a 300KB+ bundle',
       why: 'Large bundles slow down page load and hurt mobile users on slow connections',
-      how: 'Use lightweight alternatives, tree-shake imports, or move heavy logic to Server Components',
+      how: 'Use lightweight alternatives (date-fns instead of moment), tree-shake imports (import { sortBy } from lodash), or move heavy logic to Server Components',
     },
     proFeatures: [
       'Dashboard with bundle size trends over time',
       'VS Code quick fix: Convert to dynamic import with guidance',
       'CI budget enforcement with PR comments',
     ],
-    contextDescription: 'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold)',
+    contextDescription:
+      'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold). Note: Bundle size is simulated and does not update when editing imports.',
     context: {
       clientBundles: [
         {
@@ -183,7 +184,7 @@ export function DateDisplay({ date }: { date: Date }) {
   return <div>{format(date, 'PPP')}</div>;
 }`,
     explanation: {
-      what: 'Multiple client components import the same library (date-fns), causing it to be bundled multiple times',
+      what: 'This component (DateDisplay.tsx) shares 3 dependencies (date-fns, lodash, moment) with Header.tsx and Footer.tsx',
       why: 'Duplicate dependencies waste bandwidth and increase bundle size unnecessarily',
       how: 'Extract shared dependencies into a common chunk, or move to a shared utility Server Component',
     },
@@ -193,7 +194,7 @@ export function DateDisplay({ date }: { date: Date }) {
       'CI trend tracking for dependency duplication over time',
     ],
     contextDescription:
-      'Analyzer detects 3 shared libraries (date-fns, lodash, moment) duplicated across client bundles',
+      'Analyzer simulates 3 client bundles (DateDisplay, Header, Footer) sharing date-fns, lodash, and moment',
     context: {
       clientBundles: [
         {

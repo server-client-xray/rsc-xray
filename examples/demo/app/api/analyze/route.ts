@@ -85,7 +85,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       };
     }
 
+    // For duplicate-dependencies scenario, keep all bundles but filter diagnostics to demo.tsx only
+    // The context has 3 bundles (DateDisplay, Header, Footer) which creates 3 diagnostics
+    // We need all bundles for duplicate detection, but only want diagnostic for demo.tsx
+
     const result = await analyze(analysisBody);
+
+    // Filter diagnostics for duplicate-dependencies to only show demo.tsx
+    // Note: 'duplicate-dependencies' will be added to LspAnalysisRequest['scenario'] in next analyzer release
+    if (body.scenario === ('duplicate-dependencies' as LspAnalysisRequest['scenario'])) {
+      result.diagnostics = result.diagnostics.filter(
+        (diag) =>
+          diag.rule !== 'duplicate-dependencies' ||
+          diag.loc?.file === 'demo.tsx' ||
+          diag.loc?.file === body.fileName
+      );
+    }
 
     // Add cache control headers to prevent any caching
     return NextResponse.json(result, {
