@@ -52,8 +52,7 @@ export const scenarios: Scenario[] = [
     isPro: false,
     rule: 'serialization-boundary-violation',
     description: 'Passing non-serializable props from Server to Client components',
-    code: `// app/page.tsx (Server Component)
-import { ClientButton } from './ClientButton';
+    code: `import { ClientButton } from './ClientButton';
 
 export default function Page() {
   const handleClick = () => console.log('clicked');
@@ -101,8 +100,7 @@ export function FileReader() {
     isPro: false,
     rule: 'suspense-boundary-missing',
     description: 'Async Server Component without Suspense wrapper',
-    code: `// app/page.tsx
-export default async function Page() {
+    code: `export default async function Page() {
   const data = await fetch('https://api.example.com/data');
   const json = await data.json();
   
@@ -158,8 +156,7 @@ export function HeavyComponent() {
     isPro: false,
     rule: 'react19-cache-opportunity',
     description: 'Deduplicate fetch calls with React 19 cache()',
-    code: `// app/page.tsx
-export default async function Page() {
+    code: `export default async function Page() {
   const user = await fetch('/api/user/1');
   const userData = await user.json();
   
@@ -183,8 +180,7 @@ export default async function Page() {
     isPro: false,
     rule: 'route-segment-config-conflict',
     description: 'Conflicting route segment configuration options',
-    code: `// app/page.tsx
-export const dynamic = 'force-dynamic';
+    code: `export const dynamic = 'force-dynamic';
 export const revalidate = 60; // ⚠️ Conflict!
 
 export default function Page() {

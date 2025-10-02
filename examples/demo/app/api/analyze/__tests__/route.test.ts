@@ -9,8 +9,7 @@ describe('POST /api/analyze', () => {
   });
 
   it('should analyze serialization-boundary scenario and return diagnostics', async () => {
-    const code = `// app/page.tsx (Server Component)
-import { ClientButton } from './ClientButton';
+    const code = `import { ClientButton } from './ClientButton';
 
 export default function Page() {
   const handleClick = () => console.log('clicked');
@@ -85,8 +84,7 @@ export function FileReader() {
   });
 
   it('should analyze suspense-boundary scenario and return diagnostics', async () => {
-    const code = `// app/page.tsx
-export default async function Page() {
+    const code = `export default async function Page() {
   const data = await fetch('https://api.example.com/data');
   const json = await data.json();
   
@@ -164,8 +162,7 @@ export default function LargeClientComponent() {
   });
 
   it('should analyze react19-cache scenario and return diagnostics', async () => {
-    const code = `// app/page.tsx
-export default async function Page() {
+    const code = `export default async function Page() {
   const user = await fetch('/api/user/1');
   const userData = await user.json();
   
@@ -202,8 +199,7 @@ export default async function Page() {
   });
 
   it('should analyze route-config scenario with force-dynamic + revalidate conflict', async () => {
-    const code = `// app/page.tsx
-export const dynamic = 'force-dynamic';
+    const code = `export const dynamic = 'force-dynamic';
 export const revalidate = 60; // Conflict!
 
 export default function Page() {
@@ -245,8 +241,7 @@ export default function Page() {
   });
 
   it('should analyze route-config scenario with force-static + dynamic APIs conflict', async () => {
-    const code = `// app/page.tsx
-import { cookies } from 'next/headers';
+    const code = `import { cookies } from 'next/headers';
 
 export const dynamic = 'force-static';
 

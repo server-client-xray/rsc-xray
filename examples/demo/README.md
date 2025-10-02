@@ -1,6 +1,6 @@
 # RSC X-Ray Interactive Demo
 
-Svelte-style interactive tutorial for learning React Server Components analysis.
+Interactive tutorial for learning React Server Components analysis with a split-panel interface.
 
 ## Architecture
 
