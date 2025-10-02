@@ -168,7 +168,8 @@ export function analyzeLspRequest(request: LspAnalysisRequest): LspAnalysisRespo
   // Client component size analysis
   if (
     shouldRun('client-component-oversized', 'client-size') ||
-    shouldRun('duplicate-dependencies', 'client-size')
+    shouldRun('duplicate-dependencies', 'client-size') ||
+    shouldRun('duplicate-dependencies', 'duplicate-dependencies')
   ) {
     if (context.clientBundles && context.clientBundles.length > 0) {
       try {

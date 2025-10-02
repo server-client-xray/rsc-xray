@@ -161,6 +161,58 @@ export default function LargeClientComponent() {
     expect(result.rulesExecuted).toContain('client-component-oversized');
   });
 
+  it('should analyze duplicate-dependencies scenario and return diagnostics', async () => {
+    const code = `'use client';
+import { format } from 'date-fns';
+
+export function DateDisplay({ date }: { date: Date }) {
+  return <div>{format(date, 'PPP')}</div>;
+}`;
+
+    const request = new NextRequest('http://localhost:3001/api/analyze', {
+      method: 'POST',
+      body: JSON.stringify({
+        code,
+        fileName: 'components/DateDisplay.tsx',
+        scenario: 'duplicate-dependencies',
+        context: {
+          clientBundles: [
+            {
+              filePath: 'components/DateDisplay.tsx',
+              chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+              totalBytes: 45000,
+            },
+            {
+              filePath: 'components/Header.tsx',
+              chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+              totalBytes: 44000,
+            },
+            {
+              filePath: 'components/Footer.tsx',
+              chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+              totalBytes: 43000,
+            },
+          ],
+        },
+      } as LspAnalysisRequest),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const response = await POST(request);
+    const result = await response.json();
+
+    console.log('Duplicate dependencies result:', JSON.stringify(result, null, 2));
+
+    expect(response.status).toBe(200);
+    expect(result.diagnostics).toBeDefined();
+    expect(result.rulesExecuted).toContain('duplicate-dependencies');
+    // Should detect 3 duplicate chunks shared across components
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+    expect(result.diagnostics[0].message).toContain('3 dependencies');
+  });
+
   it('should analyze react19-cache scenario and return diagnostics', async () => {
     const code = `export default async function Page() {
   const user = await fetch('/api/user/1');

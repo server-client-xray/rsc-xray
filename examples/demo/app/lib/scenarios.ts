@@ -150,6 +150,47 @@ export function HeavyComponent() {
   },
 
   {
+    id: 'duplicate-dependencies',
+    title: 'Duplicate Dependencies',
+    category: 'performance',
+    isPro: false,
+    rule: 'duplicate-dependencies',
+    description: 'Multiple client components bundling the same heavy library',
+    code: `'use client';
+import { format } from 'date-fns'; // This library is also used in Header.tsx and Footer.tsx
+
+export function DateDisplay({ date }: { date: Date }) {
+  return <div>{format(date, 'PPP')}</div>;
+}`,
+    explanation: {
+      what: 'Multiple client components import the same library (date-fns), causing it to be bundled multiple times',
+      why: 'Duplicate dependencies waste bandwidth and increase bundle size unnecessarily',
+      how: 'Extract shared dependencies into a common chunk, or move to a shared utility Server Component',
+    },
+    contextDescription:
+      'Analyzer detects 3 shared libraries (date-fns, lodash, moment) duplicated across client bundles',
+    context: {
+      clientBundles: [
+        {
+          filePath: 'components/DateDisplay.tsx',
+          chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+          totalBytes: 45000,
+        },
+        {
+          filePath: 'components/Header.tsx',
+          chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+          totalBytes: 44000,
+        },
+        {
+          filePath: 'components/Footer.tsx',
+          chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+          totalBytes: 43000,
+        },
+      ],
+    },
+  },
+
+  {
     id: 'react19-cache',
     title: 'React 19 Cache Opportunity',
     category: 'performance',
