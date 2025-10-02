@@ -161,7 +161,15 @@ export function detectConfigConflicts(
   filePath: string
 ): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
-  const configWithNodes = config as RouteSegmentConfigWithNodes;
+  let configWithNodes = config as RouteSegmentConfigWithNodes;
+
+  // If nodes aren't provided (e.g., from LSP context), parse them from the source file
+  if (!configWithNodes.nodes) {
+    const parsed = parseRouteSegmentConfig(sourceFile);
+    if (parsed) {
+      configWithNodes = parsed;
+    }
+  }
 
   // Check for force-static with dynamic APIs
   if (config.dynamic === 'force-static') {
