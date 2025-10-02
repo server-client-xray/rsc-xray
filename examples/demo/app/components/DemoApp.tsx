@@ -135,6 +135,7 @@ export function DemoApp() {
                       key={`${selectedScenarioId}-${activeTab}`} // Force remount on tab change
                       files={[scenario.contextFiles[activeTab as number]]}
                       diagnostics={diagnostics}
+                      hideTabs={true} // Parent (DemoApp) manages tabs
                     />
                   )
                 )}

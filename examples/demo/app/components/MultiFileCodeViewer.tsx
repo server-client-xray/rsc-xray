@@ -40,6 +40,8 @@ interface MultiFileCodeViewerConfig {
   onAnalyze?: (fileName: string, code: string) => Promise<Array<Diagnostic | Suggestion>>;
   /** Debounce delay for real-time analysis in ms (default: 300) */
   analysisDebounceMs?: number;
+  /** Hide tab navigation (useful when parent component manages tabs) */
+  hideTabs?: boolean;
 }
 
 /**
@@ -73,6 +75,7 @@ export function MultiFileCodeViewer({
   enableRealTimeAnalysis = false,
   onAnalyze,
   analysisDebounceMs = 300,
+  hideTabs = false,
 }: MultiFileCodeViewerConfig) {
   const [activeFileName, setActiveFileName] = useState<string>(
     initialFile || files[0]?.fileName || ''
@@ -259,8 +262,8 @@ export function MultiFileCodeViewer({
 
   return (
     <div className={styles.container}>
-      {/* Tab navigation (only show if multiple files) */}
-      {files.length > 1 && (
+      {/* Tab navigation (hide if hideTabs is true or if only 1 file) */}
+      {!hideTabs && files.length > 1 && (
         <div className={styles.tabNavigation}>
           {files.map((file) => (
             <button
