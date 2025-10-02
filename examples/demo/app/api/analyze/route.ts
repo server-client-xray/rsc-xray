@@ -271,7 +271,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Fix diagnostic positions for OTHER scenarios' context files (not duplicate-dependencies)
     // duplicate-dependencies is already handled by expandDuplicateDependenciesDiagnostics above
-    if (body.scenario && body.scenario !== 'duplicate-dependencies') {
+    if (body.scenario && body.scenario !== ('duplicate-dependencies' as typeof body.scenario)) {
       result.diagnostics = fixContextFileDiagnostics(result.diagnostics, body.scenario);
     }
 
