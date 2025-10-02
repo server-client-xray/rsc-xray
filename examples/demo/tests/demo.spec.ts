@@ -51,4 +51,3 @@ test.describe('RSC X-Ray Interactive Demo - Smoke Tests', () => {
     await expect(page.locator('button:has-text("Preview Boundary Tree")')).toBeVisible();
   });
 });
-
