@@ -4,6 +4,7 @@ import type { ReactElement } from 'react';
 import { useState } from 'react';
 import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
 import { scenarios, getScenario } from '../lib/scenarios';
+import { useDeepLink, useSyncUrlOnScenarioChange } from '../lib/useDeepLink';
 import { Header } from './Header';
 import { SplitPanel } from './SplitPanel';
 import { ExplanationPanel } from './ExplanationPanel';
@@ -16,14 +17,29 @@ import styles from './DemoApp.module.css';
  * Main demo application with state management
  *
  * Manages:
- * - Selected scenario
+ * - Selected scenario (with deep linking support)
  * - Analysis status (idle/analyzing/error)
  * - Diagnostics from LSP analysis
  * - Code editor state and real-time analysis
  * - Pro feature modal state
+ *
+ * Deep linking:
+ * - ?scenario=<id> - Load specific scenario
+ * - ?line=<number> - Highlight specific line in editor
  */
 export function DemoApp(): ReactElement {
-  const [selectedScenarioId, setSelectedScenarioId] = useState(scenarios[0].id);
+  const { initialParams } = useDeepLink();
+
+  // Initialize scenario from URL param or default to first scenario
+  const getInitialScenario = (): string => {
+    if (initialParams.scenario) {
+      const scenario = getScenario(initialParams.scenario);
+      if (scenario) return scenario.id;
+    }
+    return scenarios[0].id;
+  };
+
+  const [selectedScenarioId, setSelectedScenarioId] = useState(getInitialScenario());
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'error'>('idle');
   const [diagnostics, setDiagnostics] = useState<RscXrayDiagnostic[]>([]);
   const [analysisDuration, setAnalysisDuration] = useState<number | undefined>(undefined);
@@ -34,6 +50,9 @@ export function DemoApp(): ReactElement {
     isOpen: false,
     feature: null,
   });
+
+  // Sync URL with scenario changes
+  useSyncUrlOnScenarioChange(selectedScenarioId);
 
   const scenario = getScenario(selectedScenarioId) || scenarios[0];
 
@@ -80,6 +99,7 @@ export function DemoApp(): ReactElement {
             <CodeEditor
               key={selectedScenarioId} // Force remount on scenario change
               scenario={scenario}
+              highlightLine={initialParams.line}
               onAnalysisComplete={handleAnalysisComplete}
             />
           }

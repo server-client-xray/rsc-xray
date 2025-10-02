@@ -13,6 +13,7 @@ import styles from './CodeEditor.module.css';
 
 interface CodeEditorConfig {
   scenario: Scenario;
+  highlightLine?: number | null;
   onAnalysisComplete: (config: {
     diagnostics: RscXrayDiagnostic[];
     duration: number;
@@ -24,16 +25,21 @@ interface CodeEditorConfig {
  * CodeMirror 6 editor with real-time LSP integration
  *
  * Features:
- * - Real-time analysis with 500ms debounce
+ * - Real-time analysis with 300ms debounce
  * - Red/yellow squiggles for errors/warnings
  * - Hover tooltips with rule explanations
+ * - Line highlighting for deep linking
  * - Uses @rsc-xray/lsp-server via Next.js API route
  * - Lightweight (~100KB vs Monaco's 2MB)
  *
  * Note: Analysis runs server-side because @rsc-xray/analyzer
  * uses Node.js APIs. Still provides real-time UX with debouncing.
  */
-export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): ReactElement {
+export function CodeEditor({
+  scenario,
+  highlightLine,
+  onAnalysisComplete,
+}: CodeEditorConfig): ReactElement {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -185,6 +191,36 @@ export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): 
       });
     }
   }, [scenario.code, scenario.id, isReady]);
+
+  // Highlight and scroll to specific line (for deep linking)
+  useEffect(() => {
+    if (!viewRef.current || !isReady || !highlightLine) return;
+
+    const view = viewRef.current;
+    const doc = view.state.doc;
+
+    // Validate line number
+    if (highlightLine < 1 || highlightLine > doc.lines) {
+      console.warn(`Line ${highlightLine} is out of bounds (doc has ${doc.lines} lines)`);
+      return;
+    }
+
+    try {
+      // Get line object for the specified line (1-indexed input, CodeMirror uses 1-indexed for doc.line())
+      const lineObj = doc.line(highlightLine);
+
+      // Set selection to the entire line
+      view.dispatch({
+        selection: { anchor: lineObj.from, head: lineObj.to },
+        scrollIntoView: true,
+      });
+
+      // Focus the editor
+      view.focus();
+    } catch (error) {
+      console.error('Error highlighting line:', error);
+    }
+  }, [highlightLine, isReady]);
 
   return <div ref={editorRef} className={styles.editor} />;
 }
