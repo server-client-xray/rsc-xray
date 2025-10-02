@@ -173,7 +173,9 @@ export function analyzeLspRequest(request: LspAnalysisRequest): LspAnalysisRespo
   ) {
     if (context.clientBundles && context.clientBundles.length > 0) {
       try {
-        const results = detectClientSizeIssues(context.clientBundles);
+        const results = detectClientSizeIssues(context.clientBundles, {
+          sourceFile,
+        });
         diagnostics.push(...results);
         rulesExecuted.push('client-component-oversized', 'duplicate-dependencies');
       } catch (error) {

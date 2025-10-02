@@ -176,7 +176,8 @@ export function HeavyComponent() {
     isPro: false,
     rule: 'duplicate-dependencies',
     description: 'Multiple client components bundling the same heavy library',
-    code: `import { format } from 'date-fns'; // Shared with Header.tsx and Footer.tsx
+    code: `'use client';
+import { format } from 'date-fns'; // Shared with Header.tsx and Footer.tsx
 
 export function DateDisplay({ date }: { date: Date }) {
   return <div>{format(date, 'PPP')}</div>;
