@@ -6,17 +6,31 @@
 
 Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, and suggestions — export a shareable offline HTML report.
 
+**Try it live**: [Interactive Demo](https://demo.rsc-xray.dev) — Edit code and see diagnostics in real-time
+
 ## Features (Free/OSS)
 
+**Component Analysis:**
+
 - Detect server/client boundaries (`'use client'`)
-- Suspense discovery & boundary placement analysis
-- Bundle bytes per island with size thresholds
-- Client component size warnings & duplicate dependency detection
+- **Serialization boundary validation** — Catch non-serializable props (functions, Dates, class instances)
+- Suspense discovery & **boundary placement analysis** (missing/parallel opportunities)
+- Bundle bytes per island with **size thresholds** (oversized component warnings)
+- **Duplicate dependency detection** across client islands
+
+**Performance & Optimization:**
+
 - Forbidden import rules (Node.js APIs in client components)
-- React 19 cache() API migration opportunities
-- Suggestions (hoist fetch, parallelize, add Suspense)
-- Export JSON/HTML report
-- Compatibility banner (Next 13.4–15.x)
+- **React 19 cache() API** migration opportunities (detect manual deduplication)
+- **Static/dynamic route classification** with cache metadata
+- **Route segment config analyzer** — Validate and detect conflicts in route config options
+- Suggestions (hoist fetch, parallelize awaits, add Suspense boundaries)
+
+**Reporting:**
+
+- Export JSON model and **offline HTML report**
+- Interactive demo at [demo.rsc-xray.dev](https://demo.rsc-xray.dev)
+- Compatibility: Next.js 13.4–15.x
 
 <details>
 <summary><strong>Features (Pro Plan) 🔒</strong></summary>
