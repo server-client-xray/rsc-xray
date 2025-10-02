@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { linter, type Diagnostic as CMDiagnostic } from '@codemirror/lint';
@@ -84,36 +84,40 @@ export function MultiFileCodeViewer({
     useState<Array<Diagnostic | Suggestion>>(diagnostics);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const hasRunInitialAnalysis = useRef(false);
 
   const activeFile = files.find((f) => f.fileName === activeFileName);
 
   // Use live diagnostics if real-time analysis is enabled, otherwise use passed diagnostics
   const activeDiagnostics = enableRealTimeAnalysis ? liveDiagnostics : diagnostics;
 
-  // Trigger analysis with debounce
-  const triggerAnalysis = (fileName: string, code: string) => {
-    if (!enableRealTimeAnalysis || !onAnalyze) return;
+  // Trigger analysis with debounce (memoized to prevent infinite loops)
+  const triggerAnalysis = useCallback(
+    (fileName: string, code: string) => {
+      if (!enableRealTimeAnalysis || !onAnalyze) return;
 
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
-
-    // Set analyzing state immediately
-    setIsAnalyzing(true);
-
-    // Debounce the actual analysis
-    debounceTimerRef.current = setTimeout(async () => {
-      try {
-        const newDiagnostics = await onAnalyze(fileName, code);
-        setLiveDiagnostics(newDiagnostics);
-        setIsAnalyzing(false);
-      } catch (error) {
-        console.error('[MultiFileCodeViewer] Analysis error:', error);
-        setIsAnalyzing(false);
+      // Clear existing timer
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
       }
-    }, analysisDebounceMs);
-  };
+
+      // Set analyzing state immediately
+      setIsAnalyzing(true);
+
+      // Debounce the actual analysis
+      debounceTimerRef.current = setTimeout(async () => {
+        try {
+          const newDiagnostics = await onAnalyze(fileName, code);
+          setLiveDiagnostics(newDiagnostics);
+          setIsAnalyzing(false);
+        } catch (error) {
+          console.error('[MultiFileCodeViewer] Analysis error:', error);
+          setIsAnalyzing(false);
+        }
+      }, analysisDebounceMs);
+    },
+    [enableRealTimeAnalysis, onAnalyze, analysisDebounceMs]
+  );
 
   // Convert RSC X-Ray diagnostics to CodeMirror diagnostics for the active file
   const convertDiagnostics = (
@@ -241,10 +245,16 @@ export function MultiFileCodeViewer({
 
   // Trigger initial analysis when component mounts (if real-time analysis is enabled)
   useEffect(() => {
-    if (enableRealTimeAnalysis && onAnalyze && activeFile?.editable) {
+    if (
+      enableRealTimeAnalysis &&
+      onAnalyze &&
+      activeFile?.editable &&
+      !hasRunInitialAnalysis.current
+    ) {
+      hasRunInitialAnalysis.current = true;
       triggerAnalysis(activeFile.fileName, activeFile.code);
     }
-  }, [enableRealTimeAnalysis, onAnalyze, activeFile]);
+  }, [enableRealTimeAnalysis, onAnalyze, activeFile, triggerAnalysis]);
 
   // Update diagnostics when they change
   useEffect(() => {
