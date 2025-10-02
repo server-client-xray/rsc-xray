@@ -16,6 +16,7 @@
 
 .editor {
   flex: 1;
+  width: 100%; /* Ensure editor uses full width */
   overflow: hidden;
   background-color: var(--color-bg-primary);
 }

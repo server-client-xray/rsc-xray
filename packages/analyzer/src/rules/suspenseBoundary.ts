@@ -13,7 +13,58 @@ function toSuggestion(
   level: 'info' | 'warn',
   filePath: string
 ): Suggestion {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+  // For function components, find the JSX return statement instead of function declaration
+  let targetNode = node;
+
+  if (ts.isFunctionDeclaration(node) || ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
+    // Try to find the return statement with JSX
+    const body = ts.isFunctionDeclaration(node)
+      ? node.body
+      : ts.isArrowFunction(node)
+        ? node.body
+        : ts.isFunctionExpression(node)
+          ? node.body
+          : null;
+
+    if (body) {
+      let foundJsxReturn = false;
+
+      const findJsxReturn = (n: ts.Node): void => {
+        if (foundJsxReturn) return;
+
+        // Check if this is a return statement with JSX
+        if (ts.isReturnStatement(n) && n.expression) {
+          if (
+            ts.isJsxElement(n.expression) ||
+            ts.isJsxSelfClosingElement(n.expression) ||
+            ts.isJsxFragment(n.expression)
+          ) {
+            targetNode = n.expression;
+            foundJsxReturn = true;
+            return;
+          }
+        }
+
+        // For arrow functions with direct JSX expression (no block)
+        if (
+          !ts.isBlock(body) &&
+          (ts.isJsxElement(body) || ts.isJsxSelfClosingElement(body) || ts.isJsxFragment(body))
+        ) {
+          targetNode = body;
+          foundJsxReturn = true;
+          return;
+        }
+
+        ts.forEachChild(n, findJsxReturn);
+      };
+
+      findJsxReturn(body);
+    }
+  }
+
+  const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+    targetNode.getStart(sourceFile)
+  );
   return {
     rule,
     level,

@@ -25,21 +25,67 @@ export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
 
   // Convert RSC X-Ray diagnostics to CodeMirror diagnostics for this file
   const convertDiagnostics = (diags: Array<Diagnostic | Suggestion>): CMDiagnostic[] => {
-    return diags
-      .filter((d) => d.loc?.file === file.fileName || d.loc?.file.includes(file.fileName))
-      .map((diag) => {
-        const line = (diag.loc?.line || 1) - 1; // Convert to 0-indexed
-        const col = (diag.loc?.col || 1) - 1;
+    console.log(
+      '[ContextTabs] Converting diagnostics for',
+      file.fileName,
+      'from',
+      diags.length,
+      'total'
+    );
+
+    const filtered = diags.filter((d) => {
+      if (!d.loc?.file) return false;
+
+      // Match exact file name or if loc.file contains this file name
+      const matches =
+        d.loc.file === file.fileName ||
+        d.loc.file.endsWith(`/${file.fileName}`) ||
+        d.loc.file.includes(file.fileName);
+
+      if (matches) {
+        console.log('[ContextTabs] Matched diagnostic:', d.loc.file, '→', file.fileName);
+      }
+
+      return matches;
+    });
+
+    console.log('[ContextTabs] Filtered to', filtered.length, 'diagnostics for', file.fileName);
+
+    return filtered.map((diag) => {
+      const line = (diag.loc?.line || 1) - 1; // Convert to 0-indexed
+      const col = (diag.loc?.col || 1) - 1;
+
+      try {
         const offset = viewRef.current?.state.doc.line(line + 1).from || 0;
         const position = offset + col;
+        const lineLength = viewRef.current?.state.doc.line(line + 1).length || 10;
+        const highlightLength = Math.min(20, lineLength - col);
+
+        console.log(
+          '[ContextTabs] Diagnostic at line',
+          line + 1,
+          'col',
+          col + 1,
+          '→ offset',
+          position
+        );
 
         return {
           from: position,
-          to: position + 10, // Highlight ~10 chars
+          to: position + highlightLength,
           severity: diag.level === 'error' ? 'error' : 'warning',
           message: diag.message,
         } as CMDiagnostic;
-      });
+      } catch (e) {
+        console.error('[ContextTabs] Error converting diagnostic:', e);
+        return {
+          from: 0,
+          to: 10,
+          severity: diag.level === 'error' ? 'error' : 'warning',
+          message: diag.message,
+        } as CMDiagnostic;
+      }
+    });
   };
 
   // Initialize CodeMirror for read-only context file
