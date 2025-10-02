@@ -91,12 +91,18 @@ export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): 
 
             // RSC X-Ray uses 1-indexed lines/cols
             // CodeMirror doc.line() uses 1-indexed lines, but positions are 0-indexed
-            const from = getOffset(view.state.doc, diag.loc.line, diag.loc.col - 1);
-            // Highlight a few characters (or to end of line if short)
-            const to = getOffset(view.state.doc, diag.loc.line, diag.loc.col + 9);
+            const lineObj = view.state.doc.line(diag.loc.line);
+            const from = lineObj.from + (diag.loc.col - 1); // Convert 1-indexed col to 0-indexed offset
+
+            // Smart highlight length: use more chars for function-level diagnostics
+            // For diagnostics at col 1, highlight the whole line (likely a function/declaration)
+            // For diagnostics mid-line, highlight ~20 characters (likely a specific expression)
+            const highlightLength =
+              diag.loc.col === 1 ? lineObj.to - from : Math.min(20, lineObj.to - from);
+            const to = from + highlightLength;
 
             console.log(
-              `Diagnostic: line ${diag.loc.line}, col ${diag.loc.col} -> offset ${from}-${to}`,
+              `Diagnostic: line ${diag.loc.line}, col ${diag.loc.col} -> offset ${from}-${to} (${highlightLength} chars)`,
               diag.message
             );
 
@@ -181,18 +187,4 @@ export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): 
   }, [scenario.code, scenario.id, isReady]);
 
   return <div ref={editorRef} className={styles.editor} />;
-}
-
-/**
- * Convert line/column to document offset
- * @param line - 1-indexed line number (CodeMirror's doc.line() expects 1-indexed)
- * @param column - 0-indexed column position within the line
- */
-function getOffset(
-  doc: { line: (n: number) => { from: number; to: number } },
-  line: number,
-  column: number
-): number {
-  const lineObj = doc.line(line);
-  return lineObj.from + Math.min(column, lineObj.to - lineObj.from);
 }
