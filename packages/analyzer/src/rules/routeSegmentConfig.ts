@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import type { RouteSegmentConfig, Diagnostic } from '@rsc-xray/schemas';
+import { createLocationFromNode } from '../lib/diagnosticHelpers.js';
 
 const ROUTE_SEGMENT_CONFIG_CONFLICT_RULE = 'route-segment-config-conflict';
 
@@ -138,13 +139,20 @@ export function parseRouteSegmentConfig(
  * Detect conflicts between route segment config and actual code behavior
  */
 
-/** Helper to get line/col from AST node */
-function getLocation(sourceFile: ts.SourceFile, node?: ts.Node): { line: number; col: number } {
+/** Helper to get location from AST node */
+function getLocation(
+  sourceFile: ts.SourceFile,
+  node: ts.Node | undefined,
+  filePath: string
+): import('@rsc-xray/schemas').DiagnosticLocation {
   if (node) {
-    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-    return { line: line + 1, col: character + 1 }; // Convert to 1-indexed
+    return createLocationFromNode(sourceFile, node, filePath);
   }
-  return { line: 1, col: 1 }; // Fallback
+  // Fallback: create a location at the start of the file
+  return {
+    file: filePath,
+    range: { from: 0, to: 0 },
+  };
 }
 
 export function detectConfigConflicts(
@@ -186,16 +194,12 @@ export function detectConfigConflicts(
     ts.forEachChild(sourceFile, visit);
 
     if (usesDynamicAPIs) {
-      const loc = getLocation(sourceFile, configWithNodes.nodes?.dynamic);
       diagnostics.push({
         rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
         level: 'error',
         message:
           'Route config \'dynamic = "force-static"\' conflicts with usage of dynamic APIs (cookies, headers, searchParams). Remove force-static or avoid dynamic APIs.',
-        loc: {
-          file: filePath,
-          ...loc,
-        },
+        loc: getLocation(sourceFile, configWithNodes.nodes?.dynamic, filePath),
       });
     }
   }
@@ -209,18 +213,15 @@ export function detectConfigConflicts(
     config.dynamic === 'force-dynamic'
   ) {
     // Point to whichever was defined first (prefer dynamic as it's the conflicting one)
-    const loc = getLocation(
-      sourceFile,
-      configWithNodes.nodes?.dynamic || configWithNodes.nodes?.revalidate
-    );
     diagnostics.push({
       rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
       level: 'warn',
       message: `Route config 'dynamic = "force-dynamic"' conflicts with 'revalidate = ${config.revalidate}'. ISR (revalidate) requires static or auto dynamic mode.`,
-      loc: {
-        file: filePath,
-        ...loc,
-      },
+      loc: getLocation(
+        sourceFile,
+        configWithNodes.nodes?.dynamic || configWithNodes.nodes?.revalidate,
+        filePath
+      ),
     });
   }
 
@@ -244,16 +245,12 @@ export function detectConfigConflicts(
     ts.forEachChild(sourceFile, visit);
 
     if (usesNodeAPIs) {
-      const loc = getLocation(sourceFile, configWithNodes.nodes?.runtime);
       diagnostics.push({
         rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
         level: 'error',
         message:
           'Route config \'runtime = "edge"\' conflicts with usage of Node.js-only APIs (fs, path, crypto, etc.). Use nodejs runtime or remove Node.js imports.',
-        loc: {
-          file: filePath,
-          ...loc,
-        },
+        loc: getLocation(sourceFile, configWithNodes.nodes?.runtime, filePath),
       });
     }
   }
@@ -264,18 +261,15 @@ export function detectConfigConflicts(
     typeof config.revalidate === 'number' &&
     config.revalidate > 0
   ) {
-    const loc = getLocation(
-      sourceFile,
-      configWithNodes.nodes?.fetchCache || configWithNodes.nodes?.revalidate
-    );
     diagnostics.push({
       rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
       level: 'warn',
       message: `Route config 'fetchCache = "force-no-store"' conflicts with 'revalidate = ${config.revalidate}'. force-no-store disables caching, making revalidation ineffective.`,
-      loc: {
-        file: filePath,
-        ...loc,
-      },
+      loc: getLocation(
+        sourceFile,
+        configWithNodes.nodes?.fetchCache || configWithNodes.nodes?.revalidate,
+        filePath
+      ),
     });
   }
 

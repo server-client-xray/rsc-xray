@@ -18,8 +18,16 @@ export type RouteSegmentRuntime = 'nodejs' | 'edge';
 
 export interface DiagnosticLocation {
   file: string;
-  line: number;
-  col: number;
+  /**
+   * Character offset range in the file (0-indexed)
+   * Provides precise positioning for editors without line/col conversion
+   */
+  range: {
+    /** Start character offset (0-indexed) */
+    from: number;
+    /** End character offset (0-indexed) */
+    to: number;
+  };
 }
 
 export interface Diagnostic {

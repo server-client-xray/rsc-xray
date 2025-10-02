@@ -2,6 +2,7 @@ import * as ts from 'typescript';
 import type { Diagnostic } from '@rsc-xray/schemas';
 
 import type { ClientComponentBundle } from '../lib/clientBundles.js';
+import { createLocationFromNode, createLocationFromOffsets } from '../lib/diagnosticHelpers.js';
 
 const OVERSIZED_RULE = 'client-component-oversized';
 const DUPLICATE_DEPS_RULE = 'duplicate-dependencies';
@@ -32,22 +33,11 @@ function toDiagnostic(
   level: 'error' | 'warn',
   sourceFile?: ts.SourceFile
 ): Diagnostic {
-  // Try to find the first import statement position for more accurate diagnostics
-  let line = 1;
-  let col = 1;
-
+  // Try to find the first import statement for more accurate positioning
   if (sourceFile) {
     // Normalize paths for comparison (remove leading ./)
     const normalizedSourcePath = sourceFile.fileName.replace(/^\.\//, '');
     const normalizedFilePath = filePath.replace(/^\.\//, '');
-
-    console.log('[clientSizeThreshold] toDiagnostic comparison:', {
-      sourceFileName: sourceFile.fileName,
-      normalizedSourcePath,
-      filePath,
-      normalizedFilePath,
-      matches: normalizedSourcePath === normalizedFilePath,
-    });
 
     if (normalizedSourcePath === normalizedFilePath) {
       // Find the first import declaration and its module specifier (package name)
@@ -62,32 +52,24 @@ function toDiagnostic(
             ))
       );
 
-      console.log('[clientSizeThreshold] Found first import?', !!firstImport);
-
-      if (firstImport && ts.isImportDeclaration(firstImport)) {
-        // Point to the module specifier (string literal) instead of the import keyword
-        const moduleSpecifier = firstImport.moduleSpecifier;
-        if (ts.isStringLiteral(moduleSpecifier)) {
-          const pos = sourceFile.getLineAndCharacterOfPosition(
-            moduleSpecifier.getStart(sourceFile)
-          );
-          line = pos.line + 1; // Convert to 1-indexed
-          col = pos.character + 1; // Convert to 1-indexed
-          console.log('[clientSizeThreshold] Module specifier position:', { line, col });
-        }
+      if (firstImport && ts.isImportDeclaration(firstImport) && firstImport.moduleSpecifier) {
+        // Point to the module specifier (string literal) for precise highlighting
+        return {
+          rule,
+          level,
+          message,
+          loc: createLocationFromNode(sourceFile, firstImport.moduleSpecifier, filePath),
+        };
       }
     }
   }
 
+  // Fallback: start of file
   return {
     rule,
     level,
     message,
-    loc: {
-      file: filePath,
-      line,
-      col,
-    },
+    loc: createLocationFromOffsets(filePath, 0, 0),
   };
 }
 

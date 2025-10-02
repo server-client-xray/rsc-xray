@@ -338,8 +338,9 @@ describe('React 19 cache() detector', () => {
 
       expect(suggestions[0]?.loc).toBeDefined();
       expect(suggestions[0]?.loc?.file).toBe('lib/data.ts');
-      expect(suggestions[0]?.loc?.line).toBeGreaterThan(0);
-      expect(suggestions[0]?.loc?.col).toBeGreaterThan(0);
+      expect(suggestions[0]?.loc?.range).toBeDefined();
+      expect(suggestions[0]?.loc?.range?.from).toBeGreaterThanOrEqual(0);
+      expect(suggestions[0]?.loc?.range?.to).toBeGreaterThan(suggestions[0]?.loc?.range?.from || 0);
     });
   });
 

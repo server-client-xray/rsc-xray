@@ -108,8 +108,10 @@ function expandDuplicateDependenciesDiagnostics(
             message: `'${packageName}' is duplicated across multiple components. Consider extracting to a shared module.`,
             loc: {
               file: matchedFile || fileName, // Use the matched file path to preserve original path format
-              line: startPos.line + 1,
-              col: startPos.character + 1,
+              range: {
+                from: moduleSpecifier.getStart(sourceFile),
+                to: moduleSpecifier.getEnd(),
+              },
             },
           });
         }
@@ -170,16 +172,14 @@ function fixContextFileDiagnostics(
       // Find the module specifier (the string literal part, e.g., 'date-fns')
       const moduleSpecifier = firstImport.moduleSpecifier;
       if (ts.isStringLiteral(moduleSpecifier)) {
-        const startPos = sourceFile.getLineAndCharacterOfPosition(
-          moduleSpecifier.getStart(sourceFile)
-        );
-
         return {
           ...diag,
           loc: {
             ...diag.loc,
-            line: startPos.line + 1, // Convert to 1-indexed
-            col: startPos.character + 1, // Convert to 1-indexed
+            range: {
+              from: moduleSpecifier.getStart(sourceFile),
+              to: moduleSpecifier.getEnd(),
+            },
           },
         };
       }

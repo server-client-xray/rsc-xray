@@ -1,5 +1,6 @@
 import * as ts from 'typescript';
 import type { Diagnostic } from '@rsc-xray/schemas';
+import { createDiagnosticFromNode } from '../lib/diagnosticHelpers.js';
 
 import { classifyComponent } from '../lib/classify.js';
 import type { ComponentKind } from '../lib/classify.js';
@@ -40,17 +41,20 @@ function createDiagnostic(
   node: ts.Node,
   moduleName: string
 ): Diagnostic {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-  return {
-    rule: 'client-forbidden-import',
-    level: 'error',
-    message: `Client components must not import '${moduleName}'.`,
-    loc: {
-      file: sourceFile.fileName,
-      line: line + 1,
-      col: character + 1,
-    },
-  };
+  // For imports, highlight the module specifier (string literal) instead of entire import
+  let targetNode: ts.Node = node;
+  if (ts.isImportDeclaration(node) && node.moduleSpecifier) {
+    targetNode = node.moduleSpecifier;
+  }
+
+  return createDiagnosticFromNode(
+    sourceFile,
+    targetNode,
+    sourceFile.fileName,
+    'client-forbidden-import',
+    `Client components must not import '${moduleName}'.`,
+    'error'
+  );
 }
 
 function analyzeSource({

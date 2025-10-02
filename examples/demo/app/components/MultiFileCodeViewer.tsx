@@ -126,93 +126,25 @@ export function MultiFileCodeViewer({
     if (!viewRef.current) return [];
 
     return filtered.map((diag) => {
-      const line = (diag.loc?.line || 1) - 1; // Convert to 0-indexed
-      const col = (diag.loc?.col || 1) - 1;
-
       try {
-        const lineObj = viewRef.current!.state.doc.line(line + 1);
-        const position = lineObj.from + col;
-
-        // Smart highlight length based on diagnostic type and code patterns
-        const lineText = viewRef.current!.state.doc.sliceString(lineObj.from, lineObj.to);
-        const fromCol = lineText.substring(col);
-        let highlightLength = Math.min(25, lineObj.to - position); // Default fallback
-
-        // 1. Import-related: highlight package name (string literal)
-        if (
-          diag.rule === 'duplicate-dependencies' ||
-          diag.rule === 'client-forbidden-import' ||
-          diag.rule === 'client-component-oversized'
-        ) {
-          const stringMatch = fromCol.match(/^['"]([^'"]+)['"]/);
-          if (stringMatch) {
-            highlightLength = stringMatch[0].length;
-          } else {
-            highlightLength = Math.min(30, lineObj.to - position);
-          }
+        // Use the precise range from the analyzer if available
+        if (diag.loc?.range) {
+          return {
+            from: diag.loc.range.from,
+            to: diag.loc.range.to,
+            severity: diag.level === 'error' ? 'error' : 'warning',
+            message: diag.message,
+            source: diag.rule,
+          } as CMDiagnostic;
         }
-        // 2. Route config: highlight config declaration (e.g., export const dynamic = "force-dynamic")
-        else if (diag.rule === 'route-segment-config-conflict') {
-          // Find the end of the statement (semicolon or end of line)
-          const statementMatch = fromCol.match(/^[^;]+/);
-          if (statementMatch) {
-            highlightLength = Math.min(statementMatch[0].length, lineObj.to - position);
-          } else {
-            highlightLength = Math.min(40, lineObj.to - position);
-          }
-        }
-        // 3. Serialization boundary: highlight non-serializable expression
-        else if (diag.rule === 'server-client-serialization-violation') {
-          // Try to find the expression: new Date(), () => {}, etc.
-          const exprPatterns = [
-            /^new\s+\w+\([^)]*\)/, // new Date(), new Map()
-            /^\([^)]*\)\s*=>\s*{[^}]*}/, // () => {}
-            /^\w+\(/, // functionCall(
-          ];
 
-          let matched = false;
-          for (const pattern of exprPatterns) {
-            const match = fromCol.match(pattern);
-            if (match) {
-              highlightLength = match[0].length;
-              matched = true;
-              break;
-            }
-          }
-
-          if (!matched) {
-            highlightLength = Math.min(30, lineObj.to - position);
-          }
-        }
-        // 4. Suspense boundary: highlight JSX element
-        else if (
-          diag.rule === 'suspense-boundary-missing' ||
-          diag.rule === 'suspense-boundary-opportunity'
-        ) {
-          // Find the JSX tag opening: <div>, <Component>, etc.
-          const jsxMatch = fromCol.match(/^<[\w.]+/);
-          if (jsxMatch) {
-            highlightLength = jsxMatch[0].length + 1; // Include closing >
-          } else {
-            highlightLength = Math.min(25, lineObj.to - position);
-          }
-        }
-        // 5. React 19 cache: highlight fetch call
-        else if (diag.rule === 'react19-cache-opportunity') {
-          const fetchMatch = fromCol.match(/^(await\s+)?fetch\s*\([^)]+\)/);
-          if (fetchMatch) {
-            highlightLength = fetchMatch[0].length;
-          } else {
-            highlightLength = Math.min(30, lineObj.to - position);
-          }
-        }
-        // 6. Default: use fallback (already set above)
-
+        // Fallback: shouldn't happen with new schema, but kept for safety
         return {
-          from: position,
-          to: position + highlightLength,
+          from: 0,
+          to: 10,
           severity: diag.level === 'error' ? 'error' : 'warning',
           message: diag.message,
+          source: diag.rule,
         } as CMDiagnostic;
       } catch (e) {
         console.error('[MultiFileCodeViewer] Error converting diagnostic:', e);
@@ -221,6 +153,7 @@ export function MultiFileCodeViewer({
           to: 10,
           severity: diag.level === 'error' ? 'error' : 'warning',
           message: diag.message,
+          source: diag.rule,
         } as CMDiagnostic;
       }
     });

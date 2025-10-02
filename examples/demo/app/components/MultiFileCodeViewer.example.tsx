@@ -53,8 +53,7 @@ export function Component() {
       message: 'Consider using useCallback for the onClick handler',
       loc: {
         file: 'Component.tsx',
-        line: 6,
-        col: 19,
+        range: { from: 150, to: 180 }, // Approximate position of onClick handler
       },
     },
   ];
@@ -111,19 +110,19 @@ export function Footer() {
       rule: 'duplicate-dependencies',
       level: 'warn',
       message: "'date-fns' is duplicated across multiple components",
-      loc: { file: 'App.tsx', line: 2, col: 24 },
+      loc: { file: 'App.tsx', range: { from: 50, to: 60 } },
     },
     {
       rule: 'duplicate-dependencies',
       level: 'warn',
       message: "'date-fns' is duplicated across multiple components",
-      loc: { file: 'Header.tsx', line: 2, col: 24 },
+      loc: { file: 'Header.tsx', range: { from: 40, to: 50 } },
     },
     {
       rule: 'duplicate-dependencies',
       level: 'warn',
       message: "'date-fns' is duplicated across multiple components",
-      loc: { file: 'Footer.tsx', line: 2, col: 24 },
+      loc: { file: 'Footer.tsx', range: { from: 45, to: 55 } },
     },
   ];
 
@@ -169,7 +168,7 @@ export function UserProfile({ userId }: { userId: string }) {
       rule: 'client-forbidden-import',
       level: 'error',
       message: "Client components must not import './db'",
-      loc: { file: 'UserProfile.tsx', line: 2, col: 20 },
+      loc: { file: 'UserProfile.tsx', range: { from: 30, to: 36 } },
     },
   ];
 

@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 
 import type { Suggestion } from '@rsc-xray/schemas';
+import { createSuggestionFromNode } from '../lib/diagnosticHelpers.js';
 
 const SUSPENSE_MISSING_RULE = 'suspense-boundary-missing';
 const SUSPENSE_OPPORTUNITY_RULE = 'suspense-boundary-opportunity';
@@ -62,19 +63,7 @@ function toSuggestion(
     }
   }
 
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(
-    targetNode.getStart(sourceFile)
-  );
-  return {
-    rule,
-    level,
-    message,
-    loc: {
-      file: filePath,
-      line: line + 1,
-      col: character + 1,
-    },
-  };
+  return createSuggestionFromNode(sourceFile, targetNode, filePath, rule, message, level);
 }
 
 /**

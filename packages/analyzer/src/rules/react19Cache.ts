@@ -1,6 +1,7 @@
 import * as ts from 'typescript';
 
 import type { Suggestion } from '@rsc-xray/schemas';
+import { createSuggestionFromNode } from '../lib/diagnosticHelpers.js';
 
 const REACT19_CACHE_OPPORTUNITY_RULE = 'react19-cache-opportunity';
 
@@ -12,17 +13,7 @@ function toSuggestion(
   level: 'info' | 'warn',
   filePath: string
 ): Suggestion {
-  const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
-  return {
-    rule,
-    level,
-    message,
-    loc: {
-      file: filePath,
-      line: line + 1,
-      col: character + 1,
-    },
-  };
+  return createSuggestionFromNode(sourceFile, node, filePath, rule, message, level);
 }
 
 /**
