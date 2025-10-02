@@ -5,7 +5,7 @@ import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
 import { linter, Diagnostic as CMDiagnostic } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
-import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
+import type { Diagnostic, Suggestion } from '@rsc-xray/schemas';
 import type { LspAnalysisResponse } from '@rsc-xray/lsp-server';
 import type { Scenario } from '../lib/scenarios';
 import styles from './CodeEditor.module.css';
@@ -13,8 +13,9 @@ import styles from './CodeEditor.module.css';
 interface CodeEditorConfig {
   scenario: Scenario;
   highlightLine?: number | null;
+  diagnostics?: Array<Diagnostic | Suggestion>; // Optional: pre-computed diagnostics (for context tabs)
   onAnalysisComplete: (config: {
-    diagnostics: RscXrayDiagnostic[];
+    diagnostics: Array<Diagnostic | Suggestion>;
     duration: number;
     status: 'idle' | 'analyzing' | 'error';
   }) => void;
@@ -135,7 +136,7 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
           console.log('CodeMirror diagnostics:', cmDiagnostics);
 
           onAnalysisComplete({
-            diagnostics: diagnosticsOnly as unknown as RscXrayDiagnostic[],
+            diagnostics: diagnosticsOnly,
             duration: result.duration,
             status: 'idle',
           });

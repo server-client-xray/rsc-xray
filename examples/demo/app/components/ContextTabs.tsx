@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { EditorView, basicSetup } from 'codemirror';
 import { javascript } from '@codemirror/lang-javascript';
-import { useEffect, useRef } from 'react';
+import { linter, type Diagnostic as CMDiagnostic } from '@codemirror/lint';
+import type { Diagnostic, Suggestion } from '@rsc-xray/schemas';
 import styles from './ContextTabs.module.css';
 
 interface ContextFile {
@@ -13,25 +14,45 @@ interface ContextFile {
 }
 
 interface ContextTabsConfig {
-  files: ContextFile[];
+  file: ContextFile;
+  diagnostics: Array<Diagnostic | Suggestion>;
 }
 
-export function ContextTabs({ files }: ContextTabsConfig) {
-  const [activeTab, setActiveTab] = useState(0);
+export function ContextTabs({ file, diagnostics }: ContextTabsConfig) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
 
-  // Initialize CodeMirror for read-only context files
+  // Convert RSC X-Ray diagnostics to CodeMirror diagnostics for this file
+  const convertDiagnostics = (diags: Array<Diagnostic | Suggestion>): CMDiagnostic[] => {
+    return diags
+      .filter((d) => d.loc?.file === file.fileName || d.loc?.file.includes(file.fileName))
+      .map((diag) => {
+        const line = (diag.loc?.line || 1) - 1; // Convert to 0-indexed
+        const col = (diag.loc?.col || 1) - 1;
+        const offset = viewRef.current?.state.doc.line(line + 1).from || 0;
+        const position = offset + col;
+
+        return {
+          from: position,
+          to: position + 10, // Highlight ~10 chars
+          severity: diag.level === 'error' ? 'error' : 'warning',
+          message: diag.message,
+        } as CMDiagnostic;
+      });
+  };
+
+  // Initialize CodeMirror for read-only context file
   useEffect(() => {
     if (!editorRef.current || isReady) return;
 
     const view = new EditorView({
-      doc: files[0]?.code || '',
+      doc: file.code,
       extensions: [
         basicSetup,
         javascript({ jsx: true, typescript: true }),
         EditorView.editable.of(false), // Read-only
+        linter(() => convertDiagnostics(diagnostics)), // Show diagnostics
         EditorView.theme({
           '&': {
             height: '100%',
@@ -64,41 +85,21 @@ export function ContextTabs({ files }: ContextTabsConfig) {
     };
   }, []);
 
-  // Update editor content when tab changes
+  // Update diagnostics when they change
   useEffect(() => {
     if (!viewRef.current || !isReady) return;
 
-    const currentCode = viewRef.current.state.doc.toString();
-    const newCode = files[activeTab]?.code || '';
-
-    if (currentCode !== newCode) {
-      viewRef.current.dispatch({
-        changes: {
-          from: 0,
-          to: currentCode.length,
-          insert: newCode,
-        },
-      });
-    }
-  }, [activeTab, files, isReady]);
-
-  if (files.length === 0) return null;
+    // Force linter to re-run
+    import('@codemirror/lint').then(({ forceLinting }) => {
+      if (viewRef.current) {
+        forceLinting(viewRef.current);
+      }
+    });
+  }, [diagnostics, isReady]);
 
   return (
     <div className={styles.container}>
-      <div className={styles.tabs}>
-        {files.map((file, index) => (
-          <button
-            key={file.fileName}
-            className={`${styles.tab} ${index === activeTab ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab(index)}
-            title={file.description}
-          >
-            {file.fileName}
-          </button>
-        ))}
-      </div>
-      <div className={styles.description}>{files[activeTab]?.description}</div>
+      <div className={styles.description}>{file.description}</div>
       <div ref={editorRef} className={styles.editor} />
     </div>
   );

@@ -17,17 +17,42 @@
   height: 100%;
 }
 
-.mainEditor {
-  flex: 1;
-  min-height: 0; /* Allow flex shrinking */
-  overflow: hidden;
+.tabNavigation {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  background-color: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
 }
 
-.contextPanel {
-  height: 250px;
-  min-height: 150px;
-  max-height: 50%;
-  border-top: 2px solid var(--color-border);
+.tabButton {
+  padding: 8px 16px;
+  background-color: var(--color-bg-tertiary);
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tabButton:hover {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.activeTabButton {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+  font-weight: 500;
+}
+
+.editorContent {
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 

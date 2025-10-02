@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
+import type { Diagnostic, Suggestion } from '@rsc-xray/schemas';
 import { scenarios, getScenario } from '../lib/scenarios';
 import { useDeepLink, useSyncUrlOnScenarioChange } from '../lib/useDeepLink';
 import { Header } from './Header';
@@ -41,8 +41,9 @@ export function DemoApp() {
 
   const [selectedScenarioId, setSelectedScenarioId] = useState(getInitialScenario());
   const [analysisStatus, setAnalysisStatus] = useState<'idle' | 'analyzing' | 'error'>('idle');
-  const [diagnostics, setDiagnostics] = useState<RscXrayDiagnostic[]>([]);
+  const [diagnostics, setDiagnostics] = useState<Array<Diagnostic | Suggestion>>([]);
   const [analysisDuration, setAnalysisDuration] = useState<number | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState<'main' | number>('main'); // 'main' or contextFile index
   const [proModalState, setProModalState] = useState<{
     isOpen: boolean;
     feature: ProFeature | null;
@@ -61,10 +62,11 @@ export function DemoApp() {
     setAnalysisStatus('idle');
     setDiagnostics([]);
     setAnalysisDuration(undefined);
+    setActiveTab('main'); // Reset to main tab on scenario change
   };
 
   const handleAnalysisComplete = (config: {
-    diagnostics: RscXrayDiagnostic[];
+    diagnostics: Array<Diagnostic | Suggestion>;
     duration: number;
     status: 'idle' | 'analyzing' | 'error';
   }): void => {
@@ -97,19 +99,45 @@ export function DemoApp() {
           }
           rightPanel={
             <div className={styles.rightPanelContainer}>
-              <div className={styles.mainEditor}>
-                <CodeEditor
-                  key={selectedScenarioId} // Force remount on scenario change
-                  scenario={scenario}
-                  highlightLine={initialParams.line}
-                  onAnalysisComplete={handleAnalysisComplete}
-                />
+              {/* Tab navigation */}
+              <div className={styles.tabNavigation}>
+                <button
+                  className={`${styles.tabButton} ${activeTab === 'main' ? styles.activeTabButton : ''}`}
+                  onClick={() => setActiveTab('main')}
+                >
+                  demo.tsx
+                </button>
+                {scenario.contextFiles?.map((file, index) => (
+                  <button
+                    key={file.fileName}
+                    className={`${styles.tabButton} ${activeTab === index ? styles.activeTabButton : ''}`}
+                    onClick={() => setActiveTab(index)}
+                    title={file.description}
+                  >
+                    {file.fileName}
+                  </button>
+                ))}
               </div>
-              {scenario.contextFiles && scenario.contextFiles.length > 0 && (
-                <div className={styles.contextPanel}>
-                  <ContextTabs files={scenario.contextFiles} />
-                </div>
-              )}
+
+              {/* Editor content */}
+              <div className={styles.editorContent}>
+                {activeTab === 'main' ? (
+                  <CodeEditor
+                    key={selectedScenarioId} // Force remount on scenario change
+                    scenario={scenario}
+                    highlightLine={initialParams.line}
+                    onAnalysisComplete={handleAnalysisComplete}
+                    diagnostics={diagnostics}
+                  />
+                ) : (
+                  scenario.contextFiles?.[activeTab as number] && (
+                    <ContextTabs
+                      file={scenario.contextFiles[activeTab as number]}
+                      diagnostics={diagnostics}
+                    />
+                  )
+                )}
+              </div>
             </div>
           }
         />
