@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import type { ReactElement, ReactNode } from 'react';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -8,7 +7,7 @@ export const metadata: Metadata = {
   keywords: ['react', 'server components', 'rsc', 'next.js', 'tutorial', 'demo'],
 };
 
-export default function RootLayout({ children }: { children: ReactNode }): ReactElement {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>{children}</body>
