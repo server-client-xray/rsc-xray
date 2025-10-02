@@ -3,12 +3,26 @@ import type { RouteSegmentConfig, Diagnostic } from '@rsc-xray/schemas';
 
 const ROUTE_SEGMENT_CONFIG_CONFLICT_RULE = 'route-segment-config-conflict';
 
+/** Internal type to track config with AST node positions */
+interface RouteSegmentConfigWithNodes extends RouteSegmentConfig {
+  nodes?: {
+    dynamic?: ts.Node;
+    revalidate?: ts.Node;
+    fetchCache?: ts.Node;
+    runtime?: ts.Node;
+    preferredRegion?: ts.Node;
+  };
+}
+
 /**
  * Parse route segment config from a TypeScript source file
  * Looks for exported const declarations matching Next.js route segment config options
+ * Returns config with AST nodes for accurate diagnostic positioning
  */
-export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegmentConfig | undefined {
-  const config: RouteSegmentConfig = {};
+export function parseRouteSegmentConfig(
+  sourceFile: ts.SourceFile
+): RouteSegmentConfigWithNodes | undefined {
+  const config: RouteSegmentConfigWithNodes = { nodes: {} };
   let foundAny = false;
 
   const visit = (node: ts.Node) => {
@@ -32,13 +46,14 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
           continue;
         }
 
-        // Parse each config option
+        // Parse each config option and track AST nodes
         switch (name) {
           case 'dynamic':
             if (ts.isStringLiteral(initializer)) {
               const value = initializer.text as 'auto' | 'force-dynamic' | 'force-static' | 'error';
               if (['auto', 'force-dynamic', 'force-static', 'error'].includes(value)) {
                 config.dynamic = value;
+                config.nodes!.dynamic = node; // Track the export statement node
                 foundAny = true;
               }
             }
@@ -47,9 +62,11 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
           case 'revalidate':
             if (ts.isNumericLiteral(initializer)) {
               config.revalidate = parseInt(initializer.text, 10);
+              config.nodes!.revalidate = node; // Track the export statement node
               foundAny = true;
             } else if (initializer.kind === ts.SyntaxKind.FalseKeyword) {
               config.revalidate = false;
+              config.nodes!.revalidate = node;
               foundAny = true;
             }
             break;
@@ -69,6 +86,7 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
                 ].includes(value)
               ) {
                 config.fetchCache = value as RouteSegmentConfig['fetchCache'];
+                config.nodes!.fetchCache = node;
                 foundAny = true;
               }
             }
@@ -79,6 +97,7 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
               const value = initializer.text;
               if (['nodejs', 'edge'].includes(value)) {
                 config.runtime = value as 'nodejs' | 'edge';
+                config.nodes!.runtime = node;
                 foundAny = true;
               }
             }
@@ -87,6 +106,7 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
           case 'preferredRegion':
             if (ts.isStringLiteral(initializer)) {
               config.preferredRegion = initializer.text;
+              config.nodes!.preferredRegion = node;
               foundAny = true;
             } else if (ts.isArrayLiteralExpression(initializer)) {
               const regions: string[] = [];
@@ -97,6 +117,7 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
               }
               if (regions.length > 0) {
                 config.preferredRegion = regions;
+                config.nodes!.preferredRegion = node;
                 foundAny = true;
               }
             }
@@ -116,12 +137,23 @@ export function parseRouteSegmentConfig(sourceFile: ts.SourceFile): RouteSegment
 /**
  * Detect conflicts between route segment config and actual code behavior
  */
+
+/** Helper to get line/col from AST node */
+function getLocation(sourceFile: ts.SourceFile, node?: ts.Node): { line: number; col: number } {
+  if (node) {
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile));
+    return { line: line + 1, col: character + 1 }; // Convert to 1-indexed
+  }
+  return { line: 1, col: 1 }; // Fallback
+}
+
 export function detectConfigConflicts(
   sourceFile: ts.SourceFile,
-  config: RouteSegmentConfig,
+  config: RouteSegmentConfig | RouteSegmentConfigWithNodes,
   filePath: string
 ): Diagnostic[] {
   const diagnostics: Diagnostic[] = [];
+  const configWithNodes = config as RouteSegmentConfigWithNodes;
 
   // Check for force-static with dynamic APIs
   if (config.dynamic === 'force-static') {
@@ -154,6 +186,7 @@ export function detectConfigConflicts(
     ts.forEachChild(sourceFile, visit);
 
     if (usesDynamicAPIs) {
+      const loc = getLocation(sourceFile, configWithNodes.nodes?.dynamic);
       diagnostics.push({
         rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
         level: 'error',
@@ -161,8 +194,7 @@ export function detectConfigConflicts(
           'Route config \'dynamic = "force-static"\' conflicts with usage of dynamic APIs (cookies, headers, searchParams). Remove force-static or avoid dynamic APIs.',
         loc: {
           file: filePath,
-          line: 1,
-          col: 1,
+          ...loc,
         },
       });
     }
@@ -176,14 +208,18 @@ export function detectConfigConflicts(
     config.revalidate > 0 &&
     config.dynamic === 'force-dynamic'
   ) {
+    // Point to whichever was defined first (prefer dynamic as it's the conflicting one)
+    const loc = getLocation(
+      sourceFile,
+      configWithNodes.nodes?.dynamic || configWithNodes.nodes?.revalidate
+    );
     diagnostics.push({
       rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
       level: 'warn',
       message: `Route config 'dynamic = "force-dynamic"' conflicts with 'revalidate = ${config.revalidate}'. ISR (revalidate) requires static or auto dynamic mode.`,
       loc: {
         file: filePath,
-        line: 1,
-        col: 1,
+        ...loc,
       },
     });
   }
@@ -208,6 +244,7 @@ export function detectConfigConflicts(
     ts.forEachChild(sourceFile, visit);
 
     if (usesNodeAPIs) {
+      const loc = getLocation(sourceFile, configWithNodes.nodes?.runtime);
       diagnostics.push({
         rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
         level: 'error',
@@ -215,8 +252,7 @@ export function detectConfigConflicts(
           'Route config \'runtime = "edge"\' conflicts with usage of Node.js-only APIs (fs, path, crypto, etc.). Use nodejs runtime or remove Node.js imports.',
         loc: {
           file: filePath,
-          line: 1,
-          col: 1,
+          ...loc,
         },
       });
     }
@@ -228,14 +264,17 @@ export function detectConfigConflicts(
     typeof config.revalidate === 'number' &&
     config.revalidate > 0
   ) {
+    const loc = getLocation(
+      sourceFile,
+      configWithNodes.nodes?.fetchCache || configWithNodes.nodes?.revalidate
+    );
     diagnostics.push({
       rule: ROUTE_SEGMENT_CONFIG_CONFLICT_RULE,
       level: 'warn',
       message: `Route config 'fetchCache = "force-no-store"' conflicts with 'revalidate = ${config.revalidate}'. force-no-store disables caching, making revalidation ineffective.`,
       loc: {
         file: filePath,
-        line: 1,
-        col: 1,
+        ...loc,
       },
     });
   }
