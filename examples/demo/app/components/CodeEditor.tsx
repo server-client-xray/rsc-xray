@@ -53,16 +53,23 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
     const rscXrayLinter = linter(
       async (view): Promise<CMDiagnostic[]> => {
         const code = view.state.doc.toString();
+        const currentScenario = scenarioRef.current;
+
+        console.log(
+          `[Linter] Running analysis for scenario "${currentScenario.id}" (${code.length} chars)`
+        );
 
         try {
           onAnalysisComplete({ diagnostics: [], duration: 0, status: 'analyzing' });
 
           // Call server-side LSP analysis API
           // Use scenarioRef.current to get the latest scenario value
-          const currentScenario = scenarioRef.current;
           const response = await fetch('/api/analyze', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'no-cache', // Prevent client-side caching
+            },
             body: JSON.stringify({
               code,
               fileName: 'demo.tsx',
