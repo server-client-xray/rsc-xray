@@ -8,11 +8,11 @@ import { linter, Diagnostic as CMDiagnostic } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import type { RscXrayDiagnostic } from '@rsc-xray/schemas';
 import type { LspAnalysisResponse } from '@rsc-xray/lsp-server';
+import type { Scenario } from '../lib/scenarios';
 import styles from './CodeEditor.module.css';
 
 interface CodeEditorConfig {
-  initialCode: string;
-  scenarioId: string;
+  scenario: Scenario;
   onAnalysisComplete: (config: {
     diagnostics: RscXrayDiagnostic[];
     duration: number;
@@ -33,11 +33,7 @@ interface CodeEditorConfig {
  * Note: Analysis runs server-side because @rsc-xray/analyzer
  * uses Node.js APIs. Still provides real-time UX with debouncing.
  */
-export function CodeEditor({
-  initialCode,
-  scenarioId,
-  onAnalysisComplete,
-}: CodeEditorConfig): ReactElement {
+export function CodeEditor({ scenario, onAnalysisComplete }: CodeEditorConfig): ReactElement {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -60,45 +56,66 @@ export function CodeEditor({
             body: JSON.stringify({
               code,
               fileName: 'demo.tsx',
-              scenario: scenarioId,
+              scenario: scenario.id,
+              context: scenario.context, // Pass context for rules that need it
             }),
           });
 
           if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Analysis API error:', response.status, errorText);
             throw new Error(`Analysis failed: ${response.statusText}`);
           }
 
           const result: LspAnalysisResponse = await response.json();
+          console.log('Analysis result:', result);
 
           // Convert RSC X-Ray diagnostics to CodeMirror format
-          // Filter to only Diagnostic items (which have line/column, not Suggestions)
-          const diagnosticsOnly = (result.diagnostics || []).filter(
-            (d) => 'line' in d && 'column' in d
-          );
+          // RSC X-Ray diagnostics have structure: { rule, level, message, loc: { file, line, col } }
+          // Suggestions don't have 'loc', so filter by that
+          const diagnosticsOnly = (result.diagnostics || []).filter((d) => 'loc' in d);
+
+          console.log('Diagnostics to display:', diagnosticsOnly);
 
           const cmDiagnostics: CMDiagnostic[] = diagnosticsOnly.map((d) => {
-            const diag = d as unknown as {
-              line: number;
-              column: number;
-              endLine?: number;
-              endColumn?: number;
-              severity: string;
-              message: string;
+            const diag = d as {
               rule: string;
+              level: string;
+              message: string;
+              loc: {
+                file: string;
+                line: number;
+                col: number;
+              };
             };
 
+            // RSC X-Ray uses 1-indexed lines/cols
+            // CodeMirror doc.line() uses 1-indexed lines, but positions are 0-indexed
+            const lineObj = view.state.doc.line(diag.loc.line);
+            const from = lineObj.from + (diag.loc.col - 1); // Convert 1-indexed col to 0-indexed offset
+
+            // Smart highlight length: use more chars for function-level diagnostics
+            // For diagnostics at col 1, highlight the whole line (likely a function/declaration)
+            // For diagnostics mid-line, highlight ~20 characters (likely a specific expression)
+            const highlightLength =
+              diag.loc.col === 1 ? lineObj.to - from : Math.min(20, lineObj.to - from);
+            const to = from + highlightLength;
+
+            console.log(
+              `Diagnostic: line ${diag.loc.line}, col ${diag.loc.col} -> offset ${from}-${to} (${highlightLength} chars)`,
+              diag.message
+            );
+
             return {
-              from: getOffset(view.state.doc, diag.line, diag.column),
-              to: getOffset(
-                view.state.doc,
-                diag.endLine || diag.line,
-                diag.endColumn || diag.column + 1
-              ),
-              severity: diag.severity as 'error' | 'warning' | 'info',
+              from,
+              to,
+              severity: diag.level as 'error' | 'warning' | 'info',
               message: diag.message,
               source: diag.rule,
             };
           });
+
+          console.log('CodeMirror diagnostics:', cmDiagnostics);
 
           onAnalysisComplete({
             diagnostics: diagnosticsOnly as unknown as RscXrayDiagnostic[],
@@ -117,12 +134,12 @@ export function CodeEditor({
           return [];
         }
       },
-      { delay: 500 }
-    ); // 500ms debounce
+      { delay: 300 }
+    ); // Reduced to 300ms for faster feedback
 
     // Initialize CodeMirror
     const startState = EditorState.create({
-      doc: initialCode,
+      doc: scenario.code,
       extensions: [
         basicSetup,
         javascript({ jsx: true, typescript: true }),
@@ -158,28 +175,16 @@ export function CodeEditor({
     if (!viewRef.current || !isReady) return;
 
     const currentCode = viewRef.current.state.doc.toString();
-    if (currentCode !== initialCode) {
+    if (currentCode !== scenario.code) {
       viewRef.current.dispatch({
         changes: {
           from: 0,
           to: currentCode.length,
-          insert: initialCode,
+          insert: scenario.code,
         },
       });
     }
-  }, [initialCode, scenarioId, isReady]);
+  }, [scenario.code, scenario.id, isReady]);
 
   return <div ref={editorRef} className={styles.editor} />;
-}
-
-/**
- * Convert line/column to document offset
- */
-function getOffset(
-  doc: { line: (n: number) => { from: number; to: number } },
-  line: number,
-  column: number
-): number {
-  const lineObj = doc.line(line);
-  return lineObj.from + Math.min(column, lineObj.to - lineObj.from);
 }

@@ -36,6 +36,15 @@ export function ExplanationPanel({
         </header>
 
         <div className={styles.sections}>
+          {scenario.contextDescription && (
+            <section className={styles.section}>
+              <h3 className={styles.sectionTitle}>
+                <span className={styles.icon}>🔍</span> What analyzer checks
+              </h3>
+              <p className={styles.sectionContent}>{scenario.contextDescription}</p>
+            </section>
+          )}
+
           <section className={styles.section}>
             <h3 className={styles.sectionTitle}>
               <span className={styles.icon}>❓</span> What is it?

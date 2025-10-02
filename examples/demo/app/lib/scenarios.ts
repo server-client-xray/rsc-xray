@@ -22,38 +22,57 @@ export interface Scenario {
     how: string;
   };
   proFeatures?: string[];
+  /** Human-readable description of what the analyzer is checking */
+  contextDescription?: string;
+  /** Context to pass to LSP analyzer (for rules that need it) */
+  context?: {
+    clientComponentPaths?: string[];
+    clientBundles?: Array<{
+      filePath: string;
+      chunks: string[];
+      totalBytes: number;
+    }>;
+    routeConfig?: {
+      dynamic?: string;
+      revalidate?: number | false;
+      fetchCache?: string;
+      runtime?: string;
+      preferredRegion?: string;
+    };
+    reactVersion?: string;
+  };
 }
 
 export const scenarios: Scenario[] = [
   // Fundamentals Category
   {
-    id: 'serialization-boundary',
+    id: 'serialization-boundary', // Matches LSP scenario
     title: 'Serialization Boundary Violation',
     category: 'fundamentals',
     isPro: false,
-    rule: 'server-client-serialization-violation',
+    rule: 'serialization-boundary-violation',
     description: 'Passing non-serializable props from Server to Client components',
-    code: `// app/page.tsx (Server Component)
+    code: `import { ClientButton } from './ClientButton';
+
 export default function Page() {
   const handleClick = () => console.log('clicked');
   
   return <ClientButton onClick={handleClick} />;
-}
-
-// components/ClientButton.tsx
-'use client';
-export function ClientButton({ onClick }) {
-  return <button onClick={onClick}>Click me</button>;
 }`,
     explanation: {
       what: 'This code tries to pass a function from a Server Component to a Client Component',
       why: 'Server Components run on the server, Client Components run in the browser. Functions cannot be serialized and sent over the network.',
       how: 'Move the function to the Client Component, or use a serializable prop like a URL for server actions',
     },
+    contextDescription:
+      "Analyzer knows 'ClientButton' is a Client Component, so it checks props passed to it",
+    context: {
+      clientComponentPaths: ['./ClientButton', 'ClientButton'],
+    },
   },
 
   {
-    id: 'client-forbidden-import',
+    id: 'client-forbidden-imports', // Matches LSP scenario (note the 's')
     title: 'Client Component with Node.js Import',
     category: 'fundamentals',
     isPro: false,
@@ -75,14 +94,13 @@ export function FileReader() {
   },
 
   {
-    id: 'suspense-boundary-missing',
+    id: 'suspense-boundary', // Matches LSP scenario
     title: 'Missing Suspense Boundary',
     category: 'fundamentals',
     isPro: false,
     rule: 'suspense-boundary-missing',
     description: 'Async Server Component without Suspense wrapper',
-    code: `// app/page.tsx
-export default async function Page() {
+    code: `export default async function Page() {
   const data = await fetch('https://api.example.com/data');
   const json = await data.json();
   
@@ -97,7 +115,7 @@ export default async function Page() {
 
   // Performance Category
   {
-    id: 'client-oversized',
+    id: 'client-size', // Matches LSP scenario
     title: 'Oversized Client Bundle',
     category: 'performance',
     isPro: false,
@@ -119,6 +137,57 @@ export function HeavyComponent() {
       why: 'Large bundles slow down page load and hurt mobile users on slow connections',
       how: 'Use lightweight alternatives, tree-shake imports, or move heavy logic to Server Components',
     },
+    contextDescription: 'Analyzer simulates a 320KB bundle (exceeding the 50KB threshold)',
+    context: {
+      clientBundles: [
+        {
+          filePath: 'demo.tsx',
+          chunks: ['chunk-1.js', 'chunk-2.js', 'chunk-3.js'],
+          totalBytes: 320000, // 320 KB - exceeds threshold
+        },
+      ],
+    },
+  },
+
+  {
+    id: 'duplicate-dependencies',
+    title: 'Duplicate Dependencies',
+    category: 'performance',
+    isPro: false,
+    rule: 'duplicate-dependencies',
+    description: 'Multiple client components bundling the same heavy library',
+    code: `'use client';
+import { format } from 'date-fns'; // This library is also used in Header.tsx and Footer.tsx
+
+export function DateDisplay({ date }: { date: Date }) {
+  return <div>{format(date, 'PPP')}</div>;
+}`,
+    explanation: {
+      what: 'Multiple client components import the same library (date-fns), causing it to be bundled multiple times',
+      why: 'Duplicate dependencies waste bandwidth and increase bundle size unnecessarily',
+      how: 'Extract shared dependencies into a common chunk, or move to a shared utility Server Component',
+    },
+    contextDescription:
+      'Analyzer detects 3 shared libraries (date-fns, lodash, moment) duplicated across client bundles',
+    context: {
+      clientBundles: [
+        {
+          filePath: 'components/DateDisplay.tsx',
+          chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+          totalBytes: 45000,
+        },
+        {
+          filePath: 'components/Header.tsx',
+          chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+          totalBytes: 44000,
+        },
+        {
+          filePath: 'components/Footer.tsx',
+          chunks: ['date-fns.js', 'lodash.js', 'moment.js'],
+          totalBytes: 43000,
+        },
+      ],
+    },
   },
 
   {
@@ -128,24 +197,55 @@ export function HeavyComponent() {
     isPro: false,
     rule: 'react19-cache-opportunity',
     description: 'Deduplicate fetch calls with React 19 cache()',
-    code: `// lib/api.ts
-export async function getUser(id: string) {
-  const res = await fetch(\`/api/users/\${id}\`);
-  return res.json();
-}
-
-// Multiple components call getUser(1) - fetched multiple times!`,
+    code: `export default async function Page() {
+  const user = await fetch('/api/user/1');
+  const userData = await user.json();
+  
+  const userAgain = await fetch('/api/user/1'); // Duplicate!
+  const userDataAgain = await userAgain.json();
+  
+  return <div>{userData.name}</div>;
+}`,
     explanation: {
-      what: 'The same data is fetched multiple times across different components',
+      what: 'The same URL is fetched multiple times in this component',
       why: 'Duplicate fetches waste bandwidth and slow down rendering',
-      how: 'Wrap the function with React 19 cache() to deduplicate requests automatically',
+      how: 'Wrap fetch in React 19 cache() to automatically deduplicate requests',
+    },
+  },
+
+  // Route Configuration
+  {
+    id: 'route-config',
+    title: 'Route Config Conflict',
+    category: 'performance',
+    isPro: false,
+    rule: 'route-segment-config-conflict',
+    description: 'Conflicting route segment configuration options',
+    code: `export const dynamic = 'force-dynamic';
+export const revalidate = 60; // ⚠️ Conflict!
+
+export default function Page() {
+  return <div>Dynamic page</div>;
+}`,
+    explanation: {
+      what: 'This route has conflicting configuration: force-dynamic with revalidate',
+      why: 'ISR (Incremental Static Regeneration) with revalidate requires static or auto mode, not force-dynamic',
+      how: "Remove 'force-dynamic' to enable ISR, or remove revalidate for fully dynamic rendering",
+    },
+    contextDescription:
+      "Analyzer checks: dynamic = 'force-dynamic' + revalidate = 60 (conflicting options)",
+    context: {
+      routeConfig: {
+        dynamic: 'force-dynamic',
+        revalidate: 60,
+      },
     },
   },
 
   // Pro Teasers
   {
-    id: 'route-waterfall',
-    title: 'Route Waterfall (Pro)',
+    id: 'pro-waterfall',
+    title: 'Waterfall Detection (Pro)',
     category: 'pro',
     isPro: true,
     rule: 'route-waterfall-detected',

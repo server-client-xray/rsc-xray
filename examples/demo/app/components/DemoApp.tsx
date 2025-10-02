@@ -61,8 +61,7 @@ export function DemoApp(): ReactElement {
           rightPanel={
             <CodeEditor
               key={selectedScenarioId} // Force remount on scenario change
-              initialCode={scenario.code}
-              scenarioId={selectedScenarioId}
+              scenario={scenario}
               onAnalysisComplete={handleAnalysisComplete}
             />
           }

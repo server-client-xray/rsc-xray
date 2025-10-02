@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { scenarios, getScenario, getScenariosByCategory } from '../scenarios';
 
 describe('scenarios', () => {
-  it('should export at least one scenario', () => {
-    expect(scenarios.length).toBeGreaterThan(0);
+  it('should export all 8 scenarios (7 OSS + 1 Pro teaser)', () => {
+    expect(scenarios.length).toBe(8);
   });
 
   it('should have required properties', () => {

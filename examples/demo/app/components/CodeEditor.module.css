@@ -3,25 +3,33 @@
   overflow: hidden;
 }
 
-/* Override CodeMirror default styles */
+/* Override CodeMirror default styles with theme-aware colors */
 .editor :global(.cm-editor) {
   height: 100%;
-  background: #1e1e1e;
-  color: #d4d4d4;
+  background: var(--cm-bg);
+  color: var(--cm-fg);
 }
 
 .editor :global(.cm-gutters) {
-  background: #1e1e1e;
-  border-right: 1px solid #333;
-  color: #858585;
+  background: var(--cm-gutter-bg);
+  border-right: 1px solid var(--color-border);
+  color: var(--cm-gutter-fg);
 }
 
 .editor :global(.cm-activeLineGutter) {
-  background: #2a2a2a;
+  background: var(--color-panel-bg);
 }
 
 .editor :global(.cm-activeLine) {
-  background: #2a2a2a;
+  background: var(--color-panel-bg);
+}
+
+.editor :global(.cm-cursor) {
+  border-left-color: var(--cm-cursor);
+}
+
+.editor :global(.cm-selectionBackground) {
+  background: var(--cm-selection-bg) !important;
 }
 
 /* Diagnostic underlines */

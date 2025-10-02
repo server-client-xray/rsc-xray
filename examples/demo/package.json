@@ -2,7 +2,7 @@
   "name": "@rsc-xray/demo",
   "version": "0.1.0",
   "private": true,
-  "description": "Svelte-style interactive tutorial for RSC X-Ray",
+  "description": "Interactive tutorial for RSC X-Ray with split-panel interface",
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "next build",
