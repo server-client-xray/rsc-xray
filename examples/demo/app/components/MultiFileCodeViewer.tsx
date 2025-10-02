@@ -323,9 +323,7 @@ export function MultiFileCodeViewer({
       )}
 
       {/* Analyzing indicator */}
-      {isAnalyzing && enableRealTimeAnalysis && (
-        <div className={styles.analyzingIndicator}>⚡ Analyzing...</div>
-      )}
+      {enableRealTimeAnalysis && <div className={styles.analyzingIndicator}>⚡ Analyzing...</div>}
 
       {/* CodeMirror editor */}
       <div ref={editorRef} className={styles.editor} />

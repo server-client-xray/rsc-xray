@@ -204,7 +204,7 @@ export function DateDisplay({ date }: { date: Date }) {
       'CI trend tracking for dependency duplication over time',
     ],
     contextDescription:
-      'Analyzer simulates 3 client bundles (DateDisplay, Header, Footer) sharing date-fns, lodash, and moment',
+      '⚠️ NOTE: This scenario uses simulated bundle data (not real-time analysis of your edits). In production, RSC X-Ray analyzes actual Next.js build output to detect shared dependencies.',
     context: {
       clientBundles: [
         {
