@@ -239,6 +239,13 @@ export function MultiFileCodeViewer({
     };
   }, [activeFileName, activeFile?.code]);
 
+  // Trigger initial analysis when component mounts (if real-time analysis is enabled)
+  useEffect(() => {
+    if (enableRealTimeAnalysis && onAnalyze && activeFile?.editable) {
+      triggerAnalysis(activeFile.fileName, activeFile.code);
+    }
+  }, [enableRealTimeAnalysis, onAnalyze, activeFile]);
+
   // Update diagnostics when they change
   useEffect(() => {
     if (!viewRef.current || !isReady) return;
