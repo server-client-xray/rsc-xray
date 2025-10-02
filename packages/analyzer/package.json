@@ -1,6 +1,6 @@
 {
   "name": "@rsc-xray/analyzer",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Static analyzer for React Server Components: detect server/client boundaries, bundle sizes, forbidden imports, and performance issues",
   "type": "module",
   "main": "dist/index.js",

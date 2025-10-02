@@ -1,6 +1,6 @@
 {
   "name": "@rsc-xray/hydration",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "React hook for measuring client component hydration performance: track timing and costs per island",
   "type": "module",
   "main": "dist/index.js",
