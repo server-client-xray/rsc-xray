@@ -38,6 +38,13 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [isReady, setIsReady] = useState(false);
+  // Use ref to track current scenario so linter can access latest value
+  const scenarioRef = useRef(scenario);
+
+  // Keep scenario ref up to date
+  useEffect(() => {
+    scenarioRef.current = scenario;
+  }, [scenario]);
 
   useEffect(() => {
     if (!editorRef.current || viewRef.current) return;
@@ -51,14 +58,16 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
           onAnalysisComplete({ diagnostics: [], duration: 0, status: 'analyzing' });
 
           // Call server-side LSP analysis API
+          // Use scenarioRef.current to get the latest scenario value
+          const currentScenario = scenarioRef.current;
           const response = await fetch('/api/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               code,
               fileName: 'demo.tsx',
-              scenario: scenario.id,
-              context: scenario.context, // Pass context for rules that need it
+              scenario: currentScenario.id,
+              context: currentScenario.context, // Pass context for rules that need it
             }),
           });
 
@@ -185,6 +194,14 @@ export function CodeEditor({ scenario, highlightLine, onAnalysisComplete }: Code
         },
       });
     }
+
+    // Trigger re-lint with new scenario context immediately
+    // This ensures diagnostics update even if user hasn't edited yet
+    import('@codemirror/lint').then(({ forceLinting }) => {
+      if (viewRef.current) {
+        forceLinting(viewRef.current);
+      }
+    });
   }, [scenario.code, scenario.id, isReady]);
 
   // Highlight and scroll to specific line (for deep linking)
