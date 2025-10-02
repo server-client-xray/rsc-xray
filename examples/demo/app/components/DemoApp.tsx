@@ -10,7 +10,7 @@ import { ExplanationPanel } from './ExplanationPanel';
 import { CodeEditor } from './CodeEditor';
 import { StatusBar } from './StatusBar';
 import { ProModal, type ProFeature } from './ProPreview';
-import { ContextTabs } from './ContextTabs';
+import { MultiFileCodeViewer } from './MultiFileCodeViewer';
 import styles from './DemoApp.module.css';
 
 /**
@@ -131,9 +131,9 @@ export function DemoApp() {
                   />
                 ) : (
                   scenario.contextFiles?.[activeTab as number] && (
-                    <ContextTabs
+                    <MultiFileCodeViewer
                       key={`${selectedScenarioId}-${activeTab}`} // Force remount on tab change
-                      file={scenario.contextFiles[activeTab as number]}
+                      files={[scenario.contextFiles[activeTab as number]]}
                       diagnostics={diagnostics}
                     />
                   )
