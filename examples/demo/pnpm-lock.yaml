@@ -21,11 +21,11 @@ importers:
         specifier: ^6.38.4
         version: 6.38.4
       '@rsc-xray/lsp-server':
-        specifier: ^0.2.2
-        version: 0.2.2
+        specifier: ^0.3.0
+        version: 0.3.0
       '@rsc-xray/schemas':
-        specifier: ^0.7.2
-        version: 0.7.2
+        specifier: ^0.8.0
+        version: 0.8.0
       codemirror:
         specifier: ^6.0.2
         version: 6.0.2
@@ -584,14 +584,14 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@rsc-xray/analyzer@0.7.2':
-    resolution: {integrity: sha512-X7yFsm5fFt5EopCeBymNip9hwGcTGE5hjXvrqN4lUNnzkCGMsrX4acPbQEV3EbFALunsVq34FkVOJ7PFfY0rcw==}
+  '@rsc-xray/analyzer@0.8.0':
+    resolution: {integrity: sha512-+hjZD5TFzR/Jlz6uWduLyQwm+WZmK3V3owND4BWujyDMHv9/RcotWN/CQcQCy7yg5YLlVH3JryMpM7eGVhOotQ==}
 
-  '@rsc-xray/lsp-server@0.2.2':
-    resolution: {integrity: sha512-+jAqdkEhxOUo6voCqTciXm3SYFrAQ6vfcqHnWZPjFG5KftKaEQYidtflVKGc1niP7Lt95eQ9bOd7DL7HpcKlTA==}
+  '@rsc-xray/lsp-server@0.3.0':
+    resolution: {integrity: sha512-EkNkE49BAbhdC29vBU7tbr20tWGi3eyzBItEc3O2RARGzFZAzcwF3vVWUcDJ92s+IfO3k3AvipqLDNDPAF17Pw==}
 
-  '@rsc-xray/schemas@0.7.2':
-    resolution: {integrity: sha512-leSjD1xSmNMOJwcZs4Mswszts3Xr1IvDxoYnTEhNGu//vvmXqNXVpgNKTLR9AIY9Zs60gaOwXayzp0CO67urIQ==}
+  '@rsc-xray/schemas@0.8.0':
+    resolution: {integrity: sha512-Y4FHp7iP6CVXWcpcINGlT89+lSoqevRG4XoaCit31NvSO06dmmjoYPG+rDf10j3TEdQl3Vi9EkUemcwrMRdoUw==}
 
   '@swc/helpers@0.5.15':
     resolution: {integrity: sha512-JQ5TuMi45Owi4/BIMAJBoSQoOJu12oOk/gADqlcUL9JEdHB8vyjUSsxqeNXnmXHjYKMi2WcYtezGEEhqUI/E2g==}
@@ -1570,17 +1570,17 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.52.3':
     optional: true
 
-  '@rsc-xray/analyzer@0.7.2':
+  '@rsc-xray/analyzer@0.8.0':
     dependencies:
-      '@rsc-xray/schemas': 0.7.2
+      '@rsc-xray/schemas': 0.8.0
       typescript: 5.9.3
 
-  '@rsc-xray/lsp-server@0.2.2':
+  '@rsc-xray/lsp-server@0.3.0':
     dependencies:
-      '@rsc-xray/analyzer': 0.7.2
-      '@rsc-xray/schemas': 0.7.2
+      '@rsc-xray/analyzer': 0.8.0
+      '@rsc-xray/schemas': 0.8.0
 
-  '@rsc-xray/schemas@0.7.2': {}
+  '@rsc-xray/schemas@0.8.0': {}
 
   '@swc/helpers@0.5.15':
     dependencies:
