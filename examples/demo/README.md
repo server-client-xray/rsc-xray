@@ -31,14 +31,15 @@ Visit http://localhost:3001
 
 ## Dependencies
 
-This demo uses workspace dependencies (no npm publishing required for deployment):
+This demo uses published npm packages for Vercel deployment:
 
-- `@rsc-xray/lsp-server@workspace:*` - LSP orchestration layer
-- `@rsc-xray/schemas@workspace:*` - Type definitions
+- `@rsc-xray/lsp-server` - LSP orchestration layer
+- `@rsc-xray/schemas` - Type definitions
 - `@rsc-xray/analyzer` (transitive) - Core analysis engine
+- `typescript` - Required for API route TypeScript parsing
 
-Vercel resolves workspace packages via `pnpm-workspace.yaml` and `pnpm-lock.yaml`.
-During local development, workspace packages are linked automatically.
+During local monorepo development, these resolve to workspace packages automatically.  
+For Vercel deployment, the lockfile references published versions from npm registry.
 
 ## Editor Choice: CodeMirror 6
 

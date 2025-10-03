@@ -6,7 +6,8 @@
 
 Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, and suggestions — export a shareable offline HTML report.
 
-**Try it live**: [Interactive Demo](https://demo.rsc-xray.dev) — Edit code and see diagnostics in real-time
+**Try it live**: [Interactive Demo](https://demo.rsc-xray.dev) — Edit code and see diagnostics in real-time  
+**Get the extension**: [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=rsc-xray.rsc-xray-pro) (Pro) — Inline diagnostics with quick fixes
 
 ## Features (Free/OSS)
 
@@ -26,10 +27,11 @@ Analyze React Server Components in Next.js: boundaries, Suspense, bundle bytes, 
 - **Route segment config analyzer** — Validate and detect conflicts in route config options
 - Suggestions (hoist fetch, parallelize awaits, add Suspense boundaries)
 
-**Reporting:**
+**Reporting & Tools:**
 
 - Export JSON model and **offline HTML report**
-- Interactive demo at [demo.rsc-xray.dev](https://demo.rsc-xray.dev)
+- **Interactive browser demo** at [demo.rsc-xray.dev](https://demo.rsc-xray.dev)
+- **LSP server** for editor integrations (`@rsc-xray/lsp-server`)
 - Compatibility: Next.js 13.4–15.x
 
 <details>
